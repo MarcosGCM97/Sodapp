@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <!-- Si estás usando el emulador y tu servidor está en tu máquina de desarrollo,
+             localhost en el emulador se refiere al propio emulador.
+             Para acceder al localhost de tu máquina desde el emulador, usa 10.0.2.2.
+             Añade esta línea si es tu caso: -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Si usas un dispositivo físico y tu servidor está en tu máquina local
+             en la misma red, añade la IP de tu máquina aquí. Por ejemplo:
+        <domain includeSubdomains="true">192.168.1.100</domain>
+        -->
+    </domain-config>
+
+    <!-- Opcionalmente, puedes mantener la configuración por defecto para todos los demás dominios
+         (que es no permitir texto claro a menos que se especifique)
+         o definir una base-config más restrictiva si es necesario.
+         Si no se especifica una <base-config>, por defecto es restrictiva.
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    -->
+</network-security-config>
+    
