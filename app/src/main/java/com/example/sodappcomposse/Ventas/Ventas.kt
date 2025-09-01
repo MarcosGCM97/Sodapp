@@ -1,6 +1,7 @@
 package com.example.sodappcomposse.Ventas
 
-import android.util.Log
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -21,74 +23,71 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
+import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.ProductoViewModel
 
 @Composable
 fun Ventas(
-    ventaModel: VentasViewModel = viewModel()
+    ventaModel: VentasViewModel = viewModel(),
+    productoModel: ProductoViewModel = viewModel(),
 ){
-    val TAG = "Ventas"
+    val TAG = "Ventas screen"
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        productoModel.getProductos()
         ventaModel.getVentas()
     }
 
-    val ventasUiState = ventaModel.ventasUiState // Observe this for Loading/Error/Success
+    val ventasUiState = ventaModel.ventasUiState
     val listaOriginalVentas = ventaModel.ventas
+    val listaOriginalProductos = productoModel.productos
 
-    // This will hold the grouped sales
-    val ventasAgrupadas = remember(listaOriginalVentas.toList()) { // Recalculate if listaOriginalVentas changes
+    val ventasAgrupadas = remember(listaOriginalVentas.toList()) {
         if (listaOriginalVentas.isEmpty()) {
-            Log.e(TAG, "No hay ventas para mostrar.")
             emptyList<VentaAgrupada>()
         } else {
-            Log.d(TAG, "Ventas recibidas: $listaOriginalVentas")
-            // Step 1: Group by Client Name and Date
             val groupedByClienteAndFecha = listaOriginalVentas.groupBy {
-                Pair(it.cliente.nombreCl, it.fecha) // Create a Pair to group by two criteria
+                Pair(it.cliente.nombreCl, it.fecha)
             }
 
-            // Step 2: Transform the grouped data into VentaAgrupada
             val resultado = groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
-                // All ventasDelGrupo have the same client and fecha
-                val cliente = ventasDelGrupo.first().cliente // Get client info from the first item
-                val fecha = clienteFechaPair.second // Get fecha from the Pair
+                val cliente = ventasDelGrupo.first().cliente
+                val fecha = clienteFechaPair.second
 
-                // Step 2a: Group products within this client/date group and sum quantities
                 val productosSumados = ventasDelGrupo
-                    .groupBy { it.producto } // Group by product name
+                    .groupBy { it.producto }
                     .map { (nombreProducto, itemsProducto) ->
                         ProductoVenta(
                             nombre = nombreProducto,
-                            cantidad = itemsProducto.sumOf { it.cantidad.toIntOrNull() ?: 0 } // Convert String quantity to Int and sum
+                            cantidad = itemsProducto.sumOf { it.cantidad.toIntOrNull() ?: 0 },
+                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni?.toDouble()
                         )
                     }
 
                 val cantidadTotalDeEstaVenta = productosSumados.sumOf { it.cantidad }
+                val montoTotalDeEstaVenta = productosSumados.sumOf { it.cantidad * (it.precio ?: 0.0) }
 
                 VentaAgrupada(
                     cliente = cliente,
                     fecha = fecha,
                     productos = productosSumados,
-                    cantidadTotalVenta = cantidadTotalDeEstaVenta
+                    cantidadTotalVenta = cantidadTotalDeEstaVenta,
+                    montoTotalVenta = montoTotalDeEstaVenta
                 )
             }
             resultado
         }
     }
 
-    // Handle UI State for loading/error messages based on ventasUiState
-    // ...
 
     Column(
         modifier = Modifier
@@ -107,22 +106,22 @@ fun Ventas(
 
         if (ventasUiState is VentasUiState.Loading) {
             CircularProgressIndicator()
-            Log.d("VentasComposable", "UI State: Loading")
+            //Log.d("VentasComposable", "UI State: Loading")
         } else if (ventasUiState is VentasUiState.Error) {
-            Text("Error: ${(ventasUiState as VentasUiState.Error).message}", color = MaterialTheme.colorScheme.error)
-            Log.d("VentasComposable", "UI State: Error - ${(ventasUiState as VentasUiState.Error).message}")
+            Text("Error: ${(ventasUiState).message}", color = MaterialTheme.colorScheme.error)
+            //Log.d("VentasComposable", "UI State: Error - ${(ventasUiState as VentasUiState.Error).message}")
         } else if (ventasAgrupadas.isEmpty() && ventasUiState is VentasUiState.Success) {
             Text("No hay ventas para mostrar.")
-            Log.d("VentasComposable", "UI State: Success pero ventasAgrupadas está vacía.")
-        } else if (ventasUiState is VentasUiState.Success){ // Si es Success y ventasAgrupadas no está vacía
-            Log.d("VentasComposable", "UI State: Success, mostrando ${ventasAgrupadas.size} ventas agrupadas.")
+            //Log.d("VentasComposable", "UI State: Success pero ventasAgrupadas está vacía.")
+        } else if (ventasUiState is VentasUiState.Success){
+            //Log.d("VentasComposable", "UI State: Success, mostrando ${ventasAgrupadas.size} ventas agrupadas.")
             ventasAgrupadas.forEach { ventaAgrupada ->
-                BoxVentas(venta = ventaAgrupada)
+                BoxVentas(venta = ventaAgrupada, context)
             }
         } else {
             // Caso por defecto o si ventasUiState es Idle y la lista no está vacía (poco probable aquí)
             Text("Esperando datos...")
-            Log.d("VentasComposable", "UI State: Idle o estado no manejado y ventasAgrupadas está vacía.")
+            //Log.d("VentasComposable", "UI State: Idle o estado no manejado y ventasAgrupadas está vacía.")
         }
     }
 }
@@ -130,37 +129,34 @@ fun Ventas(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddVentaForm(
-    ventaModel: VentasViewModel = viewModel(),
     clienteModel: ClientesViewModel = viewModel(),
-    productoModel: ProductoViewModel = viewModel()
+    productoModel: ProductoViewModel = viewModel(),
+    ventaModel: VentasViewModel = viewModel()
 ){
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        clienteModel.getClientes()
-        productoModel.getProductos()
-    }
     val clienteUiState = clienteModel.clienteUiState
     val clientes = clienteModel.clientes
 
     val productoUiState = productoModel.productoUiState
     val productos = productoModel.productos
 
+
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
             is ClienteUiState.Success -> {
-                Log.d("AddVentaForm", "Success: ${clientes.size} clients loaded.")
+                //Log.d("AddVentaForm", "Success: ${clientes.size} clients loaded.")
                 // onVentaAgregada() // Llama a esto si es apropiado aquí
             }
             is ClienteUiState.Error -> {
-                Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
+                //Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
                 Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
-                Log.d("AddVentaForm", "Loading clients...")
+                //Log.d("AddVentaForm", "Loading clients...")
             }
             ClienteUiState.Idle -> {
-                Log.d("AddVentaForm", "Client state is Idle.")
+                //Log.d("AddVentaForm", "Client state is Idle.")
             }
         }
     }
@@ -168,18 +164,17 @@ fun AddVentaForm(
     LaunchedEffect(productoUiState) {
         when (productoUiState) {
             is ProductoUiState.Success -> {
-                Log.d("AddVentaForm", "Success: ${productos.size} prods loaded.")
-                // onVentaAgregada() // Llama a esto si es apropiado aquí
+                //Log.d("AddVentaForm", "Success: ${productos.size} prods loaded.")
             }
             is ProductoUiState.Error -> {
-                Log.d("AddVentaForm", "Error: ${productoUiState.message}")
+                //Log.d("AddVentaForm", "Error: ${productoUiState.message}")
                 Toast.makeText(context, productoUiState.message, Toast.LENGTH_SHORT).show()
             }
             is ProductoUiState.Loading -> {
-                Log.d("AddVentaForm", "Loading prods...")
+                //Log.d("AddVentaForm", "Loading prods...")
             }
             ProductoUiState.Idle -> {
-                Log.d("AddVentaForm", "Prod state is Idle.")
+                //Log.d("AddVentaForm", "Prod state is Idle.")
             }
         }
     }
@@ -203,7 +198,7 @@ fun AddVentaForm(
         )
     }
 
-    val clienteParaVenta = clienteModel.clienteParaVenta
+    val clienteParaVenta = clienteModel.clienteParaDropDown
 
     // State to hold the list of chosen products with their quantities for the sale
     val productosParaVenta = remember { mutableStateListOf<ProductoVenta>() }
@@ -254,6 +249,8 @@ fun AddVentaForm(
                             expandedProds = false
                             // Add to productosParaVenta if not already present
                             if (productosParaVenta.none { it.nombre == selectionOption }) {
+                                productoModel.getProductoByName(selectionOption)//cargo el producto para despues procesar la deuda del cliente
+
                                 productosParaVenta.add(ProductoVenta(nombre = selectionOption)) // Adds with default quantity 1
                                 Toast.makeText(context, "$selectionOption agregado a la lista", Toast.LENGTH_SHORT).show()
                             } else {
@@ -324,12 +321,10 @@ fun AddVentaForm(
                 return@Button
             }
 
-            Log.d("AddVentaForm", "Venta a cargar:")
-            Log.d("AddVentaForm", "Cliente: ${clienteParaVenta}")
-            productosParaVenta.forEach {
-                Log.d("AddVentaForm", "Producto: ${it.nombre}, Cantidad: ${it.cantidad}")
-            }
-            Toast.makeText(context, "Venta lista para procesar (ver logs)", Toast.LENGTH_LONG).show()
+            //Log.d("AddVentaForm", "Venta a cargar:")
+            //Log.d("AddVentaForm", "Cliente: ${clienteParaVenta}")
+
+            //Toast.makeText(context, "Venta lista para procesar (ver Logs)", Toast.LENGTH_LONG).show()
             ventaModel.postVenta(clienteId = clienteParaVenta.value!!.idCl, productos = productosParaVenta)
             ventaModel.getVentas()
 
@@ -358,9 +353,17 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     }
 )
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
- fun BoxVentas(venta: VentaAgrupada) {
+ fun BoxVentas(
+    venta: VentaAgrupada,
+    context: Context,
+    clienteModel: ClientesViewModel = viewModel()
+ ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
+     var cliente = clienteModel.clientes.find { it.idCl == venta.cliente.idCl }
+    var totales : MutableList<Double?> = mutableListOf(0.0)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -388,32 +391,63 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 style = MaterialTheme.typography.titleSmall
             )
             venta.productos.forEach { producto ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                totales.add(producto.precio?.times(producto.cantidad))
+
+                Row (
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .fillMaxWidth()
+                        .borderBottom(1.dp, Color.LightGray),
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Text(
                         text = "- ${producto.nombre}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Cantidad: ${producto.cantidad}",
+                        text = "-Cantidad: ${producto.cantidad}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Text(
+                        text = "-Precio x 1: $${producto.precio}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Divider()
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Cantidad Total de Items: ${venta.cantidadTotalVenta}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.End,
-                modifier = Modifier.fillMaxWidth()
+                text = "Total: $${totales.sumOf{ it ?: 0.0  }}",
+                style = MaterialTheme
+                    .typography.bodyMedium
+                    .copy(fontWeight = FontWeight.Bold)
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row {
+                CardWpp(
+                    context,
+                    cliente,
+                    armarMensajeVentasWpp(venta, totales.sumOf{ it ?: 0.0  })
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Cantidad Total de Items: ${venta.cantidadTotalVenta}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
+}
+
+fun armarMensajeVentasWpp(venta: VentaAgrupada, total : Double): String{
+    val productosString = venta.productos.joinToString(
+        separator = ", ",
+        transform = { it.cantidad.toString() + " " + it.nombre + " por $" + it.precio.toString() + " c/u" }
+    )
+    return "Tu compra fue de $productosString, por un total de $$total. Gracias por tu compra!"
 }
 
 @Composable
@@ -440,46 +474,39 @@ fun ProductoCantidadItem(
         ) {
             IconButton(
                 onClick = {
-                    // Call onCantidadChange with 0 if you want to trigger removal logic
-                    // The parent Composable (AddVentaForm) will handle the actual removal.
                     if (cantidad > 1) {
                         onCantidadChange(cantidad - 1)
-                    } else if (cantidad == 1) { // If at 1, next decrement means 0 (signal for removal)
+                    } else if (cantidad == 1) {
                         onCantidadChange(0)
                     }
                 },
-                enabled = cantidad > 0 // Only enable if quantity can be decreased
+                enabled = cantidad > 0
             ) {
                 Icon(Icons.Filled.Delete, contentDescription = "Disminuir cantidad")
             }
 
             OutlinedTextField(
-                value = if (cantidad == 0) "" else cantidad.toString(), // Show empty if quantity is 0 (pending removal)
+                value = if (cantidad == 0) "" else cantidad.toString(),
                 onValueChange = { newValue ->
                     val newQuantity = newValue.toIntOrNull()
                     if (newValue.isEmpty()) {
-                        onCantidadChange(0) // Interpret empty as wanting to remove or set to 0
+                        onCantidadChange(0)
                     } else if (newQuantity != null) {
-                        if (newQuantity >= 0) { // Allow 0 to be typed, parent handles removal
+                        if (newQuantity >= 0) {
                             onCantidadChange(newQuantity)
                         } else {
-                            onCantidadChange(0) // Or some minimum valid quantity like 1
+                            onCantidadChange(0)
                         }
                     }
-                    // If input is not a valid number or empty, do nothing, or reset to current 'cantidad'
                 },
                 modifier = Modifier.width(75.dp), // Adjusted width
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                // Visual density can make it smaller if needed
-                // visualTransformation = VisualTransformation.None,
-                // colors = TextFieldDefaults.outlinedTextFieldColors( /* ... */ )
             )
 
             IconButton(onClick = {
                 onCantidadChange(cantidad + 1)
-                // Add max limit if needed: if (cantidad < MAX_QUANTITY) onCantidadChange(cantidad + 1)
             }) {
                 Icon(Icons.Filled.Add, contentDescription = "Aumentar cantidad")
             }
@@ -487,9 +514,9 @@ fun ProductoCantidadItem(
     }
 }
 
-
+/*
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewVentasScreen(){
     Ventas()
-}
+}*/

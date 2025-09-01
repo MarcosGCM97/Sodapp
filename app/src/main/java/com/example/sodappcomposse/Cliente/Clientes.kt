@@ -34,10 +34,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @Composable
 fun Clientes(
-    clientesModel: ClientesViewModel = viewModel()
+    clientesModel: ClientesViewModel = viewModel(),
+    navController: NavController
 ){
     val TAG = "Clientes"
     val scrollState = rememberScrollState()
@@ -54,6 +56,7 @@ fun Clientes(
             modifier = Modifier.fillMaxWidth()
         ) {
             AddClienteForm(
+                navController = navController
             )
         }
     }
@@ -63,6 +66,7 @@ fun Clientes(
 @Composable
 fun AddClienteForm(
     clienteModel: ClientesViewModel = viewModel(),
+    navController: NavController
 ){
     val context = LocalContext.current
 
@@ -72,6 +76,7 @@ fun AddClienteForm(
     var nombreCliente by remember { mutableStateOf("") }
     var direccionCliente by remember { mutableStateOf("") }
     var telefonoCliente by remember { mutableStateOf("") }
+    var deudaCliente by remember { mutableStateOf(0) }
 
     // Observar el estado de agregar cliente desde el ViewModel
     val addState by clienteModel.addClienteUiState
@@ -156,7 +161,9 @@ fun AddClienteForm(
 
         Text("o buscar uno existente:", style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
 
-        BuscarCliente()
+        BuscarCliente(
+            navController = navController
+        )
     }
 
 }
@@ -165,29 +172,30 @@ fun AddClienteForm(
 @Composable
 fun BuscarCliente(
     clienteModel: ClientesViewModel = viewModel(),
+    navController: NavController
 ){
     val context = LocalContext.current
 
     val clienteUiState = clienteModel.clienteUiState
     val clientes = clienteModel.clientes
 
-    val clienteSeleccionado by clienteModel.clienteParaVenta
+    val clienteSeleccionado by clienteModel.clienteParaDropDown
 
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
             is ClienteUiState.Success -> {
-                Log.d("AddClienteForm", "Success: ${clientes.size} clients loaded.")
+                //Log.d("AddClienteForm", "Success: ${clientes.size} clients loaded.")
                 // onVentaAgregada() // Llama a esto si es apropiado aquí
             }
             is ClienteUiState.Error -> {
-                Log.d("AddClienteForm", "Error: ${clienteUiState.message}")
+                //Log.d("AddClienteForm", "Error: ${clienteUiState.message}")
                 Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
-                Log.d("AddClienteForm", "Loading clients...")
+                //Log.d("AddClienteForm", "Loading clients...")
             }
             ClienteUiState.Idle -> {
-                Log.d("AddClienteForm", "Client state is Idle.")
+                //Log.d("AddClienteForm", "Client state is Idle.")
             }
         }
     }
@@ -214,63 +222,68 @@ fun BuscarCliente(
                 Text("Nombre: ${cliente.nombreCl}")
                 Text("Dirección: ${cliente.direccionCl}")
                 Text("Teléfono: ${cliente.numTelCl}")
+                Text("Deuda: ${cliente.deudaCl}")
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End // Alinea el botón a la derecha
+                    horizontalArrangement = Arrangement.Start // Alinea el botón a la derecha
                 ) {
                     Button(
                         onClick = {
                             // Aquí puedes navegar a una pantalla de edición separada
-                            // o mostrar un diálogo de edición, o campos de edición en línea.
-                            // Por ahora, un Log:
-                            Log.d("BuscarCliente", "Editar cliente: ${cliente.nombreCl}")
+                            // o mostrar un diá//Logo de edición, o campos de edición en línea.
+                            // Por ahora, un //Log:
+                            //Log.d("BuscarCliente", "Editar cliente: ${cliente.nombreCl}")
                             // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
-                            // navController.navigate("editarClienteScreen/${cliente.cl_ide}")
+                            navController.navigate("clienteEditarScreen/${cliente.idCl}")
                         }
                     ) {
                         Icon(Icons.Filled.Edit, contentDescription = "Editar")
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Editar")
                     }
+                    //Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     Button(
                         onClick = {
-                            // Aquí puedes navegar a una pantalla de edición separada
-                            // o mostrar un diálogo de edición, o campos de edición en línea.
-                            // Por ahora, un Log:
-                            Log.d("BuscarCliente", "Editar cliente: ${cliente.nombreCl}")
-                            // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
-                            // navController.navigate("editarClienteScreen/${cliente.cl_ide}")
+                            // Confirmar la eliminación
+
+                            //clienteModel.eliminarCliente(cliente)
+                            //Toast.makeText(context, "Cliente eliminado", Toast.LENGTH_SHORT).show()
+                            navController.navigate("deudaScreen/${cliente.idCl}")
                         }
                     ) {
                         Icon(Icons.Filled.ShoppingCart, contentDescription = "Deuda")
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Ver deuda")
+                        Text("Ver deuda")//Text("Ver deuda")
                     }
-                    //Button(
-                    //    onClick = {
-                    //        // Aquí puedes navegar a una pantalla de edición separada
-                    //        // o mostrar un diálogo de edición, o campos de edición en línea.
-                    //        // Por ahora, un Log:
-                    //        Log.d("BuscarCliente", "Eliminar cliente: ${cliente.nombreCl}")
-                    //        // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
-                    //        // navController.navigate("editarClienteScreen/${cliente.cl_ide}")
-                    //    }
-                    //) {
-                    //    Icon(Icons.Filled.Close, contentDescription = "Eliminar")
-                    //    Spacer(modifier = Modifier.width(4.dp))
-                    //}
-                    //// Podrías añadir un botón de "Eliminar" aquí también si es necesario
+                    Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
+                    //Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
+                    /*Button(
+                        onClick = {
+                            // Aquí puedes navegar a una pantalla de edición separada
+                            // o mostrar un diá//Logo de edición, o campos de edición en línea.
+                            // Por ahora, un //Log:
+                            //Log.d("BuscarCliente", "Eliminar cliente: ${cliente.nombreCl}")
+                            // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
+                        }
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = "Eliminar")
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }*/
                 }
             }
         }
     }
 }
-
+/*
 @Preview(showSystemUi = true)
 @Composable
 fun PreviewClientesScreen(){
-    Clientes()
-}
+    Clientes(
+        navController = NavController(LocalContext.current)
+    )
+}*/

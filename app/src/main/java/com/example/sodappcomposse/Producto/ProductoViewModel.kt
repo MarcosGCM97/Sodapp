@@ -1,6 +1,6 @@
 package com.example.sodappcomposse.Producto
 
-import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -39,6 +40,20 @@ class ProductoViewModel(
     var productoUiState: ProductoUiState by mutableStateOf(ProductoUiState.Idle)
         private set // Solo modificable desde el ViewModel
 
+    val productosParaDropDown : MutableState<Producto?> = mutableStateOf(null)
+
+    var productoByName: MutableState<Producto?> = mutableStateOf(null)
+    val productoStateByName: State<Producto?> = productoByName
+
+    fun getProductoByName(nombrePr: String) {
+
+        productoByName = mutableStateOf(
+            productos.find {
+                it.nombrePr == nombrePr
+            }
+        )
+    }
+
     internal fun getProductos(){
         viewModelScope.launch {
             productoUiState = ProductoUiState.Loading // Es buena practica
@@ -52,21 +67,21 @@ class ProductoViewModel(
                         _productos.addAll(productosApi)
                         productoUiState = ProductoUiState.Success("Productos cargados: ${_productos.size}")
                     }else{
-                        Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
+                        //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
                     }
                 }else{
                     //Manejar error de la API
-                    Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
 
             }catch (e: HttpException) {
-                Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
+                //Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
                 productoUiState = ProductoUiState.Error("Error HTTP: ${e.message()}")
             }catch (e: IOException) {
-                Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
+                //Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
                 productoUiState = ProductoUiState.Error("Error de Red: Verifica tu conexión.")
             }catch (e: Exception) {
-                Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
+                //Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
                 productoUiState = ProductoUiState.Error("Error inesperado: ${e.message?.take(100)}")
 
             }
@@ -100,15 +115,15 @@ class ProductoViewModel(
                 }
                 else{
                     //Manejar error de la API
-                    Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
                     _addProductoUiState.value = AddProductoUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
 
             } catch (e: Exception) {
-                Log.e("ProductosViewModel", "Error al guardar producto: ${e.message}", e)
+                //Log.e("ProductosViewModel", "Error al guardar producto: ${e.message}", e)
                 _addProductoUiState.value = AddProductoUiState.Error("Error al guardar: ${e.message}")
             } catch (e: HttpException) {
-                Log.e("ProductosViewModel", "Error HTTP al guardar producto: ${e.code()} - ${e.message()}", e)
+                //Log.e("ProductosViewModel", "Error HTTP al guardar producto: ${e.code()} - ${e.message()}", e)
             }
         }
     }
@@ -121,11 +136,56 @@ class ProductoViewModel(
     val productoSeleccionadoParaEdicion: State<Producto?> = _productoSeleccionadoParaEdicion
 
     // Función para actualizar el producto seleccionado
-    fun seleccionarProductoParaEdicion(producto: Producto?) {
+    fun editarProducto(producto: Producto?) {
         _productoSeleccionadoParaEdicion.value = producto
         viewModelScope.launch {
-            // Lógica para llamar a tu API o base de datos para actualizar el producto
-            Log.d("ProductosViewModel", "Actualizando producto: ${producto?.nombrePr}")
+            try {
+                val response = apiServices.updateProducto(producto!!.nombrePr, producto.precioUni.toDouble(), producto.stock.toInt())
+                if(response.isSuccessful){
+                    //Log.d("ProductosViewModel", "Producto actualizado exitosamente: ${producto.nombrePr}")
+                    productoUiState = ProductoUiState.Success("Producto actualizado exitosamente.")
+                    getProductos()
+                } else {
+                    //Log.e("ProductosViewModel", "Error al actualizar producto: ${response.code()} - ${response.message()}")
+                    productoUiState = ProductoUiState.Error("Error al actualizar producto: ${response.code()} - ${response.message()}")
+                }
+            }catch (e: HttpException) {
+                //Log.e("ProductosViewModel", "Error HTTP al actualizar producto: ${e.code()} - ${e.message()}", e)
+                productoUiState = ProductoUiState.Error("Error HTTP al actualizar producto: ${e.code()} - ${e.message()}")
+            } catch (e: IOException) {
+                //Log.e("ProductosViewModel", "Error de red al actualizar producto: ${e.message}", e)
+                productoUiState = ProductoUiState.Error("Error de red al actualizar producto: ${e.message}")
+            } catch (e: Exception) {
+                //Log.e("ProductosViewModel", "Error al actualizar producto: ${e.message}", e)
+                productoUiState = ProductoUiState.Error("Error al actualizar producto: ${e.message}")
+            }
+        }
+    }
+
+    fun eliminarProducto(producto: Producto) {
+        viewModelScope.launch {
+            try {
+                val response = apiServices.deleteProducto(producto.nombrePr)
+                if (response.isSuccessful) {
+                    //Log.d("ProductosViewModel", "Producto eliminado exitosamente: ${producto.nombrePr}")
+                    _productos.remove(producto)
+                    productoUiState = ProductoUiState.Success("Producto eliminado exitosamente.")
+                    getProductos()
+                } else {
+                    //Log.e("ProductosViewModel", "Error al eliminar producto: ${response.code()} - ${response.message()}")
+                    productoUiState = ProductoUiState.Error("Error al eliminar producto: ${response.code()} - ${response.message()}")
+                    }
+            } catch (e: HttpException) {
+                //Log.e("ProductosViewModel", "Error HTTP al eliminar producto: ${e.code()} - ${e.message()}", e)
+                productoUiState = ProductoUiState.Error("Error HTTP al eliminar producto: ${e.code()} - ${e.message()}")
+            } catch (e: IOException) {
+                //Log.e("ProductosViewModel", "Error de red al eliminar producto: ${e.message}", e)
+                productoUiState = ProductoUiState.Error("Error de red al eliminar producto: ${e.message}")
+            }catch (e: Exception) {
+                //Log.e("ProductosViewModel", "Error al eliminar producto: ${e.message}", e)
+                productoUiState = ProductoUiState.Error("Error al eliminar producto: ${e.message}")
+            }
+
         }
     }
 }

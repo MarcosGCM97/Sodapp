@@ -1,6 +1,7 @@
 package com.example.sodappcomposse.Componentes
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,11 +48,18 @@ import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sodappcomposse.IngresoUsuario.LoginUiState
+import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
 @Composable
 fun LoginScreen(navBienvenida: (String) -> Unit){
-    EncabezadoLogin()
-    CuerpoLogin(navBienvenida)
+    SodAppComposseTheme {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)) { // Fondo general
+            EncabezadoLogin() // EncabezadoLogin ahora tomará contexto del tema si usa MaterialTheme.colorScheme
+            CuerpoLogin(navBienvenida)  // CuerpoLogin también
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,12 +67,14 @@ fun LoginScreen(navBienvenida: (String) -> Unit){
 fun EncabezadoLogin() {
     Row(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(0.dp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "SodApp",
-            color = azulFuerte,
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -72,7 +83,7 @@ fun EncabezadoLogin() {
 
         Text(
             text = "Usuario",
-            color = Color.Blue,
+            color = MaterialTheme.colorScheme.secondary,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -82,6 +93,7 @@ fun EncabezadoLogin() {
         Icon(
             imageVector = Icons.Default.AccountCircle,
             contentDescription = "Icono",
+            tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier
                 .height(50.dp)
                 .width(50.dp)
@@ -94,7 +106,7 @@ fun EncabezadoLogin() {
 fun CuerpoLogin(
     navBienvenida: (String) -> Unit,
     loginModel: LoginViewModel = viewModel()
-    ){
+){
     var nombre by remember { mutableStateOf("") }
     var contrasenia by remember { mutableStateOf("") }
     val contexto = LocalContext.current
@@ -138,12 +150,13 @@ fun CuerpoLogin(
             modifier = Modifier
                 .height(100.dp)
                 .width(100.dp),
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.primary
         )
 
         Text(
             text = "Ingresa con tu Usuario",
             fontSize = 20.sp,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
 
@@ -152,11 +165,16 @@ fun CuerpoLogin(
         TextField(
             value = nombre,
             onValueChange = {nombre=it},
-            leadingIcon = {Icon(painter = painterResource(R.drawable.baseline_email_24), contentDescription = "email")},
-            placeholder = {Text(text="nombre electronico")},
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_email_24),
+                    contentDescription = "email",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                ) },
+            placeholder = {Text(text="Nombre de usuario")},
             modifier = Modifier
                 .fillMaxWidth()
-                .border(width = 1.dp, shape = RoundedCornerShape(25.dp), color = Color.Gray),
+                .border(width = 1.dp, shape = RoundedCornerShape(5.dp), color = Color.Gray),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
@@ -172,11 +190,17 @@ fun CuerpoLogin(
         TextField(
             value = contrasenia,
             onValueChange = {contrasenia = it},
-            leadingIcon = {Icon(painter = painterResource(R.drawable.baseline_key_24), contentDescription = "email")},
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_key_24),
+                    contentDescription = "Icono Contraseña",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             placeholder = {Text(text="Contraseña")},
             modifier = Modifier
                 .fillMaxWidth()
-                .border(width = 1.dp, shape = RoundedCornerShape(25.dp), color = Color.Gray),
+                .border(width = 1.dp, shape = RoundedCornerShape(5.dp), color = Color.Gray),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
@@ -218,7 +242,7 @@ fun CuerpoLogin(
                 }else{
                     Toast.makeText(contexto, "Nombre/Contraseña invalido", Toast.LENGTH_SHORT).show()
                 }*/
-                      },
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),

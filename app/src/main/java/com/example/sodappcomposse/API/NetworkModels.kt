@@ -1,6 +1,6 @@
 package com.example.sodappcomposse.API
 
-import com.example.sodappcomposse.Usuario
+import com.example.sodappcomposse.IngresoUsuario.Usuario
 import com.google.gson.annotations.SerializedName
 
 data class PostResponse(

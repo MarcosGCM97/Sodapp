@@ -43,7 +43,28 @@ class ClientesViewModel(
     var clienteUiState: ClienteUiState by mutableStateOf(ClienteUiState.Idle)
         private set // Solo modificable desde el ViewModel
 
-    val clienteParaVenta : MutableState<Cliente?> = mutableStateOf(null)
+    val clienteParaDropDown : MutableState<Cliente?> = mutableStateOf(null)
+
+    var clienteById : MutableState<Cliente?> = mutableStateOf(null)
+
+    fun getClienteById(idCl: String){
+
+        viewModelScope.launch {
+            val response = apiServices.getClienteById(idCl.toInt())
+
+            if (response.isSuccessful) {
+                val clientesApi = response.body()!!
+                if (response.body() !== null) {
+                    clienteById.value = clientesApi
+                    clienteUiState =
+                        ClienteUiState.Success("Cliente cargado: ${_clientes.size}")
+                } else {
+                    //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
+                    clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                }
+            }
+        }
+    }
 
     internal fun getClientes(){
         //if (clienteUiState is ClienteUiState.Loading) return // Evitar llamadas múltiples si ya está cargando
@@ -61,24 +82,21 @@ class ClientesViewModel(
                         clienteUiState =
                             ClienteUiState.Success("Clientes cargados: ${_clientes.size}")
                     } else {
-                        Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
+                        //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
                         clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
                     }
 
                 } else {
-                    //Manejar error de la API
-                    Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
             }catch (e: HttpException) {
-                Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
+                //Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
                 clienteUiState = ClienteUiState.Error("Error HTTP: ${e.message()}")
             } catch (e: IOException) {
-                // Error de red (sin conexión, timeout, etc.)
-                Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
+                //Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
                 clienteUiState = ClienteUiState.Error("Error de Red: Verifica tu conexión.")
             } catch (e: Exception) {
-                // Otros errores (ej. parsing JSON si la estructura no coincide con Cliente)
-                Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
+                //Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
                 clienteUiState = ClienteUiState.Error("Error inesperado: ${e.message?.take(100)}")
             }
         }
@@ -112,16 +130,41 @@ class ClientesViewModel(
                 }
                 else{
                     //Manejar error de la API
-                    Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
                     _addClienteUiState.value = AddClienteUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
 
             } catch (e: Exception) {
-                Log.e("ClientesViewModel", "Error al guardar cliente: ${e.message}", e)
+                //Log.e("ClientesViewModel", "Error al guardar cliente: ${e.message}", e)
                 _addClienteUiState.value = AddClienteUiState.Error("Error al guardar: ${e.message}")
             } catch (e: HttpException) {
-                Log.e("ClientesViewModel", "Error HTTP al guardar cliente: ${e.code()} - ${e.message()}", e)
+                //Log.e("ClientesViewModel", "Error HTTP al guardar cliente: ${e.code()} - ${e.message()}", e)
                 _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()} - ${e.message()}")
+            }
+        }
+    }
+
+    fun pagarDeudaCliente(idCl: Int, deuda: Double){
+        viewModelScope.launch {
+            try {
+                val response = apiServices.updateDeudaCliente(idCl, deuda)
+                if (response.isSuccessful) {
+                    //Log.d("ClientesViewModel", "Deuda pagada exitosamente.")
+                    _addClienteUiState.value =
+                        AddClienteUiState.Success("Deuda pagada exitosamente.")
+                } else {
+                    //Log.e("ClientesViewModel", "Error al pagar la deuda: ${response.code()} - ${response.message()}")
+                    _addClienteUiState.value =
+                        AddClienteUiState.Error("Error al pagar la deuda: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: Exception) {
+                //Log.e("ClientesViewModel", "Error al pagar la deuda: ${e.message}", e)
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error al pagar la deuda: ${e.message}")
+            } catch (e: HttpException) {
+                //Log.e("ClientesViewModel", "Error HTTP al pagar la deuda: ${e.code()} - ${e.message()}", e)
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error HTTP al pagar la deuda: ${e.code()} - ${e.message()}")
             }
         }
     }
@@ -131,23 +174,39 @@ class ClientesViewModel(
         _addClienteUiState.value = AddClienteUiState.Idle
     }
 
-    private val _clienteSeleccionadoParaEdicion = mutableStateOf<Cliente?>(null) // Asume que tienes una data class Cliente
-    val clienteSeleccionadoParaEdicion: State<Cliente?> = _clienteSeleccionadoParaEdicion
-
-    // Función para actualizar el cliente seleccionado
-    fun seleccionarClienteParaEdicion(cliente: Cliente?) {
-        _clienteSeleccionadoParaEdicion.value = cliente
-    }
-
     // Funciones para la lógica de edición (ejemplos)
-    fun actualizarCliente(clienteEditado: Cliente) {
+    fun editarCliente(cliente: Cliente) {
         viewModelScope.launch {
-            // Lógica para llamar a tu API o base de datos para actualizar el cliente
-            Log.d("ClientesViewModel", "Actualizando cliente: ${clienteEditado.nombreCl}")
-            // Después de actualizar, podrías refrescar la lista de clientes
-            // y posiblemente limpiar el clienteSeleccionadoParaEdicion o actualizarlo con la nueva info
-            // getClientes()
-            // _clienteSeleccionadoParaEdicion.value = clienteActualizadoDesdeApi
+            try {
+                val response = apiServices.updateCliente(
+                    cliente.idCl,
+                    cliente.nombreCl,
+                    cliente.direccionCl,
+                    cliente.numTelCl
+                )
+                if (response.isSuccessful) {
+                    //Log.d("ClientesViewModel", "Cliente editado exitosamente.")
+                    _addClienteUiState.value =
+                        AddClienteUiState.Success("Cliente editado exitosamente.")
+                    getClientes()
+                } else {
+                    //Log.e("ClientesViewModel", "Error al editar cliente: ${response.code()} - ${response.message()}")
+                    _addClienteUiState.value =
+                        AddClienteUiState.Error("Error al editar cliente: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: HttpException){
+                //Log.e("ClientesViewModel", "Error HTTP al editar cliente: ${e.code()} - ${e.message()}", e)
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error HTTP al editar cliente: ${e.code()} - ${e.message()}")
+            } catch (e: IOException) {
+                //Log.e("ClientesViewModel", "Error de red al editar cliente: ${e.message}", e)
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error de red al editar cliente: ${e.message}")
+            } catch (e: Exception) {
+                //Log.e("ClientesViewModel", "Error al editar cliente: ${e.message}", e)
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error al editar cliente: ${e.message}")
+            }
         }
     }
 }

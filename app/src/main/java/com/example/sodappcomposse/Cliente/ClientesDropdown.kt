@@ -35,18 +35,19 @@ fun ClientesDropDown(
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
             is ClienteUiState.Success -> {
-                Log.d("AddVentaForm", "Success: ${clientes.size} clients loaded.")
+                //Log.d("AddVentaForm", "Success: ${clientes.size} clients loaded.")
                 // onVentaAgregada() // Llama a esto si es apropiado aquí
+                Toast.makeText(context, "Clientes cargados: ${clientes.size}", Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Error -> {
-                Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
+                //Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
                 Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
-                Log.d("AddVentaForm", "Loading clients...")
+                //Log.d("AddVentaForm", "Loading clients...")
             }
             ClienteUiState.Idle -> {
-                Log.d("AddVentaForm", "Client state is Idle.")
+                //Log.d("AddVentaForm", "Client state is Idle.")
             }
         }
     }
@@ -73,7 +74,7 @@ fun ClientesDropDown(
     //    else -> listOf("No hay clientes disponibles") // Or "Error al cargar", etc.
     //}
 
-    val clienteParaVer = clienteModel.clienteParaVenta
+    val clienteParaVer = clienteModel.clienteParaDropDown
 
     // ... (expandedClients state)
 

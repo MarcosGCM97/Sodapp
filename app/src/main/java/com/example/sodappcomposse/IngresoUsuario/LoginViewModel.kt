@@ -8,10 +8,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
-import com.example.sodappcomposse.Usuario
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.UsuarioResponse
-import com.example.sodappcomposse.UsuarioRequest
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 

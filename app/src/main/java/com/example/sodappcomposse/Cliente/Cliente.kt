@@ -3,7 +3,9 @@ package com.example.sodappcomposse.Cliente
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Cliente (
     @SerializedName("cl_ide")
     var idCl: Int = 0,
@@ -16,6 +18,9 @@ data class Cliente (
 
     @SerializedName("cl_dir")
     var direccionCl: String = "",
+
+    @SerializedName("cl_deb")
+    val deudaCl: Int = 0
 
     // Si tienes "cl_ide" en el JSON y lo necesitas, añádelo:
     // @SerializedName("cl_ide")

@@ -5,33 +5,37 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import com.example.sodappcomposse.Producto.ProductoViewModel
+import com.example.sodappcomposse.Ventas.VentasViewModel
+import com.example.sodappcomposse.Cliente.ClientesViewModel
+import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
 class MainActivity : ComponentActivity() {
     companion object {
         private const val TAG = "negro"
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate")
 
         super.onCreate(savedInstanceState)
 
-        /*val miVariable = "Hola Mundo desde Kotlin"
-        val numero = 123
-
-        // Mostrar un mensaje simple
-        Log.e(TAG, "onCreate: La actividad se ha creado.")
-
-        // Mostrar el valor de una variable
-        Log.e(TAG, "onCreate: El valor de miVariable es: $miVariable")
-
-        // Mostrar múltiples valores
-        Log.e(TAG, "onCreate: Número = $numero, Texto = $miVariable")
-
-        // Ejemplo de un log de información
-        Log.i(TAG, "onCreate: Configuración inicial completada.")*/
-
         enableEdgeToEdge()
         setContent{
-            Navigator()
+            SodAppComposseTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background // El fondo de Surface también usará el tema
+                ) {
+                    Navigator()
+                }
+            }
         }
     }
 }
