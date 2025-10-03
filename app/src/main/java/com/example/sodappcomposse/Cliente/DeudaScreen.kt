@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,8 +50,9 @@ import com.example.sodappcomposse.Ventas.VentaIdEditar
 import com.example.sodappcomposse.Ventas.VentasViewModel
 import com.example.sodappcomposse.ui.theme.BluePrimario
 import com.example.sodappcomposse.ui.theme.GreenPrimario
+import kotlin.text.toDoubleOrNull
 
-@SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition")
+@SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition", "DefaultLocale")
 @Composable
 fun DeudaScreen(
     navController: NavController,
@@ -61,7 +65,9 @@ fun DeudaScreen(
 
     val scrollState = rememberScrollState()
 
-    LaunchedEffect(Unit) {
+    //val editarEstados = remember { mutableStateMapOf<Int, Boolean>() }
+
+    LaunchedEffect(key1 = Unit) {//, key2 = editarEstados
         if (clienteId != null && clienteId != "{clienteId}") {
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
@@ -82,9 +88,7 @@ fun DeudaScreen(
 
     //var nuevaCantidad by remember { mutableStateOf(0) }
 
-    var editar by remember { mutableStateOf(false) }
-
-    var editarEstados = remember { mutableMapOf<Int, Boolean>() }
+    val cantidadesEnEdicion = remember { mutableStateMapOf<Int, String>() }
 
     // Usamos el nuevo wrapper
     ScreenWithBackButtonWrapper(
@@ -225,7 +229,9 @@ fun DeudaScreen(
                 }
             } else {
                 Column( // Para centrar el indicador y el texto
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ){
@@ -251,16 +257,12 @@ fun DeudaScreen(
                     containerColor = GreenPrimario,
                     contentColor = Color.White
                 )
-               // "Ver ultimas compras del cliente:",
-               // style = MaterialTheme.typography.titleMedium,
-               // modifier = Modifier.padding(bottom = 8.dp)
             ){
                 Text("Ver ultimas compras del cliente")
             }
 
             if (ventasDelCliente.value.isNotEmpty() && ver) {
                 ventasDelCliente.value.forEach { venta ->
-                    editarEstados[venta.idVenta.toInt()] = editar
 
                     Card(
                         modifier = Modifier
@@ -281,41 +283,28 @@ fun DeudaScreen(
                             ) {
                                 Text("Producto: ${venta.producto}")
                                 Text("Fecha: ${venta.fecha}")
-                                if (editarEstados[venta.idVenta.toInt()] == true){
-                                    OutlinedTextField(
-                                        value = venta.cantidad,
-                                        onValueChange = { nuevaCantidad ->
-                                            venta.cantidad = nuevaCantidad
-                                        },
-                                        label = { Text("Nueva cantidad") }
-                                    )
-                                }else {
-                                    Text("Cantidad: ${venta.cantidad}")
-                                }
-                                Text("Precio: $${venta.cantidad.toDouble() * venta.precio.toDouble()}")
+                                Text("Cantidad: ${venta.cantidad}")
+                                Text("Precio: $${venta.precio}")
                             }
+                            IconButton(
+                                onClick = {
+                                    val valorVenta = venta.precio.toDouble() * venta.cantidad.toInt()
 
-                            if(editar){
-                                IconButton(
-                                    onClick = {
-                                        ventaModel.updateVenta(venta.idVenta.toInt(), venta.cantidad.toInt())
-                                        editar = !editar
-                                    },
-                                    modifier = Modifier.weight(0.5f)
-                                ) {
-                                    Icon(Icons.Filled.Build, contentDescription = "Editar")
-                                }
-                            }else{
-                                IconButton(
-                                    onClick = {
-                                        editar = !editar
-                                        Log.d("DeudaScreen", "Ver ultimas compras del cliente: $ver")
-                                    },
-                                    modifier = Modifier.weight(0.5f)
-
-                                ) {
-                                    Icon(Icons.Filled.Create, contentDescription = "Editar")
-                                }
+                                    ventaModel.eliminarVenta(
+                                        venta.idVenta.toInt(),
+                                        clienteId!!.toInt(),
+                                        valorVenta.toDouble()
+                                    )
+                                    navController.navigate("deudaScreen/${clienteId}"){
+                                        popUpTo("deudaScreen/${clienteId}") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(0.5f)
+                                    .background(Color.Red)
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = "Eliminar")
                             }
                         }
                     }
@@ -324,14 +313,13 @@ fun DeudaScreen(
                 Log.d("DeudaScreen", "No hay ventas para este cliente $ventasDelCliente, $ver")
                 if (cliente.value != null) {
                     Text(
-                        "No hay ventas registradas para este cliente.",
+                        "Cargar ventas previas del cliente.",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
                 }
             }
         }
-
     }
 }
 

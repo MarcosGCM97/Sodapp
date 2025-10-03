@@ -34,3 +34,24 @@ data class ClienteRequest(
     var numTelCl: String = "",
     var direccionCl: String = ""
 )
+
+data class DiasEntrega(
+    var id: Int = 0,
+    var dias: List<String> = emptyList()
+)
+
+data class DiasEntregaByid(
+    var success: Boolean = false,
+    var diasEntrega: List<String> = emptyList()
+)
+
+data class TodosLosDias(
+    var success: Boolean = false,
+    var clientes: List<DiasCliente> = emptyList()
+)
+
+data class DiasCliente(
+    var nombre: String = "",
+    var direccion: String = "",
+    var diasEntrega: List<String> = emptyList()
+)

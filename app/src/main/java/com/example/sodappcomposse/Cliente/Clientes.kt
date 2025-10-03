@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -77,6 +80,7 @@ fun AddClienteForm(
     var direccionCliente by remember { mutableStateOf("") }
     var telefonoCliente by remember { mutableStateOf("") }
     var deudaCliente by remember { mutableStateOf(0) }
+
 
     // Observar el estado de agregar cliente desde el ViewModel
     val addState by clienteModel.addClienteUiState
@@ -181,6 +185,11 @@ fun BuscarCliente(
 
     val clienteSeleccionado by clienteModel.clienteParaDropDown
 
+    var mostrarDialogoAgenda by remember { mutableStateOf(false) }
+
+    val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
+    var diasSeleccionadosAgenda by remember { mutableStateOf(emptyList<String>()) }
+
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
             is ClienteUiState.Success -> {
@@ -222,7 +231,7 @@ fun BuscarCliente(
                 Text("Nombre: ${cliente.nombreCl}")
                 Text("Dirección: ${cliente.direccionCl}")
                 Text("Teléfono: ${cliente.numTelCl}")
-                Text("Deuda: ${cliente.deudaCl}")
+                Text("Deuda: $${cliente.deudaCl}")
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -232,12 +241,8 @@ fun BuscarCliente(
                 ) {
                     Button(
                         onClick = {
-                            // Aquí puedes navegar a una pantalla de edición separada
-                            // o mostrar un diá//Logo de edición, o campos de edición en línea.
-                            // Por ahora, un //Log:
-                            //Log.d("BuscarCliente", "Editar cliente: ${cliente.nombreCl}")
-                            // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
                             navController.navigate("clienteEditarScreen/${cliente.idCl}")
+                            clienteModel.clienteParaDropDown.value = null
                         }
                     ) {
                         Icon(Icons.Filled.Edit, contentDescription = "Editar")
@@ -249,11 +254,8 @@ fun BuscarCliente(
 
                     Button(
                         onClick = {
-                            // Confirmar la eliminación
-
-                            //clienteModel.eliminarCliente(cliente)
-                            //Toast.makeText(context, "Cliente eliminado", Toast.LENGTH_SHORT).show()
                             navController.navigate("deudaScreen/${cliente.idCl}")
+                            clienteModel.clienteParaDropDown.value = null
                         }
                     ) {
                         Icon(Icons.Filled.ShoppingCart, contentDescription = "Deuda")
@@ -262,21 +264,95 @@ fun BuscarCliente(
                     }
                     Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
                     //Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
-                    /*Button(
+                    Button(
                         onClick = {
-                            // Aquí puedes navegar a una pantalla de edición separada
-                            // o mostrar un diá//Logo de edición, o campos de edición en línea.
-                            // Por ahora, un //Log:
-                            //Log.d("BuscarCliente", "Eliminar cliente: ${cliente.nombreCl}")
-                            // Ejemplo: podrías navegar a otra pantalla pasando el ID del cliente
+                            diasSeleccionadosAgenda = clienteModel.diasEntregaById.value
+                            mostrarDialogoAgenda = true
                         }
                     ) {
-                        Icon(Icons.Filled.Close, contentDescription = "Eliminar")
+                        Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
                         Spacer(modifier = Modifier.width(4.dp))
-                    }*/
+                    }
                 }
             }
         }
+    }
+    if (mostrarDialogoAgenda) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoAgenda = false
+            },
+            title = {
+                Text(text = "Elegir día de visita")
+            },
+            text = {
+                Column { // Usamos una Column para organizar el texto y los RadioButtons
+                    Text("Selecciona un día para agendar la visita:")
+                    Spacer(modifier = Modifier.height(16.dp)) // Espacio antes de los radio buttons
+
+                    // RadioButtons para los días de la semana
+                    diasSemana.forEach { dia ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = diasSeleccionadosAgenda.contains(dia),
+                                    onClick = {
+                                        // Lógica para añadir/quitar el día del set
+                                        diasSeleccionadosAgenda = if (diasSeleccionadosAgenda.contains(dia)) {
+                                            diasSeleccionadosAgenda - dia // Quitar día
+                                        } else {
+                                            diasSeleccionadosAgenda + dia // Añadir día
+                                        }
+                                    },
+                                    role = Role.Checkbox // Rol semántico
+                                )
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = diasSeleccionadosAgenda.contains(dia),
+                                onCheckedChange = null // null porque el Row maneja el click
+                            )
+                            Text(
+                                text = dia,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarDialogoAgenda = false
+                        if (clienteSeleccionado != null) {
+                            // Convertir el Set a una List o un formato que tu ViewModel espere
+                            clienteModel.updateDiasEntrega( // Nombre de función actualizado
+                                clienteSeleccionado?.idCl,
+                                diasSeleccionadosAgenda.toList() // Enviar como lista
+                            )
+                            val textoDias = if (diasSeleccionadosAgenda.isEmpty()) "ningún día" else diasSeleccionadosAgenda.joinToString()
+                            Toast.makeText(context, "Visita agendada para ${clienteSeleccionado?.nombreCl} los días: $textoDias", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "Error: No se seleccionó ningún cliente.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        mostrarDialogoAgenda = false
+                    }
+                    ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 /*

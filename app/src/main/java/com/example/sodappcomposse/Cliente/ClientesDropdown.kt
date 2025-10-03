@@ -52,41 +52,14 @@ fun ClientesDropDown(
         }
     }
 
-    val optionClients: List<Cliente> = when (clienteUiState) {
-        is ClienteUiState.Success -> clientes.map { it }
-        else -> listOf("No hay clientes disponibles")
-    } as List<Cliente>
-
     var expandedClients by remember { mutableStateOf(false) }
 
-    // State for the client selected in the dropdown
-    // This will hold actual Cliente objects or be empty
     val clientesActuales: List<Cliente> = when (clienteUiState) {
         is ClienteUiState.Success -> clientes
         else -> emptyList() // Return an empty list of Cliente
     }
 
-    // This can be used for the display string in the TextField,
-    // and for the items in the DropdownMenu.
-    //val clientDisplayOptions: List<String> = when (clienteUiState) {
-    //    is ClienteUiState.Success -> clientes.map { it.nombreCl }
-    //    is ClienteUiState.Loading -> listOf("Cargando clientes...")
-    //    else -> listOf("No hay clientes disponibles") // Or "Error al cargar", etc.
-    //}
-
     val clienteParaVer = clienteModel.clienteParaDropDown
-
-    // ... (expandedClients state)
-
-    // For the ExposedDropdownMenuBox's TextField part:
-    // val textFieldClientValue = clienteParaVenta.value?.nombreCl ?: "Selecciona un cliente"
-    // Or, if you want to show "Cargando..." in the text field when loading:
-    //val textFieldClientValue = when (clienteUiState) {
-    //    is ClienteUiState.Success -> clienteParaVenta.value?.nombreCl ?: "Selecciona un cliente"
-    //    is ClienteUiState.Loading -> "Cargando clientes..."
-    //    is ClienteUiState.Error -> "Error al cargar clientes"
-    //    ClienteUiState.Idle -> "Selecciona un cliente"
-    //}
 
     ExposedDropdownMenuBox(
         expanded = expandedClients,
@@ -125,14 +98,14 @@ fun ClientesDropDown(
                     enabled = false
                 )
             } else {
-                clientesActuales.forEach { selectionOptionCliente -> // Iterate over List<Cliente>
+                clientesActuales.forEach { selectionOptionCliente ->
                     DropdownMenuItem(
                         text = { Text(selectionOptionCliente.nombreCl) },
                         onClick = {
-                            clienteParaVer.value = selectionOptionCliente // Store the Cliente object
-                            // currentSelectedClientInDropdown = selectionOptionCliente // This variable might become redundant or needs re-evaluation
+                            clienteParaVer.value = selectionOptionCliente
                             expandedClients = false
-                            Toast.makeText(context, "${selectionOptionCliente.nombreCl} seleccionada", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(context, "${selectionOptionCliente.nombreCl} seleccionada", Toast.LENGTH_SHORT).show()
+                            clienteModel.getDiasEntregaById(selectionOptionCliente.idCl)
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )

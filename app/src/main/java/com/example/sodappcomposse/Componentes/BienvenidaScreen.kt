@@ -23,14 +23,14 @@ import com.example.sodappcomposse.Producto.Productos
 import com.example.sodappcomposse.Ventas.Ventas
 
 @Composable
-fun ContenidoVentas(modifier: Modifier = Modifier) {
+fun ContenidoVentas(modifier: Modifier = Modifier, navController: NavController) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
-        Ventas()
+        Ventas(navController = navController)
     }
 }
 
@@ -107,7 +107,7 @@ fun BienvenidaScreen(
                     .fillMaxSize()
             ) {
                 when (contenidoActual){
-                    ContenidoBienvenida.VENTAS -> ContenidoVentas()
+                    ContenidoBienvenida.VENTAS -> ContenidoVentas(navController = navController)
                     ContenidoBienvenida.STOCK -> ContenidoStock(navController = navController)
                     ContenidoBienvenida.CLIENTES -> ContenidoClientes(navController = navController)
                     ContenidoBienvenida.CAJA -> ContenidoCaja()

@@ -126,7 +126,33 @@ class VentasViewModel(
         }
     }
 
-    internal fun updateVenta(idVenta: Int, cantidad: Int){
+    internal fun eliminarVenta(idVenta: Int, clienteId: Int, valorVenta: Double){
+        viewModelScope.launch {
+            try {
+                val response = apiServices.deleteVenta(idVenta)
+                if (response.isSuccessful) {
+                    //Log.d(TAG, "Venta eliminada exitosamente")
+                    ventasUiState = VentasUiState.Success("Venta eliminada exitosamente")
+
+                    //actualizar deuda del cliente
+                    apiServices.updateDeudaCliente(clienteId, valorVenta)
+
+                    getVentasByClienteId(clienteId.toString())
+                } else {
+                    // Manejar errores de la API
+                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    ventasUiState =
+                        VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                }
+            }catch (e: Exception) {
+                //Log.e(TAG, "Error en la solicitud: ${e.message}", e)
+                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
+            }
+
+        }
+    }
+
+    /*internal fun updateVenta(idVenta: Int, cantidad: Int){
         viewModelScope.launch {
             try {
                 val response = apiServices.updateVenta(idVenta, cantidad)
@@ -146,5 +172,5 @@ class VentasViewModel(
                     ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
             }
         }
-    }
+    }*/
 }

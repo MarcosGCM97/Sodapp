@@ -25,9 +25,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
+import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
@@ -37,6 +39,8 @@ import com.example.sodappcomposse.Producto.ProductoViewModel
 fun Ventas(
     ventaModel: VentasViewModel = viewModel(),
     productoModel: ProductoViewModel = viewModel(),
+    clienteModel: ClientesViewModel = viewModel(),
+    navController: NavController
 ){
     val TAG = "Ventas screen"
     val scrollState = rememberScrollState()
@@ -50,6 +54,8 @@ fun Ventas(
     val ventasUiState = ventaModel.ventasUiState
     val listaOriginalVentas = ventaModel.ventas
     val listaOriginalProductos = productoModel.productos
+
+    var mostrarAgenda by remember { mutableStateOf(false) }
 
     val ventasAgrupadas = remember(listaOriginalVentas.toList()) {
         if (listaOriginalVentas.isEmpty()) {
@@ -101,7 +107,16 @@ fun Ventas(
             modifier = Modifier.fillMaxWidth()
         ) {
             AddVentaForm(
-            ) // Assuming this is defined elsewhere or above
+            )
+        }
+
+        Button(
+            onClick = {
+                navController.navigate("agendaScreen")
+            }
+        ) {
+            Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
+            Spacer(modifier = Modifier.width(4.dp))
         }
 
         if (ventasUiState is VentasUiState.Loading) {
@@ -187,7 +202,6 @@ fun AddVentaForm(
 
     var expandedProds by remember { mutableStateOf(false) }
 
-// State for the product selected in the dropdown (to be added to the list)
     var currentSelectedProductInDropdown by remember(optionsProds) {
         mutableStateOf(
             if (optionsProds.isNotEmpty() && optionsProds.first() != "Cargando productos..." && optionsProds.first() != "No hay productos disponibles") {

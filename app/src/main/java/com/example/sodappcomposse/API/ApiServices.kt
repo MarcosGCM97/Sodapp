@@ -3,6 +3,9 @@ package com.example.sodappcomposse.API
 import com.example.sodappcomposse.Caja.DataCaja
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
+import com.example.sodappcomposse.Cliente.DiasEntrega
+import com.example.sodappcomposse.Cliente.DiasEntregaByid
+import com.example.sodappcomposse.Cliente.TodosLosDias
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
@@ -83,10 +86,10 @@ interface ApiServices {
         @Body ventaRequest: VentaRequest
     ): Response<PostResponse>
 
-    @PUT("updateVenta.php")
-    suspend fun updateVenta(
+    @DELETE("deleteVenta.php")
+    suspend fun deleteVenta(
         @Query("id") id: Int,
-        @Query("cantidad") cantidad: Int
+        //@Query("cantidad") cantidad: Int
     ): Response<PostResponse>
 
     @PUT("updateDeudaCliente.php")
@@ -98,5 +101,15 @@ interface ApiServices {
     @GET("getCajaPorMes.php")
     suspend fun getCajaPorMes(@Query("mes") mes: Int): Response<DataCaja>
 
+    @GET("getDiasEntrega.php")
+    suspend fun getDiasEntrega(): Response<TodosLosDias>
+
+    @GET("getDiasEntregaByID.php")
+    suspend fun getDiasEntregaById(@Query("id") id: Int): Response<DiasEntregaByid>
+
+    @PUT("updateDiasEntrega.php")
+    suspend fun updateDiasEntrega(
+        @Body diasEntrega: DiasEntrega
+    ): Response<PostResponse>
 }
 
