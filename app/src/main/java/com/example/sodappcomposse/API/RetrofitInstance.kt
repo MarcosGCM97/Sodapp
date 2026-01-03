@@ -11,7 +11,7 @@ import kotlin.jvm.java
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "https://www.unont.com.ar/mumResponsive/fev2/temp/Trash/"
+    private const val BASE_URL = "http://31.56.39.55/sodapp/"
 
     // Interceptor para logs (opcional, pero muy útil para depurar)
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
