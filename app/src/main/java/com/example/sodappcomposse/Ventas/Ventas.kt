@@ -2,6 +2,7 @@ package com.example.sodappcomposse.Ventas
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +37,7 @@ import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.ProductoViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Ventas(
     ventaModel: VentasViewModel = viewModel(),
@@ -106,8 +109,7 @@ fun Ventas(
         Box(
             modifier = Modifier.fillMaxWidth()
         ) {
-            AddVentaForm(
-            )
+            AddVentaForm()
         }
 
         Button(
@@ -141,6 +143,7 @@ fun Ventas(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddVentaForm(
@@ -461,7 +464,7 @@ fun armarMensajeVentasWpp(venta: VentaAgrupada, total : Double): String{
         separator = ", ",
         transform = { it.cantidad.toString() + " " + it.nombre + " por $" + it.precio.toString() + " c/u" }
     )
-    return "Tu compra fue de $productosString, por un total de $$total. Gracias por tu compra!"
+    return "Tu compra fue de $productosString, por un total de $$total. Acumulando una deuda de $${venta.cliente.deudaCl}. *Gracias por tu compra!*"
 }
 
 @Composable
