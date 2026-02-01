@@ -46,7 +46,7 @@ fun ProductoDropDown(
 
     var expandedProductos by remember { mutableStateOf(false) }
 
-    val productosActuales: List<Producto> = when (productoUiState) {
+    val productosActuales: List<ProductoCompleto> = when (productoUiState) {
         is ProductoUiState.Success -> productos
         else -> emptyList()
     }

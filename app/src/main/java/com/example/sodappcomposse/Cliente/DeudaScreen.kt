@@ -3,7 +3,9 @@ package com.example.sodappcomposse.Cliente
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,12 +48,11 @@ import androidx.navigation.NavController
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
-import com.example.sodappcomposse.Ventas.VentaIdEditar
 import com.example.sodappcomposse.Ventas.VentasViewModel
 import com.example.sodappcomposse.ui.theme.BluePrimario
 import com.example.sodappcomposse.ui.theme.GreenPrimario
-import kotlin.text.toDoubleOrNull
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition", "DefaultLocale")
 @Composable
 fun DeudaScreen(

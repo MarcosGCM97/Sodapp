@@ -1,13 +1,10 @@
 package com.example.sodappcomposse.Caja
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
-import com.example.sodappcomposse.Ventas.VentaCompleta
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +23,8 @@ class CajaViewModel(
 ) : ViewModel(){
     private val TAG = "CajaViewModel"
 
-    private val _caja = MutableStateFlow<DataCaja>(DataCaja(success = false ,emptyList()))
-    val caja: StateFlow<DataCaja> = _caja.asStateFlow()
+    private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false ,emptyList()))
+    val caja: StateFlow<DataCajaResponse> = _caja.asStateFlow()
 
     var _mesSeleccionadoUi = MutableStateFlow<Meses?>(null)
     val mesSeleccionadoUi: StateFlow<Meses?> = _mesSeleccionadoUi.asStateFlow()
@@ -48,7 +45,7 @@ class CajaViewModel(
         val mesNum = _mesSeleccionadoUi.value?.numero ?: return
 
         cajaUiState = CajaUiState.Loading
-        _caja.value = DataCaja(success = false, emptyList()) // Limpiar datos anteriores
+        _caja.value = DataCajaResponse(success = false, emptyList()) // Limpiar datos anteriores
 
         viewModelScope.launch {
             cajaUiState = CajaUiState.Loading

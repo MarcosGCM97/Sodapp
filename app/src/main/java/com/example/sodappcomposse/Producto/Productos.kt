@@ -190,7 +190,7 @@ fun BuscarProducto(
     // Estado para controlar la visibilidad del diálogo de confirmación
     var mostrarDialogoConfirmacion by remember { mutableStateOf(false) }
     // Estado para recordar qué producto se va a eliminar (si el usuario confirma)
-    var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
+    var productoAEliminar by remember { mutableStateOf<ProductoCompleto?>(null) }
 
 
     LaunchedEffect(productoUiState) {

@@ -74,7 +74,7 @@ class ClientesViewModel(
             if (response.isSuccessful) {
                 val clientesApi = response.body()!!
                 if (response.body() !== null) {
-                    clienteById.value = clientesApi
+                    clienteById.value = clientesApi.cliente
                     clienteUiState =
                         ClienteUiState.Success("Cliente cargado: ${_clientes.size}")
                 } else {
@@ -97,7 +97,7 @@ class ClientesViewModel(
                     val clientesApi = response.body()!!
                     if (response.body() !== null) {
                         _clientes.clear()
-                        _clientes.addAll(clientesApi)
+                        _clientes.addAll(clientesApi.clientes)
                         clienteUiState =
                             ClienteUiState.Success("Clientes cargados: ${_clientes.size}")
                     } else {

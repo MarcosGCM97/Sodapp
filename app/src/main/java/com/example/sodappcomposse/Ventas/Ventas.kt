@@ -370,6 +370,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     }
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
  fun BoxVentas(

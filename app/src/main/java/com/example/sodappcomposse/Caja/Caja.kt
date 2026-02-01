@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,11 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.error
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.delay
 
 @SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +61,7 @@ fun CajaScreen(
         }
     }*/
     val catidadDeVentasPorProducto = cajaData.caja?.groupBy { it.producto }?.mapValues { (_, ventas) ->
-        catidadDeVentasPorProducto(
+        CatidadDeVentasPorProducto(
             producto = ventas.first().producto,
             cantidad = ventas.sumOf { it.cantidad.toIntOrNull() ?: 0 },
             precio = ventas.sumOf { it.precio * it.cantidad.toDouble() }
@@ -147,7 +144,7 @@ fun CajaScreen(
         }else if(cajaUiState is CajaUiState.Error){
 
             Text("No hay ventas registradas para este mes.")
-        }else if(cajaData.caja!!.isEmpty()){
+        }else if(cajaData.caja.isNullOrEmpty()){
             Text("No hay datos disponibles para mostrar.")
         } else if(cajaUiState is CajaUiState.Success){
 

@@ -34,16 +34,16 @@ class ProductoViewModel(
 ) : ViewModel() {
     private val TAG = "ProductoViewModel"
 
-    private val _productos = mutableStateListOf<Producto>()
-    val productos: List<Producto> = _productos // Exponer como lista inmutable (pero observable)
+    private val _productos = mutableStateListOf<ProductoCompleto>()
+    val productos: List<ProductoCompleto> = _productos // Exponer como lista inmutable (pero observable)
 
     var productoUiState: ProductoUiState by mutableStateOf(ProductoUiState.Idle)
         private set // Solo modificable desde el ViewModel
 
-    val productosParaDropDown : MutableState<Producto?> = mutableStateOf(null)
+    val productosParaDropDown : MutableState<ProductoCompleto?> = mutableStateOf(null)
 
-    var productoByName: MutableState<Producto?> = mutableStateOf(null)
-    val productoStateByName: State<Producto?> = productoByName
+    var productoByName: MutableState<ProductoCompleto?> = mutableStateOf(null)
+    val productoStateByName: State<ProductoCompleto?> = productoByName
 
     fun getProductoByName(nombrePr: String) {
 
@@ -64,7 +64,7 @@ class ProductoViewModel(
                     val productosApi = response.body()!!
                     if(response.body() !== null){
                         _productos.clear()
-                        _productos.addAll(productosApi)
+                        _productos.addAll(productosApi.productos)
                         productoUiState = ProductoUiState.Success("Productos cargados: ${_productos.size}")
                     }else{
                         //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
@@ -102,8 +102,8 @@ class ProductoViewModel(
             try {
                 var objProducto = ProductoRequest(
                     nombrePr = nombre,
-                    precioPr = precio,
-                    cantidadPr = cantidad
+                    precioUni = precio,
+                    stock = cantidad.toString()
                 )
                 val response = apiServices.postProducto(objProducto)
                 if (response.isSuccessful && response.body() != null){
@@ -162,7 +162,7 @@ class ProductoViewModel(
         }
     }
 
-    fun eliminarProducto(producto: Producto) {
+    fun eliminarProducto(producto: ProductoCompleto) {
         viewModelScope.launch {
             try {
                 val response = apiServices.deleteProducto(producto.nombrePr)

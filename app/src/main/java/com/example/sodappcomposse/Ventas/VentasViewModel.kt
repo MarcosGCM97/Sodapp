@@ -1,7 +1,6 @@
 package com.example.sodappcomposse.Ventas
 
 import android.util.Log
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,8 +32,8 @@ class VentasViewModel(
     var ventasUiState: VentasUiState = VentasUiState.Idle
         private set
 
-    private val _ventasPorClienteId = MutableStateFlow<List<VentaCompleta>>(emptyList())
-    val ventasPorClienteId: StateFlow<List<VentaCompleta>> = _ventasPorClienteId.asStateFlow()
+    private val _ventasPorClienteId = MutableStateFlow<List<VentaByClientId>>(emptyList())
+    val ventasPorClienteId: StateFlow<List<VentaByClientId>> = _ventasPorClienteId.asStateFlow()
 
     fun getVentasByClienteId(idCl: String){
         viewModelScope.launch {
@@ -79,7 +78,7 @@ class VentasViewModel(
                     val ventaApi = response.body()!!
                     if (response.body() !== null) {
                         _ventas.clear()
-                        _ventas.addAll(ventaApi)
+                        _ventas.addAll(ventaApi.ventas)
                         ventasUiState = VentasUiState.Success("Ventas cargadas: ${_ventas.size}")
                     } else {
                         //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")

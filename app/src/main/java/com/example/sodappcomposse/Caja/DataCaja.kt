@@ -3,7 +3,7 @@ package com.example.sodappcomposse.Caja
 import com.example.sodappcomposse.Ventas.VentaCompleta
 import com.google.gson.annotations.SerializedName
 
-data class DataCaja(
+data class DataCajaResponse(
     @SerializedName("success")
     val success: Boolean? =  null,
 
@@ -11,7 +11,7 @@ data class DataCaja(
     val caja: List<VentaCompleta>? = null
 )
 
-data class catidadDeVentasPorProducto(
+data class CatidadDeVentasPorProducto(
     val producto: String,
     val cantidad: Int,
     val precio: Double

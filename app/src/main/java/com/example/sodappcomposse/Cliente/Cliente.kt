@@ -1,7 +1,5 @@
 package com.example.sodappcomposse.Cliente
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 
@@ -35,6 +33,16 @@ data class ClienteRequest(
     var direccionCl: String = ""
 )
 
+data class ClienteResponse(
+    var success: Boolean = false,
+    var clientes: List<Cliente> = emptyList()
+)
+
+data class ClienteResponseById(
+    var success: Boolean = false,
+    var cliente: Cliente = Cliente()
+)
+
 data class DiasEntrega(
     var id: Int = 0,
     var dias: List<String> = emptyList()
@@ -45,11 +53,16 @@ data class DiasEntregaByid(
     var diasEntrega: List<String> = emptyList()
 )
 
+@Serializable
 data class TodosLosDias(
     var success: Boolean = false,
+
+    @SerializedName("days")
     var clientes: List<DiasCliente> = emptyList()
 )
 
+//{"nombre":"Marcos Congre","direccion":"Jos\u00e9 Hern\u00e1ndez 318","diasEntrega":["Mi\u00e9rcoles"]}
+@Serializable
 data class DiasCliente(
     var nombre: String = "",
     var direccion: String = "",
