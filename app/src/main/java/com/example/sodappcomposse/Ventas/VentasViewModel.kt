@@ -26,8 +26,8 @@ class VentasViewModel(
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
-    private val _ventas = mutableStateListOf<DataVenta>()
-    val ventas: List<DataVenta> = _ventas
+    private val _ventas = mutableStateListOf<VentaCompleta>()
+    val ventas: List<VentaCompleta> = _ventas
 
     var ventasUiState: VentasUiState = VentasUiState.Idle
         private set

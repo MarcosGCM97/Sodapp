@@ -11,8 +11,9 @@ import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
 import com.example.sodappcomposse.Producto.ProductoResponseByName
-import com.example.sodappcomposse.Ventas.VentaResponse
-import com.example.sodappcomposse.Ventas.VentaResponseByClientId
+import com.example.sodappcomposse.Ventas.VentaApiResponse
+import com.example.sodappcomposse.Ventas.VentaApiResponseById
+import com.example.sodappcomposse.Ventas.VentaByClientId
 import com.example.sodappcomposse.Ventas.VentaRequest
 import retrofit2.Response // Para manejar la respuesta completa, incluyendo el código de estado
 import retrofit2.http.Body
@@ -25,7 +26,7 @@ import retrofit2.http.PUT
 //TOKEN PARA GITHUB EXPIRA EN &= DIAS DESDE EL 20/07/25
 interface ApiServices {
 
-    @POST("login.php")
+    @POST("api/login.php")
     suspend fun login(
         @Body usuarioRequest: UsuarioRequest
     ): Response<UsuarioResponse>
@@ -80,10 +81,10 @@ interface ApiServices {
 
 /*cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide*/
     @GET("api/ventas.php")
-    suspend fun getVentas(): Response<VentaResponse>
+    suspend fun getVentas(): Response<VentaApiResponse>
 
     @GET("api/ventas.php")
-    suspend fun getVentasByCienteId(@Query("id") id: Int): Response<VentaResponseByClientId>
+    suspend fun getVentasByCienteId(@Query("id") id: Int): Response<VentaApiResponseById>
 
     @POST("api/ventas.php")
     suspend fun postVenta(

@@ -64,8 +64,9 @@ fun Ventas(
         if (listaOriginalVentas.isEmpty()) {
             emptyList<VentaAgrupada>()
         } else {
+
             val groupedByClienteAndFecha = listaOriginalVentas.groupBy {
-                Pair(it.cliente.nombreCl, it.fecha)
+                Pair(it.cliente.nombreCl, it.fecha.substringBefore(" "))
             }
 
             val resultado = groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
@@ -76,7 +77,7 @@ fun Ventas(
                     .groupBy { it.producto }
                     .map { (nombreProducto, itemsProducto) ->
                         ProductoVenta(
-                            nombre = nombreProducto,
+                            nombre = nombreProducto ?: "Producto Desconocido",
                             cantidad = itemsProducto.sumOf { it.cantidad.toIntOrNull() ?: 0 },
                             precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni?.toDouble()
                         )

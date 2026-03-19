@@ -6,6 +6,11 @@ import com.example.sodappcomposse.Producto.ProductoVenta
 import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 
+data class Ventas(
+    val success: Boolean,
+    val ventas: List<DataVenta>
+)
+
 data class DataVenta(
     @SerializedName("vt_cli")
     val cliente: Cliente,
@@ -14,18 +19,18 @@ data class DataVenta(
     @SerializedName("vt_can")
     val cantidad: String,
     @SerializedName("vt_fec")
-    val fecha: String
+    val fecha: String,
+    @SerializedName("vt_emp")
+    val empresa: String,
+    @SerializedName("vt_mon")
+    val monto: Double
 )
 
-/*cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide*/
+/*cl, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide, vt.vt_mon*/
 data class VentaCompleta(
-    @SerializedName("cl_nom")
-    val cliente: String = "",
-    @SerializedName("cl_dir")
-    val direccion: String = "",
-    @SerializedName("cl_tel")
-    val telefono: String = "",
-    @SerializedName("pr_nom")
+    @SerializedName("vt_cli")
+    val cliente: Cliente,
+    @SerializedName("vt_pro")
     val producto: String = "",
     @SerializedName("pr_val")
     val precio: Double = 0.0,
@@ -34,7 +39,9 @@ data class VentaCompleta(
     @SerializedName("vt_fec")
     val fecha: String = "",
     @SerializedName("vt_ide")
-    val idVenta: String = ""
+    val idVenta: String = "",
+    @SerializedName("vt_mon")
+    val monto: Double = 0.0
 )
 
 data class VentaRequest(
@@ -50,17 +57,21 @@ data class VentaAgrupada(
     val montoTotalVenta: Double = 0.0
 )
 
-data class VentaResponse(
+data class VentaApiResponse(
     val success: Boolean,
-    val ventas: List<DataVenta> // La lista real de ventas
+    val ventas: List<VentaCompleta> // La lista real de ventas
 )
 
-data class VentaResponseByClientId(
+data class VentaIdEditar(
+    val idVenta: Boolean
+)
+
+data class VentaApiResponseById(
     val success: Boolean,
     val ventas: List<VentaByClientId> // La lista real de ventas
 )
 
-//cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide
+/*cl, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide, vt.vt_mon*/
 @Serializable
 data class VentaByClientId(
     @SerializedName("vt_cli")
@@ -79,5 +90,8 @@ data class VentaByClientId(
     var fecha: String = "",
 
     @SerializedName("vt_ide")
-    var idVenta: Int = 0
+    var idVenta: Int = 0,
+
+    @SerializedName("vt_mon")
+    var monto: Double = 0.0
 )
