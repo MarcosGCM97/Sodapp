@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 sealed class CajaUiState{
@@ -18,9 +20,10 @@ sealed class CajaUiState{
     data class Success(val message: String): CajaUiState()
 }
 
-class CajaViewModel(
-    private val apiServices: ApiServices = RetrofitInstance.api
-) : ViewModel(){
+@HiltViewModel
+class CajaViewModel @Inject constructor(
+    private val apiServices: ApiServices // Hilt lo inyecta solo
+) : ViewModel() {
     private val TAG = "CajaViewModel"
 
     private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false ,emptyList()))

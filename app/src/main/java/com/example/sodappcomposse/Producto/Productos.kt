@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.AddClienteForm
@@ -67,7 +68,7 @@ fun Productos(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductoForm(
-    productosModel: ProductoViewModel = viewModel(),
+    productosModel: ProductoViewModel = hiltViewModel(),
     navController: NavController
 ){
     val context = LocalContext.current
@@ -177,7 +178,7 @@ fun AddProductoForm(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarProducto(
-    productosModel: ProductoViewModel = viewModel(),
+    productosModel: ProductoViewModel = hiltViewModel(),
     navController: NavController
 ){
     val context = LocalContext.current

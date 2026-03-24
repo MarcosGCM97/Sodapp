@@ -10,10 +10,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import javax.inject.Inject
 
 sealed class ProductoUiState{
     object Idle : ProductoUiState() //Estado inicial
@@ -29,8 +31,9 @@ sealed interface AddProductoUiState {
     data class Error(val message: String) : AddProductoUiState
 }
 
-class ProductoViewModel(
-    private val apiServices: ApiServices = RetrofitInstance.api
+@HiltViewModel
+class ProductoViewModel @Inject constructor(
+    private val apiServices: ApiServices // Hilt lo inyecta solo
 ) : ViewModel() {
     private val TAG = "ProductoViewModel"
 

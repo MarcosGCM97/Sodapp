@@ -43,10 +43,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.lifecycle.ViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.R
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sodappcomposse.IngresoUsuario.LoginUiState
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
@@ -105,16 +104,17 @@ fun EncabezadoLogin() {
 @Composable
 fun CuerpoLogin(
     navBienvenida: (String) -> Unit,
-    loginModel: LoginViewModel = viewModel()
+    loginModel: LoginViewModel = hiltViewModel()
 ){
     var nombre by remember { mutableStateOf("") }
     var contrasenia by remember { mutableStateOf("") }
     val contexto = LocalContext.current
     var passShow by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
 
     val loginUiState = loginModel.loginUiState
     val login = loginModel.usuario
+
+    val isLoading = loginUiState is LoginUiState.Loading
 
     LaunchedEffect(loginUiState) {
         when (val currentState = loginModel.loginUiState) {
@@ -237,11 +237,6 @@ fun CuerpoLogin(
                 }else{
                     Toast.makeText(contexto, "Nombre/Contraseña invalido", Toast.LENGTH_SHORT).show()
                 }
-                /*if(nombre != "" && contrasenia != ""){
-                    navBienvenida(nombre)
-                }else{
-                    Toast.makeText(contexto, "Nombre/Contraseña invalido", Toast.LENGTH_SHORT).show()
-                }*/
             },
             modifier = Modifier
                 .fillMaxWidth()

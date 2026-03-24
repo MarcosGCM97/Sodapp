@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.ClienteUiState
@@ -148,9 +149,9 @@ fun Ventas(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddVentaForm(
-    clienteModel: ClientesViewModel = viewModel(),
-    productoModel: ProductoViewModel = viewModel(),
-    ventaModel: VentasViewModel = viewModel()
+    clienteModel: ClientesViewModel = hiltViewModel(),
+    productoModel: ProductoViewModel = hiltViewModel(),
+    ventaModel: VentasViewModel = hiltViewModel()
 ){
     val context = LocalContext.current
 
@@ -377,7 +378,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
  fun BoxVentas(
     venta: VentaAgrupada,
     context: Context,
-    clienteModel: ClientesViewModel = viewModel()
+    clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
      var cliente = clienteModel.clientes.find { it.idCl == venta.cliente.idCl }

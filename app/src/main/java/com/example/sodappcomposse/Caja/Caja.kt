@@ -28,13 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CajaScreen(
-    cajaModel: CajaViewModel = viewModel(),
+    cajaModel: CajaViewModel = hiltViewModel(),
 ){
     val TAG = "CajaScreen"
     val ScrollState = rememberScrollState()

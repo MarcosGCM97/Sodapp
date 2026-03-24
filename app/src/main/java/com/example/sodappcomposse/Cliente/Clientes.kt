@@ -36,12 +36,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 @Composable
 fun Clientes(
-    clientesModel: ClientesViewModel = viewModel(),
+    clientesModel: ClientesViewModel = hiltViewModel(),
     navController: NavController
 ){
     val TAG = "Clientes"
@@ -68,7 +69,7 @@ fun Clientes(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddClienteForm(
-    clienteModel: ClientesViewModel = viewModel(),
+    clienteModel: ClientesViewModel = hiltViewModel(),
     navController: NavController
 ){
     val context = LocalContext.current
@@ -175,7 +176,7 @@ fun AddClienteForm(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarCliente(
-    clienteModel: ClientesViewModel = viewModel(),
+    clienteModel: ClientesViewModel = hiltViewModel(),
     navController: NavController
 ){
     val context = LocalContext.current

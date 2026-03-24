@@ -10,8 +10,11 @@ import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.UsuarioResponse
+import com.example.sodappcomposse.UserPreferencesRepository
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import dagger.hilt.android.lifecycle.HiltViewModel // IMPORTANTE
+import javax.inject.Inject // IMPORTANTE
 
 sealed interface LoginUiState {
     object Idle : LoginUiState
@@ -20,8 +23,10 @@ sealed interface LoginUiState {
     data class Error(val message: String) : LoginUiState
 }
 
-class LoginViewModel(
-    private val apiServices: ApiServices = RetrofitInstance.api
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val apiServices: ApiServices,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "UsuarioViewModel"
 
@@ -47,6 +52,7 @@ class LoginViewModel(
                     val usuarioApi = response.body()!!
 
                     if(usuarioApi.success){
+                        userPreferencesRepository.saveUserData(usuarioApi.token.idUs.toString(), usuarioApi.token.nombreUs)
                         loginUiState = LoginUiState.Success(usuarioApi.message)
                     }else{
                         loginUiState = LoginUiState.Error(usuarioApi.message)

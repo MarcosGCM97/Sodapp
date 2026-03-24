@@ -15,7 +15,9 @@ import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.Ventas.VentasViewModel
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
+import dagger.hilt.android.AndroidEntryPoint // Asegúrate de importar esto
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
         private const val TAG = "negro"

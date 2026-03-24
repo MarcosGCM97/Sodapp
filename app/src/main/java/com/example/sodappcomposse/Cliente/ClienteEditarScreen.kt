@@ -1,6 +1,8 @@
 package com.example.sodappcomposse.Cliente
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +30,7 @@ import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.Producto
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun ClienteEditarScreen(

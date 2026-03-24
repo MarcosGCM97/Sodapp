@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
 import com.example.sodappcomposse.UserPreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 // Define estos estados si quieres dar feedback más específico al usuario
 sealed interface AddClienteUiState {
@@ -42,9 +44,9 @@ sealed class ClienteUiState {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-class ClientesViewModel(
-    private val apiServices: ApiServices = RetrofitInstance.api,
-    //private val userPreferencesRepository: UserPreferencesRepository
+@HiltViewModel
+class ClientesViewModel @Inject constructor(
+    private val apiServices: ApiServices // O las dependencias que use
 ) : ViewModel() {
     private val TAG = "ClienteViewModel"
 

@@ -7,12 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
 import com.example.sodappcomposse.Producto.ProductoVenta
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import javax.inject.Inject
 
 sealed class VentasUiState{
     object Idle: VentasUiState()
@@ -20,9 +22,9 @@ sealed class VentasUiState{
     data class Error(val message: String): VentasUiState()
     data class Success(val message: String): VentasUiState()
 }
-
-class VentasViewModel(
-    private val apiServices: ApiServices = RetrofitInstance.api
+@HiltViewModel
+class VentasViewModel @Inject constructor(
+    private val apiServices: ApiServices // Hilt lo inyecta solo
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
