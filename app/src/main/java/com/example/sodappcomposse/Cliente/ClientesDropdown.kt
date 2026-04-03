@@ -17,12 +17,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientesDropDown(
-    clienteModel: ClientesViewModel = viewModel()
+    clienteModel: ClientesViewModel = hiltViewModel()
 ){
     val context = LocalContext.current
 

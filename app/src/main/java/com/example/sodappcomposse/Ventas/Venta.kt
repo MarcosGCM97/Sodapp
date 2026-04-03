@@ -46,7 +46,8 @@ data class VentaCompleta(
 
 data class VentaRequest(
     val clienteId: Int,
-    val productos: List<ProductoVenta>
+    val productos: List<ProductoVenta>,
+    val usuarioId: String
 )
 
 data class VentaAgrupada(

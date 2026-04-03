@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
@@ -58,9 +58,9 @@ import com.example.sodappcomposse.ui.theme.GreenPrimario
 fun DeudaScreen(
     navController: NavController,
     clienteId: String?,
-    clienteModel: ClientesViewModel = viewModel(),
-    ventaModel: VentasViewModel = viewModel(),
-    productosModel: ProductoViewModel = viewModel()
+    clienteModel: ClientesViewModel = hiltViewModel(),
+    ventaModel: VentasViewModel = hiltViewModel(),
+    productosModel: ProductoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 

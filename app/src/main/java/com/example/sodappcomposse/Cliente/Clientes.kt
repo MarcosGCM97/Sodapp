@@ -1,7 +1,9 @@
 package com.example.sodappcomposse.Cliente
 
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 @Composable
@@ -66,6 +67,7 @@ fun Clientes(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddClienteForm(
@@ -173,6 +175,7 @@ fun AddClienteForm(
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarCliente(
@@ -190,6 +193,9 @@ fun BuscarCliente(
 
     val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
     var diasSeleccionadosAgenda by remember { mutableStateOf(emptyList<String>()) }
+
+    var mostrarDialogoConfirmacion by remember { mutableStateOf(false) }
+    var clienteAEliminar by remember { mutableStateOf<Cliente?>(null) }
 
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
@@ -248,7 +254,7 @@ fun BuscarCliente(
                     ) {
                         Icon(Icons.Filled.Edit, contentDescription = "Editar")
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Editar")
+                        //Text("Editar")
                     }
                     //Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
                     Spacer(modifier = Modifier.width(8.dp))
@@ -261,10 +267,11 @@ fun BuscarCliente(
                     ) {
                         Icon(Icons.Filled.ShoppingCart, contentDescription = "Deuda")
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Ver deuda")//Text("Ver deuda")
+                        //Text("Ver deuda")//Text("Ver deuda")
                     }
+
                     Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
-                    //Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
+
                     Button(
                         onClick = {
                             diasSeleccionadosAgenda = clienteModel.diasEntregaById.value
@@ -274,6 +281,20 @@ fun BuscarCliente(
                         Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
                         Spacer(modifier = Modifier.width(4.dp))
                     }
+                    IconButton(
+                        onClick = {
+                            clienteAEliminar = cliente
+                            mostrarDialogoConfirmacion = true
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Eliminar",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -350,6 +371,48 @@ fun BuscarCliente(
                         mostrarDialogoAgenda = false
                     }
                     ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (mostrarDialogoConfirmacion && clienteAEliminar != null) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoConfirmacion = false
+                clienteAEliminar = null
+            },
+            title = {
+                Text(text = "Confirmar Eliminación")
+            },
+            text = {
+                Text("¿Estás seguro de que deseas eliminar al cliente \"${clienteAEliminar?.nombreCl}\"? Esta acción no se puede deshacer y borrará sus datos de la base de datos.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        clienteAEliminar?.let { cli ->
+                            // Llama al método de tu ViewModel (asegúrate de que exista)
+                            clienteModel.eliminarCliente(cli)
+                        }
+                        mostrarDialogoConfirmacion = false
+                        clienteAEliminar = null
+                        clienteModel.clienteParaDropDown.value = null // Limpiar la selección actual
+                        clienteModel.getClientes() // Refrescar la lista de clientes
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        mostrarDialogoConfirmacion = false
+                        clienteAEliminar = null
+                    }
+                ) {
                     Text("Cancelar")
                 }
             }

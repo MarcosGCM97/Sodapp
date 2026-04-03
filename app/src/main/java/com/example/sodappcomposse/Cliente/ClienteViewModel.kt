@@ -8,24 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
-import com.example.sodappcomposse.API.RetrofitInstance
-import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 // Define estos estados si quieres dar feedback más específico al usuario
@@ -299,6 +289,39 @@ class ClientesViewModel @Inject constructor(
             }
         }
     }
+
+    fun eliminarCliente(cliente: Cliente) {
+        // Cambiamos el estado a Loading para mostrar feedback si es necesario
+        _addClienteUiState.value = AddClienteUiState.Loading
+
+        viewModelScope.launch {
+            try {
+                // Llamada a la API
+                val response = apiServices.eliminarCliente(cliente.idCl)
+
+                if (response.isSuccessful) {
+                    // Si la eliminación en el servidor fue exitosa
+                    _addClienteUiState.value =
+                        AddClienteUiState.Success("Cliente '${cliente.nombreCl}' eliminado correctamente.")
+
+                    // IMPORTANTE: Refrescar la lista local inmediatamente
+                    getClientes()
+                } else {
+                    // Error devuelto por el servidor (ej: 404, 500)
+                    _addClienteUiState.value =
+                        AddClienteUiState.Error("Error al eliminar: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: IOException) {
+                // Error de conexión
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error de red: Verifica tu conexión a internet.")
+            } catch (e: Exception) {
+                // Cualquier otro error inesperado
+                _addClienteUiState.value =
+                    AddClienteUiState.Error("Error inesperado: ${e.localizedMessage}")
+            }
+        }
+    }
 /*
     // Exponer las entregas completadas como un StateFlow para que la UI pueda observarlo
     val completedDeliveriesState: StateFlow<Set<String>> = userPreferencesRepository.completedDeliveries
@@ -354,9 +377,3 @@ class ClientesViewModel @Inject constructor(
         }
     }*/
 }
-/*
-    fun resetClienteUiStateToIdle() { // Función para resetear el estado si es necesario
-        clienteUiState = ClienteUiState.Idle
-    }
-}
-*/

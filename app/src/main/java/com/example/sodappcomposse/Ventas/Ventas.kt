@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import kotlinx.coroutines.launch
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -27,12 +28,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
-import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
@@ -41,9 +40,9 @@ import com.example.sodappcomposse.Producto.ProductoViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Ventas(
-    ventaModel: VentasViewModel = viewModel(),
-    productoModel: ProductoViewModel = viewModel(),
-    clienteModel: ClientesViewModel = viewModel(),
+    ventaModel: VentasViewModel = hiltViewModel(),
+    productoModel: ProductoViewModel = hiltViewModel(),
+    clienteModel: ClientesViewModel = hiltViewModel(),
     navController: NavController
 ){
     val TAG = "Ventas screen"
@@ -154,6 +153,7 @@ fun AddVentaForm(
     ventaModel: VentasViewModel = hiltViewModel()
 ){
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val clienteUiState = clienteModel.clienteUiState
     val clientes = clienteModel.clientes
@@ -330,28 +330,41 @@ fun AddVentaForm(
             }
         }
 
-        Button(onClick = {
-            if (clienteParaVenta.value == null) {
-                Toast.makeText(context, "Por favor, seleccione un cliente", Toast.LENGTH_SHORT).show()
-                return@Button
-            }
-            if (productosParaVenta.isEmpty()) {
-                Toast.makeText(context, "Por favor, agregue al menos un producto", Toast.LENGTH_SHORT).show()
-                return@Button
-            }
+        Button(
+            onClick = {
+                if (clienteParaVenta.value == null) {
+                    Toast.makeText(context, "Por favor, seleccione un cliente", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                if (productosParaVenta.isEmpty()) {
+                    Toast.makeText(context, "Por favor, agregue al menos un producto", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
 
-            //Log.d("AddVentaForm", "Venta a cargar:")
-            //Log.d("AddVentaForm", "Cliente: ${clienteParaVenta}")
+                // Usamos el scope que ya declaraste arriba con rememberCoroutineScope()
+                scope.launch {
+                    try {
+                        // 1. Ejecuta la petición al backend (dentro de la corrutina)
+                        ventaModel.postVenta(
+                            clienteId = clienteParaVenta.value!!.idCl,
+                            productos = productosParaVenta.toList() // toList() crea una copia estable para la API
+                        )
 
-            //Toast.makeText(context, "Venta lista para procesar (ver Logs)", Toast.LENGTH_LONG).show()
-            ventaModel.postVenta(clienteId = clienteParaVenta.value!!.idCl, productos = productosParaVenta)
-            ventaModel.getVentas()
+                        // 2. Refresca la lista de ventas
+                        ventaModel.getVentas()
 
-            //Example: Clear form after processing
-            clienteParaVenta.value = null
-            productosParaVenta.clear()
-        },
-            // Enable button only if a client is selected and at least one product is added
+                        // 3. Limpiar el formulario tras el éxito
+                        clienteParaVenta.value = null
+                        productosParaVenta.clear()
+
+                        Toast.makeText(context, "Venta cargada correctamente", Toast.LENGTH_SHORT).show()
+
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Error al procesar: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            },
+            // Habilitar botón solo si hay cliente y productos
             enabled = clienteParaVenta.value != null && productosParaVenta.isNotEmpty()
         ) {
             Text("Cargar venta")

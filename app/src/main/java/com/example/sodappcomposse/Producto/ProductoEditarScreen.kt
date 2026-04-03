@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
@@ -38,7 +38,7 @@ import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 fun ProductoEditarSccreen(
     navController: NavController,
     nombreProducto: String?,
-    productoModel: ProductoViewModel = viewModel(),
+    productoModel: ProductoViewModel = hiltViewModel(),
 ){
     val context = LocalContext.current
 

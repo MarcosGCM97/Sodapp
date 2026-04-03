@@ -29,8 +29,8 @@ class UserPreferencesRepository @Inject constructor(
         val USER_ID = stringSetPreferencesKey("user_id") // O intPreferencesKey
         val USER_NAME = stringSetPreferencesKey("user_name")
         val IS_LOGGED_IN = androidx.datastore.preferences.core.booleanPreferencesKey("is_logged_in")
-
     }
+
     // Función para guardar los datos al hacer Login
     suspend fun saveUserData(id: String, name: String) {
         context.dataStore.edit { preferences ->
@@ -82,4 +82,15 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.COMPLETED_DELIVERIES] = cleanedDeliveries
         }
     }
+
+    val userId: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.USER_ID]?.firstOrNull()
+        }
+
+    // Flujo para obtener el Nombre del usuario
+    val userName: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.USER_NAME]?.firstOrNull()
+        }
 }

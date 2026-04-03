@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
 import com.example.sodappcomposse.Producto.ProductoVenta
+import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 
 sealed class VentasUiState{
     object Idle: VentasUiState()
@@ -24,7 +26,8 @@ sealed class VentasUiState{
 }
 @HiltViewModel
 class VentasViewModel @Inject constructor(
-    private val apiServices: ApiServices // Hilt lo inyecta solo
+    private val apiServices: ApiServices, // Hilt lo inyecta solo
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
@@ -37,75 +40,67 @@ class VentasViewModel @Inject constructor(
     private val _ventasPorClienteId = MutableStateFlow<List<VentaByClientId>>(emptyList())
     val ventasPorClienteId: StateFlow<List<VentaByClientId>> = _ventasPorClienteId.asStateFlow()
 
-    fun getVentasByClienteId(idCl: String){
+    fun getVentasByClienteId(idCl: String) {
         viewModelScope.launch {
             try {
-                val response = apiServices.getVentasByCienteId(idCl.toInt())
+                ventasUiState = VentasUiState.Loading
+
+                // 1. Obtener el ID del usuario actual
+                val idUsuario = userPreferencesRepository.userId.first() ?: "0"
+
+                // 2. Pasar idUsuario a la llamada de la API
+                val response = apiServices.getVentasByCienteId(idCl.toInt(), idUsuario)
 
                 if (response.isSuccessful) {
                     val responseBody = response.body()
-                    if (responseBody != null) {
-                        if (responseBody.success) {
-                            _ventasPorClienteId.value = responseBody.ventas
-                            ventasUiState = VentasUiState.Success("Ventas cargadas: ${responseBody.ventas.size}")
-                        } else {
-                            _ventasPorClienteId.value = emptyList()
-                            ventasUiState = VentasUiState.Error("El servidor reportó un error al obtener las ventas.")
-                            Log.e(TAG, "El servidor devolvió success:false para ventas del cliente $idCl")
-                        }
+                    if (responseBody != null && responseBody.success) {
+                        _ventasPorClienteId.value = responseBody.ventas
+                        ventasUiState = VentasUiState.Success("Ventas cargadas para usuario $idUsuario")
                     } else {
-                        _ventasPorClienteId.value = emptyList() // Cuerpo nulo
-                        ventasUiState = VentasUiState.Error("Respuesta exitosa pero cuerpo nulo.")
-                        Log.e(TAG, "Respuesta exitosa pero cuerpo nulo para ventas del cliente $idCl")
+                        _ventasPorClienteId.value = emptyList()
+                        ventasUiState = VentasUiState.Error("Error al obtener ventas del cliente.")
                     }
                 } else {
-                    _ventasPorClienteId.value = emptyList()
-                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
-                    Log.e(TAG, "Error en la respuesta para ventas del cliente $idCl: ${response.code()} - ${response.message()}")
+                    ventasUiState = VentasUiState.Error("Error servidor: ${response.code()}")
                 }
             } catch (e: Exception) {
-                _ventasPorClienteId.value = emptyList() // Excepción
-                ventasUiState = VentasUiState.Error("Excepción al obtener ventas: ${e.message}")
-                Log.e(TAG, "Excepción al obtener ventas para cliente $idCl: ${e.message}", e)
+                _ventasPorClienteId.value = emptyList()
+                ventasUiState = VentasUiState.Error("Excepción: ${e.message}")
             }
         }
     }
 
     internal fun getVentas() {
         viewModelScope.launch {
-            val response = apiServices.getVentas()
-
             try {
+                ventasUiState = VentasUiState.Loading
+
+                // 1. Obtener el ID del usuario actual
+                val idUsuario = userPreferencesRepository.userId.first() ?: "0"
+
+                // 2. Llamar a la API enviando el usuario
+                val response = apiServices.getVentas(idUsuario)
+
                 if (response.isSuccessful) {
-                    val ventaApi = response.body()!!
-                    if (response.body() !== null) {
+                    val ventaApi = response.body()
+                    if (ventaApi != null) {
                         _ventas.clear()
                         _ventas.addAll(ventaApi.ventas)
-                        ventasUiState = VentasUiState.Success("Ventas cargadas: ${_ventas.size}")
-                    } else {
-                        //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
-                        ventasUiState = VentasUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                        ventasUiState = VentasUiState.Success("Ventas de $idUsuario cargadas")
                     }
-
-                } else{
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
-                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                } else {
+                    ventasUiState = VentasUiState.Error("Error: ${response.code()}")
                 }
-            } catch (e: HttpException) {
-                //Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
-                ventasUiState = VentasUiState.Error("Error HTTP: ${e.message()}")
-            } catch (e: IOException) {
-                //Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
-                ventasUiState = VentasUiState.Error("Error de Red: Verifica tu conexión.")
             } catch (e: Exception) {
-                //Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
-                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
+                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
             }
         }
     }
 
-    internal fun postVenta(clienteId: Int, productos: List<ProductoVenta>){
-        val ventaParaApi = VentaRequest(clienteId, productos)
+    internal suspend fun postVenta(clienteId: Int, productos: List<ProductoVenta>){
+        val idUsuario = userPreferencesRepository.userId.first() ?: "0"
+
+        val ventaParaApi = VentaRequest(clienteId, productos, idUsuario)
 
         viewModelScope.launch {
             try {

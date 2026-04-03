@@ -24,10 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
-import com.example.sodappcomposse.Producto.Producto
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -36,7 +35,7 @@ import com.example.sodappcomposse.Producto.Producto
 fun ClienteEditarScreen(
     navController: NavController,
     idCliente: Int?,
-    clienteModel: ClientesViewModel = viewModel()
+    clienteModel: ClientesViewModel = hiltViewModel()
 ){
     val contexto = LocalContext.current
 

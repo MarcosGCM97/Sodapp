@@ -19,7 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.azulFuerte
@@ -29,7 +29,7 @@ import com.example.sodappcomposse.ui.theme.azulFuerte
 fun Encabezado(
     nombre: String,
     navLogin: () -> Unit,
-    loginModel: LoginViewModel = viewModel()
+    loginModel: LoginViewModel = hiltViewModel()
 ) {
     Row(
         modifier = Modifier

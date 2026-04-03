@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -31,8 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import java.time.LocalDate
@@ -46,7 +44,7 @@ import java.util.Locale
 @Composable
 fun AgendaScreen(
     navController: NavController,
-    clienteModel: ClientesViewModel = viewModel(),
+    clienteModel: ClientesViewModel = hiltViewModel(),
 ) {
     // --- ESTILO: Usar el nombre del día actual como valor inicial ---
     val nombreDelDiaHoy = remember {

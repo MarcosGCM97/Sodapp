@@ -42,7 +42,7 @@ interface ApiServices {
     suspend fun getClienteById(@Query("id") id: Int): Response<ClienteResponseById>
 
     @DELETE("api/clientes.php")
-    suspend fun deleteCliente(@Query("id") id: Int): Response<PostResponse>
+    suspend fun eliminarCliente(@Query("id") id: Int): Response<PostResponse>
 
     @POST("api/clientes.php")
     suspend fun postCliente(
@@ -81,10 +81,15 @@ interface ApiServices {
 
 /*cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide*/
     @GET("api/ventas.php")
-    suspend fun getVentas(): Response<VentaApiResponse>
+    suspend fun getVentas(
+        @Query("usuarioId") usuarioId: String
+    ): Response<VentaApiResponse>
 
     @GET("api/ventas.php")
-    suspend fun getVentasByCienteId(@Query("id") id: Int): Response<VentaApiResponseById>
+    suspend fun getVentasByCienteId(
+        @Query("id") id: Int,
+        @Query("usuarioId") usuarioId: String
+    ): Response<VentaApiResponseById>
 
     @POST("api/ventas.php")
     suspend fun postVenta(
