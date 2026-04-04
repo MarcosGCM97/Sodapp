@@ -191,4 +191,19 @@ class ProductoViewModel @Inject constructor(
 
         }
     }
+
+    //control de stock
+    companion object {
+        const val STOCK_BAJO_UMBRAL = 5
+        const val STOCK_MEDIO_UMBRAL = 10
+    }
+
+    fun ajustarStock(producto: ProductoCompleto, nuevaCantidad: Int) {
+        val productoParaEditar = Producto(
+            nombrePr = producto.nombrePr,
+            precioUni = producto.precioUni,
+            stock = nuevaCantidad.toString()
+        )
+        editarProducto(productoParaEditar)
+    }
 }

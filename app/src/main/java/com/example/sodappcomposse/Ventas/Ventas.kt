@@ -264,14 +264,20 @@ fun AddVentaForm(
                     DropdownMenuItem(
                         text = { Text(selectionOption) },
                         onClick = {
-                            currentSelectedProductInDropdown = selectionOption // Update current selection in dropdown
+                            currentSelectedProductInDropdown = selectionOption
                             expandedProds = false
-                            // Add to productosParaVenta if not already present
-                            if (productosParaVenta.none { it.nombre == selectionOption }) {
-                                productoModel.getProductoByName(selectionOption)//cargo el producto para despues procesar la deuda del cliente
 
-                                productosParaVenta.add(ProductoVenta(nombre = selectionOption)) // Adds with default quantity 1
-                                Toast.makeText(context, "$selectionOption agregado a la lista", Toast.LENGTH_SHORT).show()
+                            if (productosParaVenta.none { it.nombre == selectionOption }) {
+                                val productoCompleto = productos.find { it.nombrePr == selectionOption }
+
+                                productosParaVenta.add(
+                                    ProductoVenta(
+                                        nombre = selectionOption,
+                                        cantidad = 1,      // Cantidad inicial
+                                        precio = productoCompleto?.precioUni?.toDouble() ?: 0.0
+                                    )
+                                )
+                                Toast.makeText(context, "$selectionOption agregado", Toast.LENGTH_SHORT).show()
                             } else {
                                 Toast.makeText(context, "$selectionOption ya está en la lista", Toast.LENGTH_SHORT).show()
                             }
@@ -394,7 +400,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
-     var cliente = clienteModel.clientes.find { it.idCl == venta.cliente.idCl }
+    var cliente = clienteModel.clientes.find { it.idCl == venta.cliente.idCl }
     var totales : MutableList<Double?> = mutableListOf(0.0)
 
     Card(

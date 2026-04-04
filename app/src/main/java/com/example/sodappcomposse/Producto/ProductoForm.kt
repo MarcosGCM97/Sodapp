@@ -2,7 +2,6 @@ package com.example.sodappcomposse.Producto
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,18 +11,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,71 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.sodappcomposse.Cliente.AddClienteForm
-import com.example.sodappcomposse.Cliente.ClientesViewModel
-import com.example.sodappcomposse.Ventas.Ventas
 
-@Composable
-fun Productos(
-    navController: NavController
-){
-    val TAG = "Productos"
-    val scrollState = rememberScrollState()
-
-    var tabSeleccionado by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Productos", "Inventario")
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = tabSeleccionado) {
-            tabs.forEachIndexed { index, titulo ->
-                Tab(
-                    selected = tabSeleccionado == index,
-                    onClick = { tabSeleccionado = index },
-                    text = { Text(titulo) }
-                )
-            }
-        }
-
-        when (tabSeleccionado) {
-            0 -> TabProductos(navController = navController)
-            1 -> TabInventario(navController = navController)
-        }
-    }
-}
-
-// =============================================
-// TAB PRODUCTOS (contenido original sin cambios)
-// =============================================
-@Composable
-fun TabProductos(navController: NavController) {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            AddProductoForm(
-                navController = navController
-            )
-        }
-    }
-}
-
-
-
-/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductoForm(
@@ -342,11 +287,4 @@ fun BuscarProducto(
             }
         )
     }
-}
-*/
-
-@Preview(showSystemUi = true)
-@Composable
-fun PreviewProductosScreen(){
-    Productos(navController = NavController(LocalContext.current))
 }
