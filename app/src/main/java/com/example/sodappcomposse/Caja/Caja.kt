@@ -62,10 +62,11 @@ fun CajaScreen(
         }
     }*/
     val catidadDeVentasPorProducto = cajaData.caja?.groupBy { it.producto }?.mapValues { (_, ventas) ->
+        val firstVenta = ventas.first()
         CatidadDeVentasPorProducto(
-            producto = ventas.first().producto,
+            producto = if (firstVenta.producto.isBlank()) "Producto Desconocido" else firstVenta.producto,
             cantidad = ventas.sumOf { it.cantidad.toIntOrNull() ?: 0 },
-            precio = ventas.sumOf { it.precio * it.cantidad.toDouble() }
+            precio = ventas.sumOf { it.precio * (it.cantidad.toDoubleOrNull() ?: 0.0) }
         )
     }
 
@@ -160,7 +161,7 @@ fun CajaScreen(
                     contentAlignment = Alignment.Center
                 ){
                     Text(
-                        text = selectedMes!!.name,
+                        text = selectedMes?.name ?: "",
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth()

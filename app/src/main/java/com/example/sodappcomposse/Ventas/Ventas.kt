@@ -66,7 +66,7 @@ fun Ventas(
         } else {
 
             val groupedByClienteAndFecha = listaOriginalVentas.groupBy {
-                Pair(it.cliente.nombreCl, it.fecha.substringBefore(" "))
+                Pair(it.cliente?.nombreCl ?: "Cliente Desconocido", it.fecha.substringBefore(" "))
             }
 
             val resultado = groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
@@ -76,10 +76,11 @@ fun Ventas(
                 val productosSumados = ventasDelGrupo
                     .groupBy { it.producto }
                     .map { (nombreProducto, itemsProducto) ->
+                        val fallbackPrecio = itemsProducto.firstOrNull()?.precio ?: 0.0
                         ProductoVenta(
-                            nombre = nombreProducto ?: "Producto Desconocido",
+                            nombre = if (nombreProducto.isNullOrBlank()) "Producto Desconocido" else nombreProducto,
                             cantidad = itemsProducto.sumOf { it.cantidad.toIntOrNull() ?: 0 },
-                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni?.toDouble()
+                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni?.toDoubleOrNull() ?: fallbackPrecio
                         )
                     }
 
@@ -400,7 +401,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
-    var cliente = clienteModel.clientes.find { it.idCl == venta.cliente.idCl }
+    var cliente = clienteModel.clientes.find { it.idCl == venta.cliente?.idCl }
     var totales : MutableList<Double?> = mutableListOf(0.0)
 
     Card(
@@ -415,7 +416,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Cliente: ${venta.cliente.nombreCl}",
+                text = "Cliente: ${venta.cliente?.nombreCl ?: "Desconocido"}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -486,7 +487,7 @@ fun armarMensajeVentasWpp(venta: VentaAgrupada, total : Double): String{
         separator = ", ",
         transform = { it.cantidad.toString() + " " + it.nombre + " por $" + it.precio.toString() + " c/u" }
     )
-    return "Tu compra fue de $productosString, por un total de $$total. Acumulando una deuda de $${venta.cliente.deudaCl}. *Gracias por tu compra!*"
+    return "Tu compra fue de $productosString, por un total de $$total. Acumulando una deuda de $${venta.cliente?.deudaCl ?: 0}. *Gracias por tu compra!*"
 }
 
 @Composable

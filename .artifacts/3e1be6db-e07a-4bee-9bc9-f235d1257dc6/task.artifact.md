@@ -1,0 +1,4 @@
+- [x] Corregir mapeo de producto en `Venta.kt` (revertir a `vt_pro`)
+- [x] Asegurar visualización de nombre y precio en `Ventas.kt`
+- [x] Verificar consistencia en `Caja.kt`
+- [x] Verificar compilación

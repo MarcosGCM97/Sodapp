@@ -29,7 +29,7 @@ data class DataVenta(
 /*cl, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide, vt.vt_mon*/
 data class VentaCompleta(
     @SerializedName("vt_cli")
-    val cliente: Cliente,
+    val cliente: Cliente? = null,
     @SerializedName("vt_pro")
     val producto: String = "",
     @SerializedName("pr_val")
@@ -51,7 +51,7 @@ data class VentaRequest(
 )
 
 data class VentaAgrupada(
-    val cliente: Cliente,
+    val cliente: Cliente? = null,
     val fecha: String,
     val productos: List<ProductoVenta>,
     val cantidadTotalVenta: Int,
