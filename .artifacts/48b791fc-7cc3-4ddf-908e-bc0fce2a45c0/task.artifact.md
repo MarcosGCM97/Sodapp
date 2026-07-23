@@ -1,6 +1,3 @@
-- [x] Investigar archivos afectados
-- [x] Aplicar cambios en `UserPreferencesRepository.kt`
-- [x] Aplicar cambios en `Venta.kt`
-- [x] Reforzar null-safety en `VentasViewModel.kt`
-- [x] Reforzar null-safety en `CajaViewModel.kt`
+- [x] Investigar archivos afectados (Bug de productos)
+- [x] Aplicar cambios en `Ventas.kt` (Trigger de productos)
 - [x] Verificar compilación

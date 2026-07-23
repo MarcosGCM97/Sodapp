@@ -1,35 +1,21 @@
-# Fix: Corrección de Crash en Caja y Conflicto de DataStore
+# Fix: Productos no se listan en el formulario de Nueva Venta
 
-Este plan aborda dos errores críticos identificados tras la refactorización inicial: el fallo de casteo en DataStore y la incompatibilidad del modelo de Ventas con el reporte de Caja.
+El problema identificado es que el Composable `AddVentaForm` no dispara la carga de productos desde el `ProductoViewModel`, lo que resulta en un estado `Idle` permanente y el mensaje "No hay productos disponibles" en el selector.
 
 ## Propuestas de Cambio
 
-### 1. Solución al conflicto de DataStore
-- **Problema**: El cambio de tipo de `Set<String>` a `String` causa un error `ClassCastException` porque DataStore conserva los datos viejos bajo la misma llave.
-- **Solución**: Renombrar las llaves internas de `user_id` y `user_name` a una versión nueva. Esto forzará una migración limpia y evitará el crash.
+### 1. Activar carga de productos en `AddVentaForm`
+- **Cambio**: Añadir un `LaunchedEffect(Unit)` dentro de `AddVentaForm` para llamar a `productoModel.getProductos()`.
+- **Mejora**: Pasar las instancias de los ViewModels desde el Composable padre `Ventas` para asegurar consistencia en el estado y evitar inyecciones redundantes si la jerarquía cambia.
 
-#### [MODIFY] [UserPreferencesRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/UserPreferencesRepository.kt)
-
-### 2. Solución al Crash en Caja (NPE)
-- **Problema**: La API `cajaMes.php` devuelve un JSON con campos planos (`cl_nom`, `pr_nom`) mientras que `Venta` esperaba campos anidados o con nombres diferentes (`vt_cli`, `vt_pro`). Esto hacía que el campo `producto` fuera nulo, provocando un crash al agrupar.
-- **Solución**:
-    - Usar `alternate` en `@SerializedName` para que `producto` reconozca tanto `vt_pro` como `pr_nom`.
-    - Añadir campos planos para el cliente y una propiedad calculada para unificar la visualización.
-
-#### [MODIFY] [Venta.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/Venta.kt)
-
-### 3. Refuerzo de Seguridad (Null-Safety)
-- **Problema**: Operaciones como `groupBy { it.producto }` pueden fallar si el servidor devuelve nulos inesperados.
-- **Solución**: Usar el operador elvis `?: ""` y `ifBlank` para garantizar que los nombres de productos nunca sean nulos en la lógica de agrupación.
-
-#### [MODIFY] [VentasViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/VentasViewModel.kt)
-#### [MODIFY] [CajaViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/CajaViewModel.kt)
+#### [MODIFY] [Ventas.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/Ventas.kt)
+- Añadir `LaunchedEffect(Unit) { productoModel.getProductos() }` en `AddVentaForm`.
+- Actualizar la llamada a `AddVentaForm()` en `Ventas()` para pasar los modelos explícitamente.
 
 ## Verificación Plan
 
-### Automated Tests
-- `gradlew assembleDebug`: Asegurar que el proyecto compile.
-
 ### Manual Verification
-- **Login**: Iniciar sesión (se requerirá una vez más debido al cambio de llaves) y verificar que no haya error de casteo.
-- **Caja**: Presionar "Ver caja Mes" y confirmar que los datos se muestran correctamente sin cerrar la aplicación.
+1. Abrir la pantalla de Ventas.
+2. Desplegar el formulario "Cargar la venta".
+3. Verificar que el selector de "Producto" muestre los productos cargados desde la base de datos en lugar de "No hay productos disponibles".
+4. Seleccionar un producto y confirmar que se agrega a la lista de la venta.
