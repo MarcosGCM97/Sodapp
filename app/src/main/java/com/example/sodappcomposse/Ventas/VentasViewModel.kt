@@ -51,7 +51,7 @@ class VentasViewModel @Inject constructor(
             emptyList<VentaAgrupada>()
         } else {
             val groupedByClienteAndFecha = sales.groupBy {
-                Pair(it.cliente?.nombreCl ?: "Cliente Desconocido", it.fecha.substringBefore(" "))
+                Pair(it.nombreClienteDisplay, it.fecha.substringBefore(" "))
             }
 
             groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
@@ -59,11 +59,11 @@ class VentasViewModel @Inject constructor(
                 val fecha = clienteFechaPair.second
 
                 val productosSumados = ventasDelGrupo
-                    .groupBy { it.producto }
+                    .groupBy { it.producto.ifBlank { "Producto Desconocido" } }
                     .map { (nombreProducto, itemsProducto) ->
                         val fallbackPrecio = itemsProducto.firstOrNull()?.precio ?: 0.0
                         ProductoVenta(
-                            nombre = if (nombreProducto.isBlank()) "Producto Desconocido" else nombreProducto,
+                            nombre = nombreProducto,
                             cantidad = itemsProducto.sumOf { it.cantidad },
                             precio = products.find { it.nombrePr == nombreProducto }?.precioUni ?: fallbackPrecio
                         )

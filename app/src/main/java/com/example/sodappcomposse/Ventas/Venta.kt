@@ -7,7 +7,9 @@ import com.google.gson.annotations.SerializedName
 data class Venta(
     @SerializedName("vt_cli")
     val cliente: Cliente? = null,
-    @SerializedName("vt_pro")
+    @SerializedName("cl_nom")
+    val clienteNombrePlano: String? = null,
+    @SerializedName("vt_pro", alternate = ["pr_nom"])
     val producto: String = "",
     @SerializedName("pr_val")
     val precio: Double = 0.0,
@@ -21,7 +23,10 @@ data class Venta(
     val monto: Double = 0.0,
     @SerializedName("vt_emp")
     val empresa: String = ""
-)
+) {
+    val nombreClienteDisplay: String
+        get() = cliente?.nombreCl ?: clienteNombrePlano ?: "Cliente Desconocido"
+}
 
 data class VentaRequest(
     @SerializedName("clienteId")

@@ -41,7 +41,7 @@ class CajaViewModel @Inject constructor(
 
     val cajaTotales: StateFlow<CajaTotales> = _caja.map { response ->
         val items = response.caja ?: emptyList()
-        val grouped = items.groupBy { it.producto }.mapValues { (_, ventas) ->
+        val grouped = items.groupBy { it.producto.ifBlank { "Producto Desconocido" } }.mapValues { (_, ventas) ->
             val firstVenta = ventas.first()
             CantidadDeVentasPorProducto(
                 producto = firstVenta.producto.ifBlank { "Producto Desconocido" },

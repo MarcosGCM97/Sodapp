@@ -25,8 +25,8 @@ class UserPreferencesRepository @Inject constructor(
     private object PreferencesKeys {
         val SCHEDULED_VISIT_DAYS = stringSetPreferencesKey("scheduled_visit_days")
         val COMPLETED_DELIVERIES = stringSetPreferencesKey("completed_deliveries")
-        val USER_ID = stringPreferencesKey("user_id")
-        val USER_NAME = stringPreferencesKey("user_name")
+        val USER_ID = stringPreferencesKey("user_id_v2")
+        val USER_NAME = stringPreferencesKey("user_name_v2")
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
     }
 
