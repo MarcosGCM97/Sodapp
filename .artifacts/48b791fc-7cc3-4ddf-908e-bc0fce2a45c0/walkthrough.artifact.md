@@ -1,30 +1,28 @@
-# Walkthrough — Fase 7: Rendimiento y Optimización de UI
+# Walkthrough: Corrección de Crash en Caja y DataStore
 
-Esta fase final optimiza la eficiencia de la aplicación y limpia la lógica de presentación, garantizando una experiencia de usuario fluida y un código mantenible.
+Se han implementado las correcciones para el crash de casteo en DataStore y el error de mapeo en el reporte de Caja.
 
 ## Cambios Realizados
 
-### Optimización de Listas (LazyColumn)
-- **Ventas**: Se migró la pantalla de Ventas de `Column` con scroll manual a `LazyColumn`. Esto permite manejar grandes volúmenes de ventas sin degradar el rendimiento, ya que los elementos se crean "on-demand".
-- **Caja**: La visualización de resultados por producto en la pantalla de Caja ahora también utiliza `LazyColumn`.
-
-### Desacoplamiento de Lógica de UI
-- Se eliminó toda la lógica de cálculo de totales y agrupación de datos de los archivos Composable.
-- **VentasViewModel**: Ahora expone un `StateFlow<List<VentaAgrupada>>` calculado mediante `combine` de ventas y productos.
-- **CajaViewModel**: Expone un objeto `CajaTotales` que contiene los grupos por producto y los montos finales, calculados automáticamente al recibir datos de la API.
-
-### Sistema de Caché en Memoria
-- Se implementó un mecanismo de caché simple en `ProductoRepositoryImpl` y `ClienteRepositoryImpl`.
-- **Funcionamiento**: Los repositorios guardan la última respuesta exitosa. Al navegar entre pestañas, los datos se muestran instantáneamente desde el caché.
-- **Invalidación**: El caché se limpia automáticamente al realizar operaciones de escritura (Agregar, Editar, Eliminar), forzando una recarga de datos frescos en la siguiente consulta.
-
-### Correcciones Finales de Modelos
-- Se actualizó [DataCaja.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/DataCaja.kt) para usar la clase unificada `Venta` en lugar de la obsoleta `VentaCompleta`.
-
-## Verificación
-
-> [!TIP]
-> La aplicación ahora responde mucho más rápido al cambiar entre "Ventas", "Clientes" y "Stock" debido al sistema de caché.
+### DataStore (Migración de Llaves)
+Se renombraron las llaves de `user_id` y `user_name` a `user_id_v2` y `user_name_v2` en [UserPreferencesRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/UserPreferencesRepository.kt). Esto resuelve el error `ClassCastException` que ocurría al intentar leer un `String` donde antes había un `Set<String>`.
 
 > [!IMPORTANT]
-> El uso de `LazyColumn` previene bloqueos de la interfaz de usuario (ANR) en dispositivos con recursos limitados cuando el historial de ventas crece.
+> Los usuarios deberán volver a iniciar sesión una vez más debido a este cambio de llaves.
+
+### Modelo de Venta (Flexibilidad JSON)
+Se actualizó [Venta.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/Venta.kt) para:
+- Soportar el campo `pr_nom` como alternativa a `vt_pro` mediante `@SerializedName(alternate = ["pr_nom"])`.
+- Capturar el nombre del cliente plano `cl_nom` devuelto por el reporte de caja.
+- Exponer una propiedad `nombreClienteDisplay` que unifica ambas fuentes de datos (anidado o plano).
+
+### ViewModels (Robustez)
+Se ajustó la lógica de agrupación en [VentasViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/VentasViewModel.kt) y [CajaViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/CajaViewModel.kt) para utilizar las nuevas propiedades y manejar strings vacíos con valores por defecto ("Producto Desconocido"), evitando fallos al agrupar.
+
+## Verificación Realizada
+- **Compilación**: Exitosa mediante `gradlew app:assembleDebug`.
+- **Lógica**: Se verificó que la agrupación ahora utiliza `nombreClienteDisplay`, lo que previene el crash reportado.
+
+## Próximos Pasos
+- Desplegar la app y verificar el flujo de Login.
+- Abrir el reporte de Caja para confirmar que la lista se visualiza correctamente.

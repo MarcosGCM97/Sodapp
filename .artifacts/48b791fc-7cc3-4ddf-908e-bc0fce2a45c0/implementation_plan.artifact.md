@@ -1,46 +1,35 @@
-# Fase 7 — Rendimiento (LazyColumn, Caché y Lógica de UI)
+# Fix: Corrección de Crash en Caja y Conflicto de DataStore
 
-Esta fase se enfoca en optimizar el rendimiento de la aplicación al renderizar listas largas y reducir las llamadas innecesarias a la red. También desacoplaremos la lógica de negocio que aún reside en la capa de UI.
-
-## User Review Required
-
-> [!TIP]
-> Al migrar a `LazyColumn`, la aplicación será mucho más fluida al manejar cientos de ventas o productos, ya que solo se renderizarán los elementos visibles en pantalla.
+Este plan aborda dos errores críticos identificados tras la refactorización inicial: el fallo de casteo en DataStore y la incompatibilidad del modelo de Ventas con el reporte de Caja.
 
 ## Propuestas de Cambio
 
-### 1. Optimización de la Pantalla de Ventas
-- **Problema**: `Ventas.kt` utiliza un `Column` con `verticalScroll`, lo que carga todas las ventas en memoria. Además, la lógica de agrupación por cliente y fecha está en el Composable.
+### 1. Solución al conflicto de DataStore
+- **Problema**: El cambio de tipo de `Set<String>` a `String` causa un error `ClassCastException` porque DataStore conserva los datos viejos bajo la misma llave.
+- **Solución**: Renombrar las llaves internas de `user_id` y `user_name` a una versión nueva. Esto forzará una migración limpia y evitará el crash.
+
+#### [MODIFY] [UserPreferencesRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/UserPreferencesRepository.kt)
+
+### 2. Solución al Crash en Caja (NPE)
+- **Problema**: La API `cajaMes.php` devuelve un JSON con campos planos (`cl_nom`, `pr_nom`) mientras que `Venta` esperaba campos anidados o con nombres diferentes (`vt_cli`, `vt_pro`). Esto hacía que el campo `producto` fuera nulo, provocando un crash al agrupar.
 - **Solución**:
-    - Mover la lógica de `ventasAgrupadas` al `VentasViewModel`.
-    - Reemplazar `Column` por `LazyColumn`.
-    - Usar `item { AddVentaForm() }` y `items(ventasAgrupadas) { ... }`.
+    - Usar `alternate` en `@SerializedName` para que `producto` reconozca tanto `vt_pro` como `pr_nom`.
+    - Añadir campos planos para el cliente y una propiedad calculada para unificar la visualización.
+
+#### [MODIFY] [Venta.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/Venta.kt)
+
+### 3. Refuerzo de Seguridad (Null-Safety)
+- **Problema**: Operaciones como `groupBy { it.producto }` pueden fallar si el servidor devuelve nulos inesperados.
+- **Solución**: Usar el operador elvis `?: ""` y `ifBlank` para garantizar que los nombres de productos nunca sean nulos en la lógica de agrupación.
 
 #### [MODIFY] [VentasViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/VentasViewModel.kt)
-#### [MODIFY] [Ventas.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/Ventas.kt)
-
-### 2. Optimización de la Pantalla de Caja
-- **Problema**: Similar a Ventas, los totales y la agrupación por producto se calculan en la UI.
-- **Solución**:
-    - Mover cálculos de `cantidadDeVentasPorProducto`, `cantidadDeVentas` y `cantidadDePlata` al `CajaViewModel`.
-    - Migrar la visualización de resultados a `LazyColumn`.
-
 #### [MODIFY] [CajaViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/CajaViewModel.kt)
-#### [MODIFY] [Caja.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/Caja.kt)
-
-### 3. Implementación de Caché en Repositorios
-- **Problema**: Cada vez que se navega entre pantallas, los ViewModels vuelven a pedir los datos a la API (ej. `getProductos`, `getClientes`).
-- **Solución**: Implementar una política de caché simple en memoria dentro de los repositorios para que, si los datos ya fueron cargados recientemente, se devuelvan inmediatamente mientras se refrescan en segundo plano (opcional) o simplemente se usen los cacheados si no ha pasado mucho tiempo.
-
-#### [MODIFY] [ProductoRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Producto/ProductoRepository.kt)
-#### [MODIFY] [ClienteRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Cliente/ClienteRepository.kt)
 
 ## Verificación Plan
 
 ### Automated Tests
-- `gradlew assembleDebug`: Asegurar que los cambios en los ViewModels no rompan la compilación de la UI.
+- `gradlew assembleDebug`: Asegurar que el proyecto compile.
 
 ### Manual Verification
-- **Scroll**: Verificar que el scroll en la pantalla de Ventas sea fluido incluso con muchos registros.
-- **Navegación**: Entrar y salir de la pantalla de Productos y notar que la carga es instantánea si el caché está activo.
-- **Totales**: Confirmar que los totales en Ventas y Caja sigan siendo correctos tras mover la lógica al ViewModel.
+- **Login**: Iniciar sesión (se requerirá una vez más debido al cambio de llaves) y verificar que no haya error de casteo.
+- **Caja**: Presionar "Ver caja Mes" y confirmar que los datos se muestran correctamente sin cerrar la aplicación.
