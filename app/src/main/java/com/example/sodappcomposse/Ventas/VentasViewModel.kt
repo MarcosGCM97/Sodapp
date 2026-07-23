@@ -7,17 +7,23 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.Cliente.ClienteRepository
+import com.example.sodappcomposse.Producto.Producto
+import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow as KStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 
 sealed class VentasUiState{
     object Idle: VentasUiState()
@@ -25,19 +31,61 @@ sealed class VentasUiState{
     data class Error(val message: String): VentasUiState()
     data class Success(val message: String): VentasUiState()
 }
+
 @HiltViewModel
 class VentasViewModel @Inject constructor(
     private val ventaRepository: VentaRepository,
     private val clienteRepository: ClienteRepository,
+    private val productoRepository: ProductoRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
-    private val _ventas = mutableStateListOf<Venta>()
-    val ventas: List<Venta> = _ventas
+    private val _ventas = MutableStateFlow<List<Venta>>(emptyList())
+    val ventas: StateFlow<List<Venta>> = _ventas.asStateFlow()
+
+    private val _productos = MutableStateFlow<List<Producto>>(emptyList())
+
+    val ventasAgrupadas: StateFlow<List<VentaAgrupada>> = combine(_ventas, _productos) { sales, products ->
+        if (sales.isEmpty()) {
+            emptyList<VentaAgrupada>()
+        } else {
+            val groupedByClienteAndFecha = sales.groupBy {
+                Pair(it.cliente?.nombreCl ?: "Cliente Desconocido", it.fecha.substringBefore(" "))
+            }
+
+            groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
+                val cliente = ventasDelGrupo.first().cliente
+                val fecha = clienteFechaPair.second
+
+                val productosSumados = ventasDelGrupo
+                    .groupBy { it.producto }
+                    .map { (nombreProducto, itemsProducto) ->
+                        val fallbackPrecio = itemsProducto.firstOrNull()?.precio ?: 0.0
+                        ProductoVenta(
+                            nombre = if (nombreProducto.isBlank()) "Producto Desconocido" else nombreProducto,
+                            cantidad = itemsProducto.sumOf { it.cantidad },
+                            precio = products.find { it.nombrePr == nombreProducto }?.precioUni ?: fallbackPrecio
+                        )
+                    }
+
+                val cantidadTotalDeEstaVenta = productosSumados.sumOf { it.cantidad }
+                val montoTotalDeEstaVenta = productosSumados.sumOf { it.cantidad * (it.precio ?: 0.0) }
+
+                VentaAgrupada(
+                    cliente = cliente,
+                    fecha = fecha,
+                    productos = productosSumados,
+                    cantidadTotalVenta = cantidadTotalDeEstaVenta,
+                    montoTotalVenta = montoTotalDeEstaVenta
+                )
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     var ventasUiState: VentasUiState by mutableStateOf(VentasUiState.Idle)
         private set
+
 
     private val _ventasPorClienteId = MutableStateFlow<List<Venta>>(emptyList())
     val ventasPorClienteId: StateFlow<List<Venta>> = _ventasPorClienteId.asStateFlow()
@@ -81,6 +129,12 @@ class VentasViewModel @Inject constructor(
             try {
                 ventasUiState = VentasUiState.Loading
 
+                // Cargar productos para el mapeo de precios
+                val productsResponse = productoRepository.getProductos()
+                if (productsResponse.isSuccessful) {
+                    _productos.value = productsResponse.body()?.productos ?: emptyList()
+                }
+
                 // 1. Obtener el ID del usuario actual
                 val idUsuario = userPreferencesRepository.userId.first() ?: "0"
 
@@ -89,8 +143,7 @@ class VentasViewModel @Inject constructor(
 
                 if (response.isSuccessful) {
                     response.body()?.let { ventaApi ->
-                        _ventas.clear()
-                        _ventas.addAll(ventaApi.ventas)
+                        _ventas.value = ventaApi.ventas
                         ventasUiState = VentasUiState.Success("Ventas de $idUsuario cargadas")
                     } ?: run {
                         ventasUiState = VentasUiState.Error("Cuerpo de respuesta nulo")

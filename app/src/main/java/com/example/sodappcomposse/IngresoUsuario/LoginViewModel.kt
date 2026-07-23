@@ -28,6 +28,8 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
     private val TAG = "UsuarioViewModel"
 
+    val isLoggedIn = userPreferencesRepository.isLoggedIn
+
     var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
         private set
 

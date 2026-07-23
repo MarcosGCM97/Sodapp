@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.ProductoEditar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -220,7 +221,7 @@ fun BuscarProducto(
                 ) {
                     Button(
                         onClick = {
-                            navController.navigate("productoEditarScreen/${producto.nombrePr}")
+                            navController.navigate(ProductoEditar(nombre = producto.nombrePr))
                         }
                     ) {
                         Icon(Icons.Filled.Edit, contentDescription = "Editar")

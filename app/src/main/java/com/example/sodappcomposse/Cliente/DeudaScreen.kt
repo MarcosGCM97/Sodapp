@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
@@ -299,8 +300,8 @@ fun DeudaScreen(
                                         clienteId!!.toInt(),
                                         valorVenta
                                     )
-                                    navController.navigate("deudaScreen/${clienteId}"){
-                                        popUpTo("deudaScreen/${clienteId}") { inclusive = true }
+                                    navController.navigate(Deuda(id = clienteId)) {
+                                        popUpTo<Deuda> { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 },

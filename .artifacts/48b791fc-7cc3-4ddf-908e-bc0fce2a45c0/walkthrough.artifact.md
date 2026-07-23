@@ -1,27 +1,30 @@
-# Walkthrough — Fase 5: Repository Pattern
+# Walkthrough — Fase 7: Rendimiento y Optimización de UI
 
-Se ha implementado el **Repository Pattern** en todo el proyecto, eliminando la dependencia directa de los ViewModels hacia Retrofit e introduciendo una capa de abstracción robusta.
+Esta fase final optimiza la eficiencia de la aplicación y limpia la lógica de presentación, garantizando una experiencia de usuario fluida y un código mantenible.
 
 ## Cambios Realizados
 
-### Capa de Repositorios
-Se han creado interfaces e implementaciones para cada dominio del negocio. Esto permite centralizar el acceso a datos y facilita el cambio de fuentes de datos (ej. agregar caché local) sin afectar el resto de la app.
-- **Dominios implementados**: `Auth`, `Cliente`, `Producto`, `Venta`, `Caja` y `Agenda`.
-- **Implementaciones**: Usan `ApiServices` (Retrofit) para la obtención de datos actual.
+### Optimización de Listas (LazyColumn)
+- **Ventas**: Se migró la pantalla de Ventas de `Column` con scroll manual a `LazyColumn`. Esto permite manejar grandes volúmenes de ventas sin degradar el rendimiento, ya que los elementos se crean "on-demand".
+- **Caja**: La visualización de resultados por producto en la pantalla de Caja ahora también utiliza `LazyColumn`.
 
-### Inyección de Dependencias (Hilt)
-Se creó el módulo [RepositoryModule.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/di/RepositoryModule.kt) usando `@Binds` para inyectar automáticamente las implementaciones cuando se solicita una interfaz de repositorio.
+### Desacoplamiento de Lógica de UI
+- Se eliminó toda la lógica de cálculo de totales y agrupación de datos de los archivos Composable.
+- **VentasViewModel**: Ahora expone un `StateFlow<List<VentaAgrupada>>` calculado mediante `combine` de ventas y productos.
+- **CajaViewModel**: Expone un objeto `CajaTotales` que contiene los grupos por producto y los montos finales, calculados automáticamente al recibir datos de la API.
 
-### Refactorización de ViewModels
-Todos los ViewModels del proyecto han sido actualizados para depender de interfaces de repositorios:
-- Se eliminaron las dependencias directas de `ApiServices`.
-- Se limpiaron los imports innecesarios.
-- La lógica de negocio ahora es más pura, delegando la responsabilidad de "cómo se obtienen los datos" a los repositorios.
+### Sistema de Caché en Memoria
+- Se implementó un mecanismo de caché simple en `ProductoRepositoryImpl` y `ClienteRepositoryImpl`.
+- **Funcionamiento**: Los repositorios guardan la última respuesta exitosa. Al navegar entre pestañas, los datos se muestran instantáneamente desde el caché.
+- **Invalidación**: El caché se limpia automáticamente al realizar operaciones de escritura (Agregar, Editar, Eliminar), forzando una recarga de datos frescos en la siguiente consulta.
+
+### Correcciones Finales de Modelos
+- Se actualizó [DataCaja.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/DataCaja.kt) para usar la clase unificada `Venta` en lugar de la obsoleta `VentaCompleta`.
 
 ## Verificación
 
 > [!TIP]
-> El proyecto ahora cumple con el principio de **Inversión de Dependencias (D)** de SOLID, ya que los ViewModels dependen de abstracciones (interfaces) y no de implementaciones concretas.
+> La aplicación ahora responde mucho más rápido al cambiar entre "Ventas", "Clientes" y "Stock" debido al sistema de caché.
 
 > [!IMPORTANT]
-> Se ha verificado que `VentasViewModel` utilice tanto `VentaRepository` como `ClienteRepository` para coordinar la eliminación de ventas y actualización de deudas correctamente.
+> El uso de `LazyColumn` previene bloqueos de la interfaz de usuario (ANR) en dispositivos con recursos limitados cuando el historial de ventas crece.

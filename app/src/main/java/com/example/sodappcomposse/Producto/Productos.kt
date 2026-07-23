@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.ProductoEditar
 import com.example.sodappcomposse.Cliente.AddClienteForm
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Ventas.Ventas
@@ -275,7 +276,7 @@ fun BuscarProducto(
                 ) {
                     Button(
                         onClick = {
-                            navController.navigate("productoEditarScreen/${producto.nombrePr}")
+                            navController.navigate(ProductoEditar(nombre = producto.nombrePr))
                         }
                     ) {
                         Icon(Icons.Filled.Edit, contentDescription = "Editar")

@@ -1,21 +1,23 @@
 package com.example.sodappcomposse.API
 
 import com.example.sodappcomposse.API.ApiServices
+import com.example.sodappcomposse.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory // O MoshiConverterFactory
-import kotlin.getValue
-import kotlin.jvm.java
-
+import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
     private const val BASE_URL = "http://www.aplicaciones-servicios-1997.site/"
 
-    // Interceptor para logs (opcional, pero muy útil para depurar)
+    // Interceptor para logs (solo en modo DEBUG)
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY // Muestra el cuerpo de la petición y respuesta
+        level = if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor.Level.BODY
+        } else {
+            HttpLoggingInterceptor.Level.NONE
+        }
     }
 
     private val httpClient = OkHttpClient.Builder()

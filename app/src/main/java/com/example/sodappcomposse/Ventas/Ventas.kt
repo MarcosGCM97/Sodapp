@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
@@ -36,6 +37,9 @@ import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.ProductoViewModel
+
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -46,101 +50,59 @@ fun Ventas(
     navController: NavController
 ){
     val TAG = "Ventas screen"
-    val scrollState = rememberScrollState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        productoModel.getProductos()
         ventaModel.getVentas()
     }
 
     val ventasUiState = ventaModel.ventasUiState
-    val listaOriginalVentas = ventaModel.ventas
-    val listaOriginalProductos = productoModel.productos
+    val ventasAgrupadas by ventaModel.ventasAgrupadas.collectAsState()
 
-    var mostrarAgenda by remember { mutableStateOf(false) }
-
-    val ventasAgrupadas = remember(listaOriginalVentas.toList()) {
-        if (listaOriginalVentas.isEmpty()) {
-            emptyList<VentaAgrupada>()
-        } else {
-
-            val groupedByClienteAndFecha = listaOriginalVentas.groupBy {
-                Pair(it.cliente?.nombreCl ?: "Cliente Desconocido", it.fecha.substringBefore(" "))
-            }
-
-            val resultado = groupedByClienteAndFecha.map { (clienteFechaPair, ventasDelGrupo) ->
-                val cliente = ventasDelGrupo.first().cliente
-                val fecha = clienteFechaPair.second
-
-                val productosSumados = ventasDelGrupo
-                    .groupBy { it.producto }
-                    .map { (nombreProducto, itemsProducto) ->
-                        val fallbackPrecio = itemsProducto.firstOrNull()?.precio ?: 0.0
-                        ProductoVenta(
-                            nombre = if (nombreProducto.isNullOrBlank()) "Producto Desconocido" else nombreProducto,
-                            cantidad = itemsProducto.sumOf { it.cantidad },
-                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni ?: fallbackPrecio
-                        )
-                    }
-
-                val cantidadTotalDeEstaVenta = productosSumados.sumOf { it.cantidad }
-                val montoTotalDeEstaVenta = productosSumados.sumOf { it.cantidad * (it.precio ?: 0.0) }
-
-                VentaAgrupada(
-                    cliente = cliente,
-                    fecha = fecha,
-                    productos = productosSumados,
-                    cantidadTotalVenta = cantidadTotalDeEstaVenta,
-                    montoTotalVenta = montoTotalDeEstaVenta
-                )
-            }
-            resultado
-        }
-    }
-
-
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            AddVentaForm()
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AddVentaForm()
+            }
         }
 
-        Button(
-            onClick = {
-                navController.navigate("agendaScreen")
+        item {
+            Button(
+                onClick = {
+                    navController.navigate(Agenda)
+                }
+            ) {
+                Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
+                Spacer(modifier = Modifier.width(4.dp))
             }
-        ) {
-            Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
-            Spacer(modifier = Modifier.width(4.dp))
         }
 
-        if (ventasUiState is VentasUiState.Loading) {
-            CircularProgressIndicator()
-            //Log.d("VentasComposable", "UI State: Loading")
-        } else if (ventasUiState is VentasUiState.Error) {
-            Text("Error: ${(ventasUiState).message}", color = MaterialTheme.colorScheme.error)
-            //Log.d("VentasComposable", "UI State: Error - ${(ventasUiState as VentasUiState.Error).message}")
-        } else if (ventasAgrupadas.isEmpty() && ventasUiState is VentasUiState.Success) {
-            Text("No hay ventas para mostrar.")
-            //Log.d("VentasComposable", "UI State: Success pero ventasAgrupadas está vacía.")
-        } else if (ventasUiState is VentasUiState.Success){
-            //Log.d("VentasComposable", "UI State: Success, mostrando ${ventasAgrupadas.size} ventas agrupadas.")
-            ventasAgrupadas.forEach { ventaAgrupada ->
-                BoxVentas(venta = ventaAgrupada, context)
+        when {
+            ventasUiState is VentasUiState.Loading -> {
+                item { CircularProgressIndicator() }
             }
-        } else {
-            // Caso por defecto o si ventasUiState es Idle y la lista no está vacía (poco probable aquí)
-            Text("Esperando datos...")
-            //Log.d("VentasComposable", "UI State: Idle o estado no manejado y ventasAgrupadas está vacía.")
+            ventasUiState is VentasUiState.Error -> {
+                item { Text("Error: ${(ventasUiState).message}", color = MaterialTheme.colorScheme.error) }
+            }
+            ventasAgrupadas.isEmpty() && ventasUiState is VentasUiState.Success -> {
+                item { Text("No hay ventas para mostrar.") }
+            }
+            ventasUiState is VentasUiState.Success -> {
+                items(ventasAgrupadas) { ventaAgrupada ->
+                    BoxVentas(venta = ventaAgrupada, context)
+                }
+            }
+            else -> {
+                item { Text("Esperando datos...") }
+            }
         }
     }
 }

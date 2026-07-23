@@ -1,84 +1,89 @@
 package com.example.sodappcomposse
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
-import kotlinx.serialization.Serializable
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.example.sodappcomposse.Cliente.ClienteEditarScreen
 import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
+import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.Producto.ProductoEditarScreen
+import kotlinx.serialization.Serializable
 
 @Serializable
 object Login
 
 @Serializable
 data class Bienvenida(val nombre: String)
-/*
+
 @Serializable
-object NavBottom*/
+data class Deuda(val id: String)
+
+@Serializable
+data class ProductoEditar(val nombre: String)
+
+@Serializable
+data class ClienteEditar(val id: Int)
+
+@Serializable
+object Agenda
 
 @Composable
-fun Navigator(){
+fun Navigator(
+    loginViewModel: LoginViewModel = hiltViewModel()
+){
     val navController = rememberNavController()
+    val isLoggedIn by loginViewModel.isLoggedIn.collectAsState(initial = false)
 
-    NavHost(navController = navController, startDestination = Login){
+    NavHost(
+        navController = navController, 
+        startDestination = if (isLoggedIn) Bienvenida("") else Login
+    ){
         composable<Login> {
             LoginScreen { nombre ->
-                navController.navigate(Bienvenida(nombre = nombre))
+                navController.navigate(Bienvenida(nombre = nombre)) {
+                    popUpTo<Login> { inclusive = true }
+                }
             }
         }
 
-        composable<Bienvenida> {backStackEntry ->
-            val parametro: Bienvenida = backStackEntry.toRoute()
+        composable<Bienvenida> { backStackEntry ->
+            val route: Bienvenida = backStackEntry.toRoute()
             BienvenidaScreen(
-                parametro.nombre, // Coincide con el primer parámetro
-                navLogin = {                   // Coincide con el segundo parámetro (la lambda)
+                nombreUser = route.nombre,
+                navLogin = {
                     navController.navigate(Login) {
-                        popUpTo<Login> {
-                            inclusive = true
-                        }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 navController = navController
             )
         }
 
-        composable(
-            "deudaScreen/{id}",
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
-        ) { backStackEntry -> // Asegúrate de que esta ruta exista
-            val clienteId = backStackEntry.arguments?.getString("id") // O Int si es un Int
-            DeudaScreen(navController, clienteId)
+        composable<Deuda> { backStackEntry ->
+            val route: Deuda = backStackEntry.toRoute()
+            DeudaScreen(navController, route.id)
         }
 
-        composable(
-            "productoEditarScreen/{nombre}",
-            arguments = listOf(navArgument("nombre") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val nombreProducto = backStackEntry.arguments?.getString("nombre")
-            ProductoEditarScreen(navController, nombreProducto = nombreProducto)
+        composable<ProductoEditar> { backStackEntry ->
+            val route: ProductoEditar = backStackEntry.toRoute()
+            ProductoEditarScreen(navController, nombreProducto = route.nombre)
         }
 
-        composable(
-            "clienteEditarScreen/{id}",
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
-        ) {
-            val idCliente = it.arguments?.getString("id")
-            ClienteEditarScreen(navController, idCliente = idCliente?.toInt())
+        composable<ClienteEditar> { backStackEntry ->
+            val route: ClienteEditar = backStackEntry.toRoute()
+            ClienteEditarScreen(navController, idCliente = route.id)
         }
 
-        composable("agendaScreen"){
+        composable<Agenda> {
             AgendaScreen(navController = navController)
         }
     }
 }
-
-
-

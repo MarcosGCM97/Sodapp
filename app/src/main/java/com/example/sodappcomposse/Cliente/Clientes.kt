@@ -40,6 +40,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.ClienteEditar
+import com.example.sodappcomposse.Deuda
+import com.example.sodappcomposse.Agenda
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -250,7 +253,7 @@ fun BuscarCliente(
                 ) {
                     Button(
                         onClick = {
-                            navController.navigate("clienteEditarScreen/${cliente.idCl}")
+                            navController.navigate(ClienteEditar(id = cliente.idCl))
                             clienteModel.clienteParaDropDown.value = null
                         }
                     ) {
@@ -263,7 +266,7 @@ fun BuscarCliente(
 
                     Button(
                         onClick = {
-                            navController.navigate("deudaScreen/${cliente.idCl}")
+                            navController.navigate(Deuda(id = cliente.idCl.toString()))
                             clienteModel.clienteParaDropDown.value = null
                         }
                     ) {

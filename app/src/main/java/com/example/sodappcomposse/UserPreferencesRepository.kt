@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringSetPreferencesKey // Importar para Set<String>
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,20 +24,17 @@ class UserPreferencesRepository @Inject constructor(
 
     private object PreferencesKeys {
         val SCHEDULED_VISIT_DAYS = stringSetPreferencesKey("scheduled_visit_days")
-        // --- NUEVA CLAVE ---
-        // Almacenará un conjunto de "entregas completadas" con el formato "clienteId-Dia"
         val COMPLETED_DELIVERIES = stringSetPreferencesKey("completed_deliveries")
-        //Para los datos del usuario que ingreso
-        val USER_ID = stringSetPreferencesKey("user_id") // O intPreferencesKey
-        val USER_NAME = stringSetPreferencesKey("user_name")
-        val IS_LOGGED_IN = androidx.datastore.preferences.core.booleanPreferencesKey("is_logged_in")
+        val USER_ID = stringPreferencesKey("user_id")
+        val USER_NAME = stringPreferencesKey("user_name")
+        val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
     }
 
     // Función para guardar los datos al hacer Login
     suspend fun saveUserData(id: String, name: String) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.USER_ID] = setOf(id)
-            preferences[PreferencesKeys.USER_NAME] = setOf(name)
+            preferences[PreferencesKeys.USER_ID] = id
+            preferences[PreferencesKeys.USER_NAME] = name
             preferences[PreferencesKeys.IS_LOGGED_IN] = true
         }
     }
@@ -85,12 +84,12 @@ class UserPreferencesRepository @Inject constructor(
 
     val userId: Flow<String?> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.USER_ID]?.firstOrNull()
+            preferences[PreferencesKeys.USER_ID]
         }
 
     // Flujo para obtener el Nombre del usuario
     val userName: Flow<String?> = context.dataStore.data
         .map { preferences ->
-            preferences[PreferencesKeys.USER_NAME]?.firstOrNull()
+            preferences[PreferencesKeys.USER_NAME]
         }
 }

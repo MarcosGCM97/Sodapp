@@ -6,20 +6,47 @@ import retrofit2.Response
 import javax.inject.Inject
 
 interface ProductoRepository {
-    suspend fun getProductos(): Response<ProductoResponse>
+    suspend fun getProductos(forceRefresh: Boolean = false): Response<ProductoResponse>
     suspend fun getProductoByName(nombre: String): Response<ProductoResponseByName>
     suspend fun postProducto(productoRequest: ProductoRequest): Response<PostResponse>
     suspend fun updateProducto(nombre: String, precio: Double, cantidad: Int): Response<PostResponse>
     suspend fun deleteProducto(nombre: String): Response<PostResponse>
+    fun clearCache()
 }
 
 class ProductoRepositoryImpl @Inject constructor(
     private val apiServices: ApiServices
 ) : ProductoRepository {
-    override suspend fun getProductos() = apiServices.getProductos()
+    private var cachedProductos: Response<ProductoResponse>? = null
+
+    override suspend fun getProductos(forceRefresh: Boolean): Response<ProductoResponse> {
+        if (forceRefresh || cachedProductos == null || !cachedProductos!!.isSuccessful) {
+            cachedProductos = apiServices.getProductos()
+        }
+        return cachedProductos!!
+    }
+
     override suspend fun getProductoByName(nombre: String) = apiServices.getProductoByName(nombre)
-    override suspend fun postProducto(productoRequest: ProductoRequest) = apiServices.postProducto(productoRequest)
-    override suspend fun updateProducto(nombre: String, precio: Double, cantidad: Int) = 
-        apiServices.updateProducto(nombre, precio, cantidad)
-    override suspend fun deleteProducto(nombre: String) = apiServices.deleteProducto(nombre)
+    
+    override suspend fun postProducto(productoRequest: ProductoRequest): Response<PostResponse> {
+        val response = apiServices.postProducto(productoRequest)
+        if (response.isSuccessful) clearCache()
+        return response
+    }
+
+    override suspend fun updateProducto(nombre: String, precio: Double, cantidad: Int): Response<PostResponse> {
+        val response = apiServices.updateProducto(nombre, precio, cantidad)
+        if (response.isSuccessful) clearCache()
+        return response
+    }
+
+    override suspend fun deleteProducto(nombre: String): Response<PostResponse> {
+        val response = apiServices.deleteProducto(nombre)
+        if (response.isSuccessful) clearCache()
+        return response
+    }
+
+    override fun clearCache() {
+        cachedProductos = null
+    }
 }

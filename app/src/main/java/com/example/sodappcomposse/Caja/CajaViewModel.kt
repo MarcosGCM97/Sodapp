@@ -1,43 +1,65 @@
 package com.example.sodappcomposse.Caja
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.Ventas.Venta
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-
-sealed class CajaUiState{
-    object Idle: CajaUiState()
-    object Loading: CajaUiState()
-    data class Error(val message: String): CajaUiState()
-    data class Success(val message: String): CajaUiState()
+sealed class CajaUiState {
+    object Idle : CajaUiState()
+    object Loading : CajaUiState()
+    data class Error(val message: String) : CajaUiState()
+    data class Success(val message: String) : CajaUiState()
 }
+
+data class CajaTotales(
+    val cantidadPorProducto: Map<String, CantidadDeVentasPorProducto> = emptyMap(),
+    val cantidadTotal: Int = 0,
+    val montoTotal: Double = 0.0
+)
 
 @HiltViewModel
 class CajaViewModel @Inject constructor(
     private val cajaRepository: CajaRepository
 ) : ViewModel() {
-    private val TAG = "CajaViewModel"
 
     private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false, caja = emptyList()))
     val caja: StateFlow<DataCajaResponse> = _caja.asStateFlow()
 
-    var _mesSeleccionadoUi = MutableStateFlow<Meses?>(null)
+    val cajaTotales: StateFlow<CajaTotales> = _caja.map { response ->
+        val items = response.caja ?: emptyList()
+        val grouped = items.groupBy { it.producto }.mapValues { (_, ventas) ->
+            val firstVenta = ventas.first()
+            CantidadDeVentasPorProducto(
+                producto = firstVenta.producto.ifBlank { "Producto Desconocido" },
+                cantidad = ventas.sumOf { it.cantidad },
+                precio = ventas.sumOf { it.precio * it.cantidad.toDouble() }
+            )
+        }
+        val totalQty = items.sumOf { it.cantidad }
+        val totalAmount = items.sumOf { it.precio * it.cantidad }
+
+        CajaTotales(grouped, totalQty, totalAmount)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CajaTotales())
+
+    private val _mesSeleccionadoUi = MutableStateFlow<Meses?>(null)
     val mesSeleccionadoUi: StateFlow<Meses?> = _mesSeleccionadoUi.asStateFlow()
 
     var cajaUiState: CajaUiState by mutableStateOf(CajaUiState.Idle)
         private set
-
 
     fun seleccionarMes(mes: Meses) {
         if (_mesSeleccionadoUi.value == mes) {
@@ -50,10 +72,9 @@ class CajaViewModel @Inject constructor(
         val mesNum = _mesSeleccionadoUi.value?.numero ?: return
 
         cajaUiState = CajaUiState.Loading
-        _caja.value = DataCajaResponse(success = false, caja = emptyList()) // Limpiar datos anteriores
+        _caja.value = DataCajaResponse(success = false, caja = emptyList())
 
         viewModelScope.launch {
-            cajaUiState = CajaUiState.Loading
             try {
                 val response = cajaRepository.getCajaPorMes(mesNum)
 
@@ -71,7 +92,7 @@ class CajaViewModel @Inject constructor(
                     }
                 } else {
                     if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                        cajaUiState = CajaUiState.Error("Error API: ${response.code()} - ${response.message()}")
+                        cajaUiState = CajaUiState.Error("Error API: ${response.code()}")
                     }
                 }
             } catch (e: IOException) {
@@ -90,4 +111,3 @@ class CajaViewModel @Inject constructor(
         }
     }
 }
-
