@@ -54,6 +54,7 @@ fun Ventas(
 
     LaunchedEffect(Unit) {
         ventaModel.getVentas()
+        productoModel.getProductos()
     }
 
     val ventasUiState = ventaModel.ventasUiState
@@ -70,7 +71,11 @@ fun Ventas(
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                AddVentaForm()
+                AddVentaForm(
+                    ventaModel = ventaModel,
+                    productoModel = productoModel,
+                    clienteModel = clienteModel
+                )
             }
         }
 
@@ -124,6 +129,9 @@ fun AddVentaForm(
     val productoUiState = productoModel.productoUiState
     val productos = productoModel.productos
 
+    LaunchedEffect(Unit) {
+        productoModel.getProductos()
+    }
 
     LaunchedEffect(clienteUiState) {
         when (clienteUiState) {
