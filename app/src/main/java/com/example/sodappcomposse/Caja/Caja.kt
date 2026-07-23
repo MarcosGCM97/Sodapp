@@ -61,21 +61,21 @@ fun CajaScreen(
             showDelayedElements = false
         }
     }*/
-    val catidadDeVentasPorProducto = cajaData.caja?.groupBy { it.producto }?.mapValues { (_, ventas) ->
+    val cantidadDeVentasPorProducto = cajaData.caja?.groupBy { it.producto }?.mapValues { (_, ventas) ->
         val firstVenta = ventas.first()
-        CatidadDeVentasPorProducto(
+        CantidadDeVentasPorProducto(
             producto = if (firstVenta.producto.isBlank()) "Producto Desconocido" else firstVenta.producto,
-            cantidad = ventas.sumOf { it.cantidad.toIntOrNull() ?: 0 },
-            precio = ventas.sumOf { it.precio * (it.cantidad.toDoubleOrNull() ?: 0.0) }
+            cantidad = ventas.sumOf { it.cantidad },
+            precio = ventas.sumOf { it.precio * it.cantidad.toDouble() }
         )
     }
 
-    val catidadDeVentas = cajaData.caja?.sumOf { venta ->
-        venta.cantidad.toIntOrNull() ?: 0
+    val cantidadDeVentas = cajaData.caja?.sumOf { venta ->
+        venta.cantidad
     }
 
     val cantidadDePlata = cajaData.caja?.sumOf { venta ->
-        venta.precio * (venta.cantidad.toIntOrNull() ?: 0)
+        venta.precio * venta.cantidad
     }
 
     Column(
@@ -180,7 +180,7 @@ fun CajaScreen(
                         .background(color = MaterialTheme.colorScheme.tertiary),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    catidadDeVentasPorProducto?.forEach { ventaXprod ->
+                    cantidadDeVentasPorProducto?.forEach { ventaXprod ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()

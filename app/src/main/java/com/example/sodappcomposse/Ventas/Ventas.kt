@@ -79,8 +79,8 @@ fun Ventas(
                         val fallbackPrecio = itemsProducto.firstOrNull()?.precio ?: 0.0
                         ProductoVenta(
                             nombre = if (nombreProducto.isNullOrBlank()) "Producto Desconocido" else nombreProducto,
-                            cantidad = itemsProducto.sumOf { it.cantidad.toIntOrNull() ?: 0 },
-                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni?.toDoubleOrNull() ?: fallbackPrecio
+                            cantidad = itemsProducto.sumOf { it.cantidad },
+                            precio = listaOriginalProductos.find { it.nombrePr == nombreProducto }?.precioUni ?: fallbackPrecio
                         )
                     }
 
@@ -275,7 +275,7 @@ fun AddVentaForm(
                                     ProductoVenta(
                                         nombre = selectionOption,
                                         cantidad = 1,      // Cantidad inicial
-                                        precio = productoCompleto?.precioUni?.toDouble() ?: 0.0
+                                        precio = productoCompleto?.precioUni ?: 0.0
                                     )
                                 )
                                 Toast.makeText(context, "$selectionOption agregado", Toast.LENGTH_SHORT).show()

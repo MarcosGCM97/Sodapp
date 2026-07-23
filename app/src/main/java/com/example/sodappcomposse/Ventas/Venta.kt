@@ -1,33 +1,10 @@
 package com.example.sodappcomposse.Ventas
 
 import com.example.sodappcomposse.Cliente.Cliente
-import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
 
-data class Ventas(
-    val success: Boolean,
-    val ventas: List<DataVenta>
-)
-
-data class DataVenta(
-    @SerializedName("vt_cli")
-    val cliente: Cliente,
-    @SerializedName("vt_pro")
-    val producto: String,
-    @SerializedName("vt_can")
-    val cantidad: String,
-    @SerializedName("vt_fec")
-    val fecha: String,
-    @SerializedName("vt_emp")
-    val empresa: String,
-    @SerializedName("vt_mon")
-    val monto: Double
-)
-
-/*cl, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide, vt.vt_mon*/
-data class VentaCompleta(
+data class Venta(
     @SerializedName("vt_cli")
     val cliente: Cliente? = null,
     @SerializedName("vt_pro")
@@ -35,18 +12,23 @@ data class VentaCompleta(
     @SerializedName("pr_val")
     val precio: Double = 0.0,
     @SerializedName("vt_can")
-    var cantidad: String = "",
+    val cantidad: Int = 0,
     @SerializedName("vt_fec")
     val fecha: String = "",
     @SerializedName("vt_ide")
-    val idVenta: String = "",
+    val idVenta: Int = 0,
     @SerializedName("vt_mon")
-    val monto: Double = 0.0
+    val monto: Double = 0.0,
+    @SerializedName("vt_emp")
+    val empresa: String = ""
 )
 
 data class VentaRequest(
+    @SerializedName("clienteId")
     val clienteId: Int,
+    @SerializedName("productos")
     val productos: List<ProductoVenta>,
+    @SerializedName("usuarioId")
     val usuarioId: String
 )
 
@@ -59,40 +41,19 @@ data class VentaAgrupada(
 )
 
 data class VentaApiResponse(
+    @SerializedName("success")
     val success: Boolean,
-    val ventas: List<VentaCompleta> // La lista real de ventas
+    @SerializedName("ventas")
+    val ventas: List<Venta>
 )
 
 data class VentaIdEditar(
-    val idVenta: Boolean
+    val idVenta: Int
 )
 
 data class VentaApiResponseById(
+    @SerializedName("success")
     val success: Boolean,
-    val ventas: List<VentaByClientId> // La lista real de ventas
-)
-
-/*cl, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide, vt.vt_mon*/
-@Serializable
-data class VentaByClientId(
-    @SerializedName("vt_cli")
-    val cliente: Cliente,
-
-    @SerializedName("pr_nom")
-    var producto: String = "",
-
-    @SerializedName("pr_val")
-    var precio: Double = 0.0,
-
-    @SerializedName("vt_can")
-    var cantidad: Int = 0,
-
-    @SerializedName("vt_fec")
-    var fecha: String = "",
-
-    @SerializedName("vt_ide")
-    var idVenta: Int = 0,
-
-    @SerializedName("vt_mon")
-    var monto: Double = 0.0
+    @SerializedName("ventas")
+    val ventas: List<Venta>
 )

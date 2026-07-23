@@ -1,26 +1,8 @@
 package com.example.sodappcomposse.Producto
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
 
 data class Producto(
-    var nombrePr: String = "",
-
-    var precioUni: String = "",
-
-    var stock: String = "",
-)
-
-data class ProductoRequest(
-    var nombrePr: String = "",
-
-    var precioUni: String = "",
-
-    var stock: String = "",
-)
-
-@Serializable
-data class ProductoCompleto(
     @SerializedName("pr_ide")
     var id: Int = 0,
 
@@ -28,10 +10,10 @@ data class ProductoCompleto(
     var nombrePr: String = "",
 
     @SerializedName("pr_val")
-    var precioUni: String = "",
+    var precioUni: Double = 0.0,
 
     @SerializedName("pr_stk")
-    var stock: String = "",
+    var stock: Int = 0,
 
     @SerializedName("pr_emp")
     var empresa: String = "",
@@ -43,12 +25,27 @@ data class ProductoCompleto(
     var fechaActualizacion: String = ""
 )
 
+data class ProductoRequest(
+    @SerializedName("nombrePr")
+    var nombrePr: String = "",
+
+    @SerializedName("precioUni")
+    var precioUni: Double = 0.0,
+
+    @SerializedName("stock")
+    var stock: Int = 0
+)
+
 data class ProductoResponse(
+    @SerializedName("success")
     var success: Boolean = false,
-    var productos: List<ProductoCompleto> = emptyList()
+    @SerializedName("productos")
+    var productos: List<Producto> = emptyList()
 )
 
 data class ProductoResponseByName(
+    @SerializedName("success")
     var success: Boolean = false,
-    var producto: ProductoCompleto = ProductoCompleto()
+    @SerializedName("producto")
+    var producto: Producto = Producto()
 )

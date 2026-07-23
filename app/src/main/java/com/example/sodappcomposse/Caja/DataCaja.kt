@@ -11,7 +11,7 @@ data class DataCajaResponse(
     val caja: List<VentaCompleta>? = null
 )
 
-data class CatidadDeVentasPorProducto(
+data class CantidadDeVentasPorProducto(
     val producto: String,
     val cantidad: Int,
     val precio: Double

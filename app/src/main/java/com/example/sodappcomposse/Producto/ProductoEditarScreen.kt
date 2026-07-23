@@ -35,7 +35,7 @@ import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun ProductoEditarSccreen(
+fun ProductoEditarScreen(
     navController: NavController,
     nombreProducto: String?,
     productoModel: ProductoViewModel = hiltViewModel(),
@@ -96,10 +96,10 @@ fun ProductoEditarSccreen(
                 modifier = Modifier
                     .width(200.dp),
                 onClick = {
-                    var prodEditado = Producto(
+                    val prodEditado = Producto(
                         nombrePr = nombreProducto.toString(),
-                        precioUni = if (precioPr.isNotBlank()) precioPr else productoElegido?.precioUni.toString(),
-                        stock = if (cantidadPr.isNotBlank()) cantidadPr else productoElegido?.stock.toString()
+                        precioUni = precioPr.toDoubleOrNull() ?: productoElegido?.precioUni ?: 0.0,
+                        stock = cantidadPr.toIntOrNull() ?: productoElegido?.stock ?: 0
                     )
                     productoModel.editarProducto(prodEditado)
                     navController.popBackStack()

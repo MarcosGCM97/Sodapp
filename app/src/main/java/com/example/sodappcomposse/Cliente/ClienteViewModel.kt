@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sodappcomposse.API.ApiServices
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -36,7 +35,7 @@ sealed class ClienteUiState {
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class ClientesViewModel @Inject constructor(
-    private val apiServices: ApiServices // O las dependencias que use
+    private val clienteRepository: ClienteRepository
 ) : ViewModel() {
     private val TAG = "ClienteViewModel"
 
@@ -50,64 +49,53 @@ class ClientesViewModel @Inject constructor(
 
     var clienteById : MutableState<Cliente?> = mutableStateOf(null)
 
-    val diasEntrega: MutableState<TodosLosDias> = mutableStateOf(TodosLosDias())
-    val diasEntregaById: MutableState<List<String>> = mutableStateOf(emptyList())
-
-    /*init {
-        // Llama a la función de limpieza cuando el ViewModel se crea por primera vez.
-        cleanupOldDeliveries()
-    }*/
-
-    fun getClienteById(idCl: String){
+    internal fun getClienteById(idCl: String){
 
         viewModelScope.launch {
-            val response = apiServices.getClienteById(idCl.toInt())
-
-            if (response.isSuccessful) {
-                val clientesApi = response.body()!!
-                if (response.body() !== null) {
-                    clienteById.value = clientesApi.cliente
-                    clienteUiState =
-                        ClienteUiState.Success("Cliente cargado: ${_clientes.size}")
+            try {
+                val response = clienteRepository.getClienteById(idCl.toInt())
+                if (response.isSuccessful) {
+                    response.body()?.let { clientesApi ->
+                        clienteById.value = clientesApi.cliente
+                        clienteUiState = ClienteUiState.Success("Cliente cargado")
+                    } ?: run {
+                        clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                    }
                 } else {
-                    //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
-                    clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                    clienteUiState = ClienteUiState.Error("Error servidor: ${response.code()}")
                 }
+            } catch (e: IOException) {
+                clienteUiState = ClienteUiState.Error("Error de red: ${e.message}")
+            } catch (e: HttpException) {
+                clienteUiState = ClienteUiState.Error("Error HTTP: ${e.code()}")
+            } catch (e: Exception) {
+                clienteUiState = ClienteUiState.Error("Error inesperado: ${e.message}")
             }
         }
     }
 
     internal fun getClientes(){
-        //if (clienteUiState is ClienteUiState.Loading) return // Evitar llamadas múltiples si ya está cargando
-
         viewModelScope.launch {
             clienteUiState = ClienteUiState.Loading // Es buena practica
             try {
-                val response = apiServices.getClientes()
+                val response = clienteRepository.getClientes()
 
                 if (response.isSuccessful) {
-                    val clientesApi = response.body()!!
-                    if (response.body() !== null) {
+                    response.body()?.let { clientesApi ->
                         _clientes.clear()
                         _clientes.addAll(clientesApi.clientes)
-                        clienteUiState =
-                            ClienteUiState.Success("Clientes cargados: ${_clientes.size}")
-                    } else {
-                        //Log.e(TAG, "Respuesta exitosa pero cuerpo nulo.")
+                        clienteUiState = ClienteUiState.Success("Clientes cargados: ${_clientes.size}")
+                    } ?: run {
                         clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
                     }
-
                 } else {
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                    clienteUiState = ClienteUiState.Error("Error servidor: ${response.code()}")
                 }
-            }catch (e: HttpException) {
-                //Log.e(TAG, "Error HTTP en la solicitud: ${e.code()} - ${e.message()}", e)
-                clienteUiState = ClienteUiState.Error("Error HTTP: ${e.message()}")
             } catch (e: IOException) {
-                //Log.e(TAG, "Error de Red/IO en la solicitud: ${e.message}", e)
                 clienteUiState = ClienteUiState.Error("Error de Red: Verifica tu conexión.")
+            } catch (e: HttpException) {
+                clienteUiState = ClienteUiState.Error("Error HTTP: ${e.code()}")
             } catch (e: Exception) {
-                //Log.e(TAG, "Error general en la solicitud: ${e.message}", e)
                 clienteUiState = ClienteUiState.Error("Error inesperado: ${e.message?.take(100)}")
             }
         }
@@ -126,56 +114,24 @@ class ClientesViewModel @Inject constructor(
         _addClienteUiState.value = AddClienteUiState.Loading
         viewModelScope.launch {
             try {
-                var objCliente = ClienteRequest(
+                val objCliente = ClienteRequest(
                     nombreCl = nombre,
                     direccionCl = direccion,
                     numTelCl = telefono
                 )
-                val response = apiServices.postCliente(objCliente)
-                if (response.isSuccessful && response.body() != null){
-                    val clientes = response.body()!!
-                    //Procesar la lista de clientes
+                val response = clienteRepository.postCliente(objCliente)
+                if (response.isSuccessful && response.body() != null) {
                     _addClienteUiState.value = AddClienteUiState.Success("Cliente '$nombre' guardado exitosamente.")
-
                     getClientes()
-                }
-                else{
-                    //Manejar error de la API
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
+                } else {
                     _addClienteUiState.value = AddClienteUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
-
-            } catch (e: Exception) {
-                //Log.e("ClientesViewModel", "Error al guardar cliente: ${e.message}", e)
-                _addClienteUiState.value = AddClienteUiState.Error("Error al guardar: ${e.message}")
+            } catch (e: IOException) {
+                _addClienteUiState.value = AddClienteUiState.Error("Error de red: ${e.message}")
             } catch (e: HttpException) {
-                //Log.e("ClientesViewModel", "Error HTTP al guardar cliente: ${e.code()} - ${e.message()}", e)
-                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()} - ${e.message()}")
-            }
-        }
-    }
-
-    fun pagarDeudaCliente(idCl: Int, deuda: Double){
-        viewModelScope.launch {
-            try {
-                val response = apiServices.updateDeudaCliente(idCl, deuda)
-                if (response.isSuccessful) {
-                    //Log.d("ClientesViewModel", "Deuda pagada exitosamente.")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Success("Deuda pagada exitosamente.")
-                } else {
-                    //Log.e("ClientesViewModel", "Error al pagar la deuda: ${response.code()} - ${response.message()}")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al pagar la deuda: ${response.code()} - ${response.message()}")
-                }
+                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()}")
             } catch (e: Exception) {
-                //Log.e("ClientesViewModel", "Error al pagar la deuda: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error al pagar la deuda: ${e.message}")
-            } catch (e: HttpException) {
-                //Log.e("ClientesViewModel", "Error HTTP al pagar la deuda: ${e.code()} - ${e.message()}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error HTTP al pagar la deuda: ${e.code()} - ${e.message()}")
+                _addClienteUiState.value = AddClienteUiState.Error("Error inesperado: ${e.message}")
             }
         }
     }
@@ -189,103 +145,26 @@ class ClientesViewModel @Inject constructor(
     fun editarCliente(cliente: Cliente) {
         viewModelScope.launch {
             try {
-                val response = apiServices.updateCliente(
+                val response = clienteRepository.updateCliente(
                     cliente.idCl,
                     cliente.nombreCl,
                     cliente.direccionCl,
                     cliente.numTelCl
                 )
                 if (response.isSuccessful) {
-                    //Log.d("ClientesViewModel", "Cliente editado exitosamente.")
                     _addClienteUiState.value =
                         AddClienteUiState.Success("Cliente editado exitosamente.")
                     getClientes()
                 } else {
-                    //Log.e("ClientesViewModel", "Error al editar cliente: ${response.code()} - ${response.message()}")
                     _addClienteUiState.value =
                         AddClienteUiState.Error("Error al editar cliente: ${response.code()} - ${response.message()}")
                 }
-            } catch (e: HttpException){
-                //Log.e("ClientesViewModel", "Error HTTP al editar cliente: ${e.code()} - ${e.message()}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error HTTP al editar cliente: ${e.code()} - ${e.message()}")
             } catch (e: IOException) {
-                //Log.e("ClientesViewModel", "Error de red al editar cliente: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error de red al editar cliente: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error("Error de red al editar cliente: ${e.message}")
+            } catch (e: HttpException) {
+                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP al editar cliente: ${e.code()}")
             } catch (e: Exception) {
-                //Log.e("ClientesViewModel", "Error al editar cliente: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error al editar cliente: ${e.message}")
-            }
-        }
-    }
-
-    fun getDiasEntrega(){//SEGUIR ACAAAAA
-        viewModelScope.launch {
-            try {
-                val response = apiServices.getDiasEntrega()
-                if(response.isSuccessful){
-                    diasEntrega.value = response.body()!!
-                    Log.d("ClientesViewModel", response.body().toString())
-                }else{
-                    Log.e("ClientesViewModel", "Error al obtener días de entrega: ${response.code()} - ${response.message()}")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al obtener días de entrega: ${response.code()} - ${response.message()}")
-                }
-            }catch (e: Exception){
-                Log.e("ClientesViewModel", "Error al obtener días de entrega: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error al obtener días de entrega: ${e.message}")
-            }
-        }
-    }
-
-    fun getDiasEntregaById(idCl: Int){
-        viewModelScope.launch {
-            try {
-                val response = apiServices.getDiasEntregaById(idCl)
-                if(response.isSuccessful){
-                    diasEntregaById.value = response.body()!!.diasEntrega
-                    Log.d("ClientesViewModel", response.body().toString())
-                }else{
-                    Log.e("ClientesViewModel", "Error al obtener días de entrega: ${response.code()} - ${response.message()}")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al obtener días de entrega: ${response.code()} - ${response.message()}")
-                }
-            }catch (e: Exception){
-                Log.e("ClientesViewModel", "Error al obtener días de entrega: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error al obtener días de entrega: ${e.message}")
-            }
-        }
-    }
-
-    fun updateDiasEntrega(clienteId: Int?, diasSeleccionados: List<String>) {
-        if (clienteId == null) {
-            return
-        }
-        _addClienteUiState.value = AddClienteUiState.Loading
-        var diasEntrega = DiasEntrega(clienteId, diasSeleccionados)
-
-        viewModelScope.launch {
-            try {
-                val response = apiServices.updateDiasEntrega(diasEntrega)
-                if (response.isSuccessful) {
-                    Log.d("ClientesViewModel", "Días de entrega actualizados exitosamente.")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Success("Días de entrega actualizados exitosamente.")
-                    getClientes()
-                }
-                else {
-                    Log.e("ClientesViewModel", "Error al actualizar días de entrega: ${response.code()} - ${response.message()}")
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al actualizar días de entrega: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ClientesViewModel", "Error al actualizar días de entrega: ${e.message}", e)
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error al actualizar días de entrega: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error("Error al editar cliente: ${e.message}")
             }
         }
     }
@@ -297,7 +176,7 @@ class ClientesViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Llamada a la API
-                val response = apiServices.eliminarCliente(cliente.idCl)
+                val response = clienteRepository.eliminarCliente(cliente.idCl)
 
                 if (response.isSuccessful) {
                     // Si la eliminación en el servidor fue exitosa
@@ -312,68 +191,12 @@ class ClientesViewModel @Inject constructor(
                         AddClienteUiState.Error("Error al eliminar: ${response.code()} - ${response.message()}")
                 }
             } catch (e: IOException) {
-                // Error de conexión
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error de red: Verifica tu conexión a internet.")
+                _addClienteUiState.value = AddClienteUiState.Error("Error de red: Verifica tu conexión a internet.")
+            } catch (e: HttpException) {
+                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()}")
             } catch (e: Exception) {
-                // Cualquier otro error inesperado
-                _addClienteUiState.value =
-                    AddClienteUiState.Error("Error inesperado: ${e.localizedMessage}")
+                _addClienteUiState.value = AddClienteUiState.Error("Error inesperado: ${e.localizedMessage}")
             }
         }
     }
-/*
-    // Exponer las entregas completadas como un StateFlow para que la UI pueda observarlo
-    val completedDeliveriesState: StateFlow<Set<String>> = userPreferencesRepository.completedDeliveries
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptySet()
-        )
-
-    // Función que la UI llamará para cambiar el estado de una entrega
-    fun toggleDeliveryStatus(clienteId: String, fecha: String) { // Ahora recibe 'fecha'
-        viewModelScope.launch {
-            // El identificador se construye con la fecha que viene de la UI
-            val deliveryId = "$clienteId-$fecha"
-            val currentCompleted = completedDeliveriesState.value
-
-            if (currentCompleted.contains(deliveryId)) {
-                userPreferencesRepository.removeCompletedDelivery(deliveryId)
-            } else {
-                userPreferencesRepository.addCompletedDelivery(deliveryId)
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun cleanupOldDeliveries() {
-        viewModelScope.launch {
-            val hoy = LocalDate.now()
-            // Solo mantenemos las entregas de los últimos 7 días, por ejemplo.
-            val fechaLimite = hoy.minusDays(7)
-
-            val entregasActuales = userPreferencesRepository.completedDeliveries.first() // Obtenemos el valor actual
-            val entregasLimpias = entregasActuales.filter { deliveryId ->
-                try {
-                    // Extraemos la parte de la fecha del ID, ej: "12-2025-10-01" -> "2025-10-01"
-                    val fechaString = deliveryId.substringAfterLast("-", "")
-                    if (fechaString.isNotEmpty()){
-                        val fechaEntrega = LocalDate.parse(fechaString, DateTimeFormatter.ISO_LOCAL_DATE)
-                        // Mantenemos la entrega si es posterior o igual a la fecha límite
-                        fechaEntrega.isAfter(fechaLimite) || fechaEntrega.isEqual(fechaLimite)
-                    } else {
-                        false // Si el ID no tiene el formato esperado, lo descartamos
-                    }
-                } catch (e: Exception) {
-                    false // Si hay error al parsear, descartamos la entrada
-                }
-            }.toSet()
-
-            // Si el set limpio es diferente al original, lo guardamos.
-            if (entregasLimpias != entregasActuales) {
-                userPreferencesRepository.saveCleanedDeliveries(entregasLimpias) // Necesitas esta nueva función
-            }
-        }
-    }*/
 }

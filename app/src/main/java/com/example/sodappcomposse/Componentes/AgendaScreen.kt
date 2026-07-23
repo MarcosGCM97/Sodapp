@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.sodappcomposse.Cliente.ClientesViewModel
+import com.example.sodappcomposse.Cliente.AgendaViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -44,7 +44,7 @@ import java.util.Locale
 @Composable
 fun AgendaScreen(
     navController: NavController,
-    clienteModel: ClientesViewModel = hiltViewModel(),
+    agendaModel: AgendaViewModel = hiltViewModel(),
 ) {
     // --- ESTILO: Usar el nombre del día actual como valor inicial ---
     val nombreDelDiaHoy = remember {
@@ -61,13 +61,13 @@ fun AgendaScreen(
     val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
     var diaSeleccionado by remember { mutableStateOf(nombreDelDiaHoy) }
 
-    val diasDeClientes by clienteModel.diasEntrega
+    val diasDeClientes by agendaModel.diasEntrega
     var expandedDias by remember { mutableStateOf(false) }
 
     // --- ESTILO: Llamada a la API que se basa en el día seleccionado ---
     // Este LaunchedEffect se re-ejecutará cada vez que 'diaSeleccionado' cambie.
     LaunchedEffect(diaSeleccionado) {
-        clienteModel.getDiasEntrega()
+        agendaModel.getDiasEntrega()
     }
 
     //val completedDeliveries by clienteModel.completedDeliveriesState.collectAsStateWithLifecycle() // Usa la dependencia correcta

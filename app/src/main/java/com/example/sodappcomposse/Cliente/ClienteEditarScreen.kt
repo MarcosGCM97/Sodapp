@@ -101,11 +101,12 @@ fun ClienteEditarScreen(
                 modifier = Modifier
                     .width(200.dp),
                 onClick = {
-                    var clienteEditado = Cliente(
+                    val clienteEditado = Cliente(
                         idCl = clienteElegido?.idCl ?: 0,
-                        nombreCl = nombreCliente.toString(),
-                        numTelCl = if (telCliente.isNotBlank()) telCliente else clienteElegido?.numTelCl.toString(),
-                        direccionCl = if (dirCliente.isNotBlank()) dirCliente else clienteElegido?.direccionCl.toString()
+                        nombreCl = if (nombreCliente.isNotBlank()) nombreCliente else clienteElegido?.nombreCl ?: "",
+                        numTelCl = if (telCliente.isNotBlank()) telCliente else clienteElegido?.numTelCl ?: "",
+                        direccionCl = if (dirCliente.isNotBlank()) dirCliente else clienteElegido?.direccionCl ?: "",
+                        deudaCl = clienteElegido?.deudaCl ?: 0.0
                     )
                     clienteModel.editarCliente(clienteEditado)
                     navController.popBackStack()

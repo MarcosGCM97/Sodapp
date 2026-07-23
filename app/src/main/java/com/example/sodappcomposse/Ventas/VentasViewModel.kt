@@ -1,11 +1,12 @@
 package com.example.sodappcomposse.Ventas
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sodappcomposse.API.ApiServices
-import com.example.sodappcomposse.API.RetrofitInstance
+import com.example.sodappcomposse.Cliente.ClienteRepository
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,19 +27,20 @@ sealed class VentasUiState{
 }
 @HiltViewModel
 class VentasViewModel @Inject constructor(
-    private val apiServices: ApiServices, // Hilt lo inyecta solo
+    private val ventaRepository: VentaRepository,
+    private val clienteRepository: ClienteRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
-    private val _ventas = mutableStateListOf<VentaCompleta>()
-    val ventas: List<VentaCompleta> = _ventas
+    private val _ventas = mutableStateListOf<Venta>()
+    val ventas: List<Venta> = _ventas
 
-    var ventasUiState: VentasUiState = VentasUiState.Idle
+    var ventasUiState: VentasUiState by mutableStateOf(VentasUiState.Idle)
         private set
 
-    private val _ventasPorClienteId = MutableStateFlow<List<VentaByClientId>>(emptyList())
-    val ventasPorClienteId: StateFlow<List<VentaByClientId>> = _ventasPorClienteId.asStateFlow()
+    private val _ventasPorClienteId = MutableStateFlow<List<Venta>>(emptyList())
+    val ventasPorClienteId: StateFlow<List<Venta>> = _ventasPorClienteId.asStateFlow()
 
     fun getVentasByClienteId(idCl: String) {
         viewModelScope.launch {
@@ -49,20 +51,24 @@ class VentasViewModel @Inject constructor(
                 val idUsuario = userPreferencesRepository.userId.first() ?: "0"
 
                 // 2. Pasar idUsuario a la llamada de la API
-                val response = apiServices.getVentasByCienteId(idCl.toInt(), idUsuario)
+                val response = ventaRepository.getVentasByClienteId(idCl.toInt(), idUsuario)
 
                 if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody != null && responseBody.success) {
+                    response.body()?.let { responseBody ->
                         _ventasPorClienteId.value = responseBody.ventas
                         ventasUiState = VentasUiState.Success("Ventas cargadas para usuario $idUsuario")
-                    } else {
-                        _ventasPorClienteId.value = emptyList()
-                        ventasUiState = VentasUiState.Error("Error al obtener ventas del cliente.")
+                    } ?: run {
+                        ventasUiState = VentasUiState.Error("Respuesta exitosa pero cuerpo nulo.")
                     }
                 } else {
                     ventasUiState = VentasUiState.Error("Error servidor: ${response.code()}")
                 }
+            } catch (e: IOException) {
+                _ventasPorClienteId.value = emptyList()
+                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+            } catch (e: HttpException) {
+                _ventasPorClienteId.value = emptyList()
+                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
             } catch (e: Exception) {
                 _ventasPorClienteId.value = emptyList()
                 ventasUiState = VentasUiState.Error("Excepción: ${e.message}")
@@ -79,20 +85,25 @@ class VentasViewModel @Inject constructor(
                 val idUsuario = userPreferencesRepository.userId.first() ?: "0"
 
                 // 2. Llamar a la API enviando el usuario
-                val response = apiServices.getVentas(idUsuario)
+                val response = ventaRepository.getVentas(idUsuario)
 
                 if (response.isSuccessful) {
-                    val ventaApi = response.body()
-                    if (ventaApi != null) {
+                    response.body()?.let { ventaApi ->
                         _ventas.clear()
                         _ventas.addAll(ventaApi.ventas)
                         ventasUiState = VentasUiState.Success("Ventas de $idUsuario cargadas")
+                    } ?: run {
+                        ventasUiState = VentasUiState.Error("Cuerpo de respuesta nulo")
                     }
                 } else {
                     ventasUiState = VentasUiState.Error("Error: ${response.code()}")
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+            } catch (e: HttpException) {
+                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+            } catch (e: Exception) {
+                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message}")
             }
         }
     }
@@ -104,19 +115,18 @@ class VentasViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val response = apiServices.postVenta(ventaParaApi)
+                val response = ventaRepository.postVenta(ventaParaApi)
                 if (response.isSuccessful && response.body() != null) {
-                    val ventas = response.body()!!
-                    //Procesar la lista de ventas
+                    // Producir efecto de éxito
                     ventasUiState = VentasUiState.Success("Venta procesada exitosamente")
                 } else {
-                    //Manejar error de la API
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
-                    ventasUiState =
-                        VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
-            }catch (e: Exception){
-                //Log.e(TAG, "Error en la solicitud: ${e.message}", e)
+            } catch (e: IOException) {
+                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+            } catch (e: HttpException) {
+                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+            } catch (e: Exception) {
                 ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
             }
         }
@@ -125,48 +135,22 @@ class VentasViewModel @Inject constructor(
     internal fun eliminarVenta(idVenta: Int, clienteId: Int, valorVenta: Double){
         viewModelScope.launch {
             try {
-                val response = apiServices.deleteVenta(idVenta)
+                val response = ventaRepository.deleteVenta(idVenta)
                 if (response.isSuccessful) {
-                    //Log.d(TAG, "Venta eliminada exitosamente")
                     ventasUiState = VentasUiState.Success("Venta eliminada exitosamente")
-
-                    //actualizar deuda del cliente
-                    apiServices.updateDeudaCliente(clienteId, valorVenta)
-
+                    // actualizar deuda del cliente
+                    clienteRepository.updateDeudaCliente(clienteId, valorVenta)
                     getVentasByClienteId(clienteId.toString())
                 } else {
-                    // Manejar errores de la API
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
-                    ventasUiState =
-                        VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
                 }
-            }catch (e: Exception) {
-                //Log.e(TAG, "Error en la solicitud: ${e.message}", e)
+            } catch (e: IOException) {
+                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+            } catch (e: HttpException) {
+                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+            } catch (e: Exception) {
                 ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
             }
-
         }
     }
-
-    /*internal fun updateVenta(idVenta: Int, cantidad: Int){
-        viewModelScope.launch {
-            try {
-                val response = apiServices.updateVenta(idVenta, cantidad)
-                if (response.isSuccessful) {
-                    // Actualización exitosa
-                    //Log.d(TAG, "Venta actualizada exitosamente")
-                    ventasUiState = VentasUiState.Success("Venta actualizada exitosamente")
-                    getVentas()
-                } else {
-                    // Manejar errores de la API
-                    //Log.e(TAG, "Error en la respuesta: ${response.code()} - ${response.message()}")
-                    ventasUiState =
-                        VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
-                }
-            }catch (e: Exception) {
-                    //Log.e(TAG, "Error en la solicitud: ${e.message}", e)
-                    ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
-            }
-        }
-    }*/
 }

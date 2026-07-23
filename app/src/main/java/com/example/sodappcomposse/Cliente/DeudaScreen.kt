@@ -49,6 +49,7 @@ import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.Ventas.VentasViewModel
+import com.example.sodappcomposse.Cliente.DeudaViewModel
 import com.example.sodappcomposse.ui.theme.BluePrimario
 import com.example.sodappcomposse.ui.theme.GreenPrimario
 
@@ -60,7 +61,8 @@ fun DeudaScreen(
     clienteId: String?,
     clienteModel: ClientesViewModel = hiltViewModel(),
     ventaModel: VentasViewModel = hiltViewModel(),
-    productosModel: ProductoViewModel = hiltViewModel()
+    productosModel: ProductoViewModel = hiltViewModel(),
+    deudaModel: DeudaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
@@ -83,7 +85,7 @@ fun DeudaScreen(
 
     val ventasDelCliente = ventaModel.ventasPorClienteId
 
-    var pagarMonto by remember { mutableStateOf(0) }
+    var pagarMonto by remember { mutableStateOf("") }
 
     var ver by remember { mutableStateOf(false) }
 
@@ -134,8 +136,8 @@ fun DeudaScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             OutlinedTextField(
-                                value = "$pagarMonto",
-                                onValueChange = { pagarMonto = it.toIntOrNull() ?: 0 },
+                                value = pagarMonto,
+                                onValueChange = { pagarMonto = it },
                                 label = { Text("Ingrese monto") },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
@@ -149,11 +151,12 @@ fun DeudaScreen(
                                     .width(90.dp)
                                     .height(40.dp)
                                     .clickable {
-                                        clienteModel.pagarDeudaCliente(
+                                        val monto = pagarMonto.toDoubleOrNull() ?: 0.0
+                                        deudaModel.pagarDeudaCliente(
                                             cliente.value?.idCl ?: 0,
-                                            pagarMonto.toDouble()
+                                            monto
                                         )
-                                        pagarMonto = 0
+                                        pagarMonto = ""
                                         clienteModel.getClienteById(clienteId.toString())
                                     },
                                 shape = RoundedCornerShape(8.dp),
@@ -289,12 +292,12 @@ fun DeudaScreen(
                             }
                             IconButton(
                                 onClick = {
-                                    val valorVenta = venta.precio.toDouble() * venta.cantidad.toInt()
+                                    val valorVenta = venta.precio * venta.cantidad
 
                                     ventaModel.eliminarVenta(
-                                        venta.idVenta.toInt(),
+                                        venta.idVenta,
                                         clienteId!!.toInt(),
-                                        valorVenta.toDouble()
+                                        valorVenta
                                     )
                                     navController.navigate("deudaScreen/${clienteId}"){
                                         popUpTo("deudaScreen/${clienteId}") { inclusive = true }

@@ -13,7 +13,6 @@ import com.example.sodappcomposse.Producto.ProductoResponse
 import com.example.sodappcomposse.Producto.ProductoResponseByName
 import com.example.sodappcomposse.Ventas.VentaApiResponse
 import com.example.sodappcomposse.Ventas.VentaApiResponseById
-import com.example.sodappcomposse.Ventas.VentaByClientId
 import com.example.sodappcomposse.Ventas.VentaRequest
 import retrofit2.Response // Para manejar la respuesta completa, incluyendo el código de estado
 import retrofit2.http.Body
@@ -86,7 +85,7 @@ interface ApiServices {
     ): Response<VentaApiResponse>
 
     @GET("api/ventas.php")
-    suspend fun getVentasByCienteId(
+    suspend fun getVentasByClienteId(
         @Query("id") id: Int,
         @Query("usuarioId") usuarioId: String
     ): Response<VentaApiResponseById>

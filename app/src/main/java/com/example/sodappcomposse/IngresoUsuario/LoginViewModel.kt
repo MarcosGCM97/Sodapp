@@ -6,8 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import com.example.sodappcomposse.API.ApiServices
-import com.example.sodappcomposse.API.RetrofitInstance
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.UsuarioResponse
 import com.example.sodappcomposse.UserPreferencesRepository
@@ -25,7 +23,7 @@ sealed interface LoginUiState {
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val apiServices: ApiServices,
+    private val authRepository: AuthRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "UsuarioViewModel"
@@ -46,7 +44,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userLogin = UsuarioRequest(nombreUs = nombre, contrasenaUs = contrasena)
-                val response = apiServices.login(userLogin)
+                val response = authRepository.login(userLogin)
 
                 if (response.isSuccessful && response.body() != null) {
                     val usuarioApi = response.body()!!

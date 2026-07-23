@@ -181,6 +181,7 @@ fun AddClienteForm(
 @Composable
 fun BuscarCliente(
     clienteModel: ClientesViewModel = hiltViewModel(),
+    agendaModel: AgendaViewModel = hiltViewModel(),
     navController: NavController
 ){
     val context = LocalContext.current
@@ -275,7 +276,7 @@ fun BuscarCliente(
 
                     Button(
                         onClick = {
-                            diasSeleccionadosAgenda = clienteModel.diasEntregaById.value
+                            diasSeleccionadosAgenda = agendaModel.diasEntregaById.value
                             mostrarDialogoAgenda = true
                         }
                     ) {
@@ -352,7 +353,7 @@ fun BuscarCliente(
                         mostrarDialogoAgenda = false
                         if (clienteSeleccionado != null) {
                             // Convertir el Set a una List o un formato que tu ViewModel espere
-                            clienteModel.updateDiasEntrega( // Nombre de función actualizado
+                            agendaModel.updateDiasEntrega( // Nombre de función actualizado
                                 clienteSeleccionado?.idCl,
                                 diasSeleccionadosAgenda.toList() // Enviar como lista
                             )

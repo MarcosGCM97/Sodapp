@@ -19,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sodappcomposse.Cliente.AgendaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientesDropDown(
-    clienteModel: ClientesViewModel = hiltViewModel()
+    clienteModel: ClientesViewModel = hiltViewModel(),
+    agendaModel: AgendaViewModel = hiltViewModel()
 ){
     val context = LocalContext.current
 
@@ -106,7 +108,7 @@ fun ClientesDropDown(
                             clienteParaVer.value = selectionOptionCliente
                             expandedClients = false
                             //Toast.makeText(context, "${selectionOptionCliente.nombreCl} seleccionada", Toast.LENGTH_SHORT).show()
-                            clienteModel.getDiasEntregaById(selectionOptionCliente.idCl)
+                            agendaModel.getDiasEntregaById(selectionOptionCliente.idCl)
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )

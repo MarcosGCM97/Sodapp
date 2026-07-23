@@ -79,7 +79,7 @@ fun TabInventario(
     }
 
     val cantidadStockBajo = productos.count {
-        (it.stock.toIntOrNull() ?: 0) < ProductoViewModel.STOCK_BAJO_UMBRAL
+        it.stock < ProductoViewModel.STOCK_BAJO_UMBRAL
     }
 
     Column(
@@ -170,10 +170,10 @@ fun TabInventario(
 
 @Composable
 fun CardProductoInventario(
-    producto: ProductoCompleto,
+    producto: Producto,
     onAjustarStock: (Int) -> Unit
 ) {
-    val stockActual = producto.stock.toIntOrNull() ?: 0
+    val stockActual = producto.stock
 
     val colorStock = when {
         stockActual < ProductoViewModel.STOCK_BAJO_UMBRAL -> MaterialTheme.colorScheme.error

@@ -1,15 +1,18 @@
 package com.example.sodappcomposse.Caja
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sodappcomposse.API.ApiServices
-import com.example.sodappcomposse.API.RetrofitInstance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 
@@ -22,23 +25,22 @@ sealed class CajaUiState{
 
 @HiltViewModel
 class CajaViewModel @Inject constructor(
-    private val apiServices: ApiServices // Hilt lo inyecta solo
+    private val cajaRepository: CajaRepository
 ) : ViewModel() {
     private val TAG = "CajaViewModel"
 
-    private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false ,emptyList()))
+    private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false, caja = emptyList()))
     val caja: StateFlow<DataCajaResponse> = _caja.asStateFlow()
 
     var _mesSeleccionadoUi = MutableStateFlow<Meses?>(null)
     val mesSeleccionadoUi: StateFlow<Meses?> = _mesSeleccionadoUi.asStateFlow()
 
-    var cajaUiState: CajaUiState = CajaUiState.Idle
+    var cajaUiState: CajaUiState by mutableStateOf(CajaUiState.Idle)
         private set
 
 
     fun seleccionarMes(mes: Meses) {
         if (_mesSeleccionadoUi.value == mes) {
-            Log.d(TAG, "VM: Mes seleccionado ya es: ${mes.name}")
             return
         }
         _mesSeleccionadoUi.value = mes
@@ -48,12 +50,12 @@ class CajaViewModel @Inject constructor(
         val mesNum = _mesSeleccionadoUi.value?.numero ?: return
 
         cajaUiState = CajaUiState.Loading
-        _caja.value = DataCajaResponse(success = false, emptyList()) // Limpiar datos anteriores
+        _caja.value = DataCajaResponse(success = false, caja = emptyList()) // Limpiar datos anteriores
 
         viewModelScope.launch {
             cajaUiState = CajaUiState.Loading
             try {
-                val response = apiServices.getCajaPorMes(mesNum)
+                val response = cajaRepository.getCajaPorMes(mesNum)
 
                 if (response.isSuccessful) {
                     val responseBody = response.body()
@@ -61,8 +63,6 @@ class CajaViewModel @Inject constructor(
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {
                             _caja.value = responseBody
                             cajaUiState = CajaUiState.Success("Datos cargados para ${_mesSeleccionadoUi.value?.name}")
-                        } else {
-                            Log.w(TAG, "VM: Datos recibidos para $mesNum, pero el mes seleccionado cambió a ${_mesSeleccionadoUi.value?.name}. Descartando actualización de UI.")
                         }
                     } else {
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {
@@ -70,10 +70,17 @@ class CajaViewModel @Inject constructor(
                         }
                     }
                 } else {
-                    val errorBody = response.errorBody()?.string() ?: "Sin cuerpo de error"
                     if (_mesSeleccionadoUi.value?.numero == mesNum) {
                         cajaUiState = CajaUiState.Error("Error API: ${response.code()} - ${response.message()}")
                     }
+                }
+            } catch (e: IOException) {
+                if (_mesSeleccionadoUi.value?.numero == mesNum) {
+                    cajaUiState = CajaUiState.Error("Error de red: ${e.message?.take(100)}")
+                }
+            } catch (e: HttpException) {
+                if (_mesSeleccionadoUi.value?.numero == mesNum) {
+                    cajaUiState = CajaUiState.Error("Error HTTP: ${e.code()}")
                 }
             } catch (e: Exception) {
                 if (_mesSeleccionadoUi.value?.numero == mesNum) {

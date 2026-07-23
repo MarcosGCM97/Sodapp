@@ -13,7 +13,7 @@ import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
-import com.example.sodappcomposse.Producto.ProductoEditarSccreen
+import com.example.sodappcomposse.Producto.ProductoEditarScreen
 
 @Serializable
 object Login
@@ -63,7 +63,7 @@ fun Navigator(){
             arguments = listOf(navArgument("nombre") { type = NavType.StringType })
         ) { backStackEntry ->
             val nombreProducto = backStackEntry.arguments?.getString("nombre")
-            ProductoEditarSccreen(navController, nombreProducto = nombreProducto)
+            ProductoEditarScreen(navController, nombreProducto = nombreProducto)
         }
 
         composable(
