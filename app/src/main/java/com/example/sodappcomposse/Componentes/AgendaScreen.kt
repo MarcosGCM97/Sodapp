@@ -59,14 +59,18 @@ fun AgendaScreen(
     }
 
     val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
-    var diaSeleccionado by remember { mutableStateOf(nombreDelDiaHoy) }
+    var diaSeleccionado by remember {
+        mutableStateOf(
+            if (diasSemana.contains(nombreDelDiaHoy)) nombreDelDiaHoy else "Lunes"
+        )
+    }
 
     val diasDeClientes by agendaModel.diasEntrega
     var expandedDias by remember { mutableStateOf(false) }
 
     // --- ESTILO: Llamada a la API que se basa en el día seleccionado ---
-    // Este LaunchedEffect se re-ejecutará cada vez que 'diaSeleccionado' cambie.
-    LaunchedEffect(diaSeleccionado) {
+    // Este LaunchedEffect se ejecutará una sola vez al entrar a la pantalla.
+    LaunchedEffect(Unit) {
         agendaModel.getDiasEntrega()
     }
 

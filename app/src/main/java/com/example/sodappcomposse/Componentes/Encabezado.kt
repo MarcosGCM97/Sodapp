@@ -70,9 +70,9 @@ fun Encabezado(
 
         TextButton(
             onClick = {
+                loginModel.logout()
                 navLogin()
-                loginModel.resetLoginState()
-                      },
+            },
             modifier = Modifier
                 .width(70.dp)
         ) {

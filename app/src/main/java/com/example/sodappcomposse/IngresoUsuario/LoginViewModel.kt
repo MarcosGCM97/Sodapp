@@ -74,4 +74,11 @@ class LoginViewModel @Inject constructor(
         loginUiState = LoginUiState.Idle
         _usuario.clear()
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            userPreferencesRepository.clearUserData()
+            resetLoginState()
+        }
+    }
 }
