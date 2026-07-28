@@ -37,7 +37,7 @@ class CajaViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _caja = MutableStateFlow<DataCajaResponse>(DataCajaResponse(success = false, caja = emptyList()))
-    val caja: StateFlow<DataCajaResponse> = _caja.asStateFlow()
+    // Eliminada la exposición de 'caja' a la UI para desacoplar modelos de red
 
     val cajaTotales: StateFlow<CajaTotales> = _caja.map { response ->
         val items = response.caja ?: emptyList()
@@ -82,8 +82,12 @@ class CajaViewModel @Inject constructor(
                     val responseBody = response.body()
                     if (responseBody != null) {
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                            _caja.value = responseBody
-                            cajaUiState = CajaUiState.Success("Datos cargados para ${_mesSeleccionadoUi.value?.name}")
+                            if (responseBody.success == true && !responseBody.caja.isNullOrEmpty()) {
+                                _caja.value = responseBody
+                                cajaUiState = CajaUiState.Success("Datos cargados")
+                            } else {
+                                cajaUiState = CajaUiState.Error("No hay ventas registradas para este mes.")
+                            }
                         }
                     } else {
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {

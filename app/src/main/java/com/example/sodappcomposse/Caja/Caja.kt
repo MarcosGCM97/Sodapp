@@ -44,13 +44,11 @@ fun CajaScreen(
     val TAG = "CajaScreen"
 
     val cajaUiState = cajaModel.cajaUiState
-    val cajaData by cajaModel.caja.collectAsState()
     val mesSeleccionadoViewModel by cajaModel.mesSeleccionadoUi.collectAsState()
     val cajaTotales by cajaModel.cajaTotales.collectAsState()
 
     val listaDeMeses = remember { Meses.entries.toList() }
     var expandedMeses by remember { mutableStateOf(false)}
-    var selectedMes by remember { mutableStateOf<Meses?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -91,7 +89,6 @@ fun CajaScreen(
                             text = { Text(mes.name) },
                             onClick = {
                                 cajaModel.seleccionarMes(mes)
-                                selectedMes = mes
                                 expandedMeses = false
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -119,70 +116,63 @@ fun CajaScreen(
                 }
             }
             cajaUiState is CajaUiState.Error -> {
-                item { Text("No hay ventas registradas para este mes.") }
-            }
-            cajaData.caja.isNullOrEmpty() && cajaUiState is CajaUiState.Success -> {
-                item { Text("No hay datos disponibles para mostrar.") }
+                item { Text(cajaUiState.message) }
             }
             cajaUiState is CajaUiState.Success -> {
-                if(cajaData.success == false){
-                    item { Text("No hay ventas registradas para este mes.") }
-                } else {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .background(color = MaterialTheme.colorScheme.tertiary),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(
-                                text = selectedMes?.name ?: "",
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .background(color = MaterialTheme.colorScheme.tertiary),
+                        contentAlignment = Alignment.Center
+                    ){
+                        Text(
+                            text = mesSeleccionadoViewModel?.name ?: "",
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            fontWeight = FontWeight.ExtraBold
+                        )
                     }
+                }
 
-                    items(cajaTotales.cantidadPorProducto.values.toList()) { ventaXprod ->
-                        Column(
+                items(cajaTotales.cantidadPorProducto.values.toList()) { ventaXprod ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.primary),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                        Text(
+                            text = "${ventaXprod.producto}: ",
+                            color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .background(color = MaterialTheme.colorScheme.primary),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ){
-                            Text(
-                                text = "${ventaXprod.producto}: ",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
                                     .padding(6.dp)
                                     .fillMaxWidth()
-                            )
-                            Text(
-                                text = "Cantidad: ${ventaXprod.cantidad}        Pesos: $${ventaXprod.precio}",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
+                        )
+                        Text(
+                            text = "Cantidad: ${ventaXprod.cantidad}        Pesos: $${ventaXprod.precio}",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
                                     .padding(6.dp)
                                     .fillMaxWidth()
-                            )
-                        }
+                        )
                     }
+                }
 
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .background(color = MaterialTheme.colorScheme.onPrimary),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(
-                                text ="Total de las Ventas: $${cajaTotales.montoTotal}",
-                                modifier = Modifier.padding(16.dp),
-                            )
-                        }
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .background(color = MaterialTheme.colorScheme.onPrimary),
+                        contentAlignment = Alignment.Center
+                    ){
+                        Text(
+                            text ="Total de las Ventas: $${cajaTotales.montoTotal}",
+                            modifier = Modifier.padding(16.dp),
+                        )
                     }
                 }
             }
