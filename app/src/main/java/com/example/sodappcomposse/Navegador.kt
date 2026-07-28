@@ -1,8 +1,13 @@
 package com.example.sodappcomposse
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,11 +45,19 @@ fun Navigator(
     loginViewModel: LoginViewModel = hiltViewModel()
 ){
     val navController = rememberNavController()
-    val isLoggedIn by loginViewModel.isLoggedIn.collectAsState(initial = false)
+    val isLoggedIn by loginViewModel.isLoggedIn.collectAsState(initial = null)
+
+    if (isLoggedIn == null) {
+        // Mostrar pantalla de carga mientras se lee el estado de sesión
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     NavHost(
         navController = navController, 
-        startDestination = if (isLoggedIn) Bienvenida("") else Login
+        startDestination = if (isLoggedIn == true) Bienvenida("") else Login
     ){
         composable<Login> {
             LoginScreen { nombre ->
