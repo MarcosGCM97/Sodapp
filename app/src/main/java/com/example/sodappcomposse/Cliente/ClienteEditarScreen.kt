@@ -49,6 +49,14 @@ fun ClienteEditarScreen(
 
     val clienteElegido = clienteModel.clientes.find { it.idCl == idCliente }
 
+    LaunchedEffect(clienteElegido) {
+        clienteElegido?.let {
+            nombreCliente = it.nombreCl
+            telCliente = it.numTelCl
+            dirCliente = it.direccionCl
+        }
+    }
+
     ScreenWithBackButtonWrapper(
         navController = navController,
         title = "Editar Cliente"
@@ -64,7 +72,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = nombreCliente,
                 onValueChange = { nombreCliente = it },
-                label = { Text("Nombre = ${clienteElegido?.nombreCl}") },
+                label = { Text("Nombre") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -76,7 +84,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = telCliente,
                 onValueChange = { telCliente = it },
-                label = { Text("Telefono = ${clienteElegido?.numTelCl}") },
+                label = { Text("Teléfono") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -88,7 +96,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = dirCliente,
                 onValueChange = { dirCliente = it },
-                label = { Text("Dirección = ${clienteElegido?.direccionCl}") },
+                label = { Text("Dirección") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -103,9 +111,9 @@ fun ClienteEditarScreen(
                 onClick = {
                     val clienteEditado = Cliente(
                         idCl = clienteElegido?.idCl ?: 0,
-                        nombreCl = if (nombreCliente.isNotBlank()) nombreCliente else clienteElegido?.nombreCl ?: "",
-                        numTelCl = if (telCliente.isNotBlank()) telCliente else clienteElegido?.numTelCl ?: "",
-                        direccionCl = if (dirCliente.isNotBlank()) dirCliente else clienteElegido?.direccionCl ?: "",
+                        nombreCl = nombreCliente,
+                        numTelCl = telCliente,
+                        direccionCl = dirCliente,
                         deudaCl = clienteElegido?.deudaCl ?: 0.0
                     )
                     clienteModel.editarCliente(clienteEditado)

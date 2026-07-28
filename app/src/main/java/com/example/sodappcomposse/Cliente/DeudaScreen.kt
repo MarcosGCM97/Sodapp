@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -152,7 +153,17 @@ fun DeudaScreen(
                                     .width(90.dp)
                                     .height(40.dp)
                                     .clickable {
-                                        val monto = pagarMonto.toDoubleOrNull() ?: 0.0
+                                        val monto = pagarMonto.toDoubleOrNull()
+                                        if (monto == null || monto <= 0) {
+                                            Toast.makeText(context, "Ingrese un monto válido mayor a cero", Toast.LENGTH_SHORT).show()
+                                            return@clickable
+                                        }
+                                        val deudaActual = cliente.value?.deudaCl ?: 0.0
+                                        if (monto > deudaActual) {
+                                            Toast.makeText(context, "El monto ($monto) supera la deuda actual ($deudaActual)", Toast.LENGTH_SHORT).show()
+                                            return@clickable
+                                        }
+
                                         deudaModel.pagarDeudaCliente(
                                             cliente.value?.idCl ?: 0,
                                             monto
