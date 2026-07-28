@@ -185,6 +185,10 @@ fun CardProductoInventario(
         mutableIntStateOf(stockActual)
     }
 
+    var hayCambiosPendientes by remember(producto.id, producto.stock) {
+        mutableStateOf(false)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -228,7 +232,7 @@ fun CardProductoInventario(
                     onClick = {
                         if (cantidadLocal > 0) {
                             cantidadLocal--
-                            onAjustarStock(cantidadLocal)
+                            hayCambiosPendientes = cantidadLocal != producto.stock
                         }
                     },
                     enabled = cantidadLocal > 0
@@ -245,6 +249,7 @@ fun CardProductoInventario(
                         } else if (nuevaCantidad != null && nuevaCantidad >= 0) {
                             cantidadLocal = nuevaCantidad
                         }
+                        hayCambiosPendientes = cantidadLocal != producto.stock
                     },
                     modifier = Modifier.width(80.dp),
                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
@@ -255,10 +260,22 @@ fun CardProductoInventario(
                 IconButton(
                     onClick = {
                         cantidadLocal++
-                        onAjustarStock(cantidadLocal)
+                        hayCambiosPendientes = cantidadLocal != producto.stock
                     }
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = "Aumentar stock")
+                }
+            }
+
+            if (hayCambiosPendientes) {
+                Button(
+                    onClick = {
+                        onAjustarStock(cantidadLocal)
+                        hayCambiosPendientes = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Actualizar stock")
                 }
             }
         }

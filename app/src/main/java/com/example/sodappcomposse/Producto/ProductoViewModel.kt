@@ -93,8 +93,12 @@ class ProductoViewModel @Inject constructor(
         }
 
         val precioDouble = precio.toDoubleOrNull()
-        if (precioDouble == null) {
-            _addProductoUiState.value = AddProductoUiState.Error("Precio inválido.")
+        if (precioDouble == null || precioDouble <= 0) {
+            _addProductoUiState.value = AddProductoUiState.Error("El precio debe ser un número mayor a cero.")
+            return
+        }
+        if (cantidad < 0) {
+            _addProductoUiState.value = AddProductoUiState.Error("La cantidad no puede ser negativa.")
             return
         }
 
@@ -158,7 +162,6 @@ class ProductoViewModel @Inject constructor(
             try {
                 val response = productoRepository.deleteProducto(producto.nombrePr)
                 if (response.isSuccessful) {
-                    _productos.remove(producto)
                     productoUiState = ProductoUiState.Success("Producto eliminado exitosamente.")
                     getProductos()
                 } else {

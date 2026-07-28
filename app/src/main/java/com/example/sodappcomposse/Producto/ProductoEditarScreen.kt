@@ -52,6 +52,13 @@ fun ProductoEditarScreen(
 
     val productoElegido = productoModel.productos.find { it.nombrePr == nombreProducto }
 
+    LaunchedEffect(productoElegido) {
+        productoElegido?.let {
+            precioPr = it.precioUni.toString()
+            cantidadPr = it.stock.toString()
+        }
+    }
+
     ScreenWithBackButtonWrapper(
         navController = navController,
         title = "Editar Producto"
@@ -76,7 +83,7 @@ fun ProductoEditarScreen(
             OutlinedTextField(
                 value = precioPr,
                 onValueChange = { precioPr = it },
-                label = { Text("Precio = ${productoElegido?.precioUni}") },
+                label = { Text("Precio") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -85,7 +92,7 @@ fun ProductoEditarScreen(
             OutlinedTextField(
                 value = cantidadPr,
                 onValueChange = { cantidadPr = it },
-                label = { Text("Cantidad = ${productoElegido?.stock}") },
+                label = { Text("Cantidad") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
