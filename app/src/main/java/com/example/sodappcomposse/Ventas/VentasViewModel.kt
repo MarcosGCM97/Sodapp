@@ -163,25 +163,22 @@ class VentasViewModel @Inject constructor(
 
     internal suspend fun postVenta(clienteId: Int, productos: List<ProductoVenta>){
         val idUsuario = userPreferencesRepository.userId.first() ?: "0"
-
         val ventaParaApi = VentaRequest(clienteId, productos, idUsuario)
 
-        viewModelScope.launch {
-            try {
-                val response = ventaRepository.postVenta(ventaParaApi)
-                if (response.isSuccessful && response.body() != null) {
-                    // Producir efecto de éxito
-                    ventasUiState = VentasUiState.Success("Venta procesada exitosamente")
-                } else {
-                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
-                }
-            } catch (e: IOException) {
-                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
-            } catch (e: HttpException) {
-                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
-            } catch (e: Exception) {
-                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
+        try {
+            val response = ventaRepository.postVenta(ventaParaApi)
+            if (response.isSuccessful && response.body() != null) {
+                // Producir efecto de éxito
+                ventasUiState = VentasUiState.Success("Venta procesada exitosamente")
+            } else {
+                ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
             }
+        } catch (e: IOException) {
+            ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+        } catch (e: HttpException) {
+            ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+        } catch (e: Exception) {
+            ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
         }
     }
 
@@ -191,8 +188,12 @@ class VentasViewModel @Inject constructor(
                 val response = ventaRepository.deleteVenta(idVenta)
                 if (response.isSuccessful) {
                     ventasUiState = VentasUiState.Success("Venta eliminada exitosamente")
-                    // actualizar deuda del cliente
-                    clienteRepository.updateDeudaCliente(clienteId, valorVenta)
+                    try {
+                        // actualizar deuda del cliente
+                        clienteRepository.updateDeudaCliente(clienteId, valorVenta)
+                    } catch (e: Exception) {
+                        ventasUiState = VentasUiState.Error("Venta eliminada, pero error al actualizar deuda: ${e.message}")
+                    }
                     getVentasByClienteId(clienteId.toString())
                 } else {
                     ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
