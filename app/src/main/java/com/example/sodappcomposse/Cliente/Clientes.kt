@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +44,7 @@ import androidx.navigation.NavController
 import com.example.sodappcomposse.ClienteEditar
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Agenda
+import com.example.sodappcomposse.R
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -94,14 +96,14 @@ fun AddClienteForm(
     LaunchedEffect(addState) {
         when (val currentState = addState) {
             is AddClienteUiState.Success -> {
-                Toast.makeText(context, currentState.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_LONG).show()
                 nombreCliente = "" // Limpiar campos
                 direccionCliente = ""
                 telefonoCliente = ""
                 //clienteModel.resetAddClienteState() // Resetear el estado para futuros guardados
             }
             is AddClienteUiState.Error -> {
-                Toast.makeText(context, currentState.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_LONG).show()
                 //clienteModel.resetAddClienteState()
             }
             is AddClienteUiState.Loading -> {
@@ -120,11 +122,11 @@ fun AddClienteForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Cargar al cliente", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.cargar_cliente_titulo), style = MaterialTheme.typography.headlineSmall)
         OutlinedTextField(
             value = nombreCliente,
             onValueChange = { nombreCliente = it },
-            label = { Text("Nombre del Cliente") },
+            label = { Text(stringResource(R.string.nombre_cliente_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -133,7 +135,7 @@ fun AddClienteForm(
         OutlinedTextField(
             value = direccionCliente,
             onValueChange = { direccionCliente = it },
-            label = { Text("Dirección") },
+            label = { Text(stringResource(R.string.direccion_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -142,7 +144,7 @@ fun AddClienteForm(
         OutlinedTextField(
             value = telefonoCliente,
             onValueChange = { telefonoCliente = it },
-            label = { Text("Teléfono") },
+            label = { Text(stringResource(R.string.telefono_label)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), // Sugiere teclado numérico
             singleLine = true
@@ -163,14 +165,14 @@ fun AddClienteForm(
             if (addState is AddClienteUiState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Guardar Cliente")
+                Text(stringResource(R.string.guardar_cliente))
             }
         }
 
         // Separador visual si quieres (opcional)
         Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-        Text("o buscar uno existente:", style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
+        Text(stringResource(R.string.buscar_existente_label), style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
 
         BuscarCliente(
             navController = navController
@@ -196,7 +198,14 @@ fun BuscarCliente(
 
     var mostrarDialogoAgenda by remember { mutableStateOf(false) }
 
-    val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
+    val diasSemana = listOf(
+        stringResource(R.string.lunes),
+        stringResource(R.string.martes),
+        stringResource(R.string.miercoles),
+        stringResource(R.string.jueves),
+        stringResource(R.string.viernes),
+        stringResource(R.string.sabado)
+    )
     var diasSeleccionadosAgenda by remember { mutableStateOf(emptyList<String>()) }
 
     var mostrarDialogoConfirmacion by remember { mutableStateOf(false) }
@@ -210,7 +219,7 @@ fun BuscarCliente(
             }
             is ClienteUiState.Error -> {
                 //Log.d("AddClienteForm", "Error: ${clienteUiState.message}")
-                Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(clienteUiState.messageRes, *clienteUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
                 //Log.d("AddClienteForm", "Loading clients...")
@@ -239,11 +248,11 @@ fun BuscarCliente(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Detalles del Cliente:", style = MaterialTheme.typography.titleMedium)
-                Text("Nombre: ${cliente.nombreCl}")
-                Text("Dirección: ${cliente.direccionCl}")
-                Text("Teléfono: ${cliente.numTelCl}")
-                Text("Deuda: $${cliente.deudaCl}")
+                Text(stringResource(R.string.detalles_cliente_titulo), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.nombre_format, cliente.nombreCl))
+                Text(stringResource(R.string.direccion_format, cliente.direccionCl))
+                Text(stringResource(R.string.telefono_format, cliente.numTelCl))
+                Text(stringResource(R.string.deuda_format, cliente.deudaCl))
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -257,7 +266,7 @@ fun BuscarCliente(
                             clienteModel.clienteParaDropDown.value = null
                         }
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Editar")
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
                         Spacer(modifier = Modifier.width(4.dp))
                         //Text("Editar")
                     }
@@ -270,7 +279,7 @@ fun BuscarCliente(
                             clienteModel.clienteParaDropDown.value = null
                         }
                     ) {
-                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Deuda")
+                        Icon(Icons.Filled.ShoppingCart, contentDescription = stringResource(R.string.deuda_desc))
                         Spacer(modifier = Modifier.width(4.dp))
                         //Text("Ver deuda")//Text("Ver deuda")
                     }
@@ -283,7 +292,7 @@ fun BuscarCliente(
                             mostrarDialogoAgenda = true
                         }
                     ) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
+                        Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     IconButton(
@@ -294,7 +303,7 @@ fun BuscarCliente(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Eliminar",
+                            contentDescription = stringResource(R.string.eliminar_desc),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -310,11 +319,11 @@ fun BuscarCliente(
                 mostrarDialogoAgenda = false
             },
             title = {
-                Text(text = "Elegir día de visita")
+                Text(text = stringResource(R.string.elegir_dia_titulo))
             },
             text = {
                 Column { // Usamos una Column para organizar el texto y los RadioButtons
-                    Text("Selecciona un día para agendar la visita:")
+                    Text(stringResource(R.string.selecciona_dia_label))
                     Spacer(modifier = Modifier.height(16.dp)) // Espacio antes de los radio buttons
 
                     // RadioButtons para los días de la semana
@@ -361,13 +370,13 @@ fun BuscarCliente(
                                 diasSeleccionadosAgenda.toList() // Enviar como lista
                             )
                             val textoDias = if (diasSeleccionadosAgenda.isEmpty()) "ningún día" else diasSeleccionadosAgenda.joinToString()
-                            Toast.makeText(context, "Visita agendada para ${clienteSeleccionado?.nombreCl} los días: $textoDias", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, context.getString(R.string.visita_agendada_msg, clienteSeleccionado?.nombreCl, textoDias), Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "Error: No se seleccionó ningún cliente.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_cliente_no_seleccionado), Toast.LENGTH_SHORT).show()
                         }
                     }
                 ) {
-                    Text("Aceptar")
+                    Text(stringResource(R.string.aceptar))
                 }
             },
             dismissButton = {
@@ -376,7 +385,7 @@ fun BuscarCliente(
                         mostrarDialogoAgenda = false
                     }
                     ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancelar))
                 }
             }
         )
@@ -389,10 +398,10 @@ fun BuscarCliente(
                 clienteAEliminar = null
             },
             title = {
-                Text(text = "Confirmar Eliminación")
+                Text(text = stringResource(R.string.confirmar_eliminacion_titulo))
             },
             text = {
-                Text("¿Estás seguro de que deseas eliminar al cliente \"${clienteAEliminar?.nombreCl}\"? Esta acción no se puede deshacer y borrará sus datos de la base de datos.")
+                Text(context.getString(R.string.confirmar_eliminar_cliente_msg, clienteAEliminar?.nombreCl))
             },
             confirmButton = {
                 Button(
@@ -408,7 +417,7 @@ fun BuscarCliente(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Eliminar")
+                    Text(stringResource(R.string.eliminar_label))
                 }
             },
             dismissButton = {
@@ -418,17 +427,9 @@ fun BuscarCliente(
                         clienteAEliminar = null
                     }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancelar))
                 }
             }
         )
     }
 }
-/*
-@Preview(showSystemUi = true)
-@Composable
-fun PreviewClientesScreen(){
-    Clientes(
-        navController = NavController(LocalContext.current)
-    )
-}*/

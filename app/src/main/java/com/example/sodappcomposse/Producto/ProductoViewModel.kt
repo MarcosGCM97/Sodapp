@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Producto
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -8,9 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sodappcomposse.API.RetrofitInstance
+import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -19,15 +19,67 @@ import javax.inject.Inject
 sealed class ProductoUiState{
     object Idle : ProductoUiState() //Estado inicial
     object Loading : ProductoUiState() //Cargando
-    data class Error(val message: String) : ProductoUiState() //Error
-    data class Success(val message: String) : ProductoUiState() //Éxito
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : ProductoUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : ProductoUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 sealed interface AddProductoUiState {
     object Idle : AddProductoUiState
     object Loading : AddProductoUiState
-    data class Success(val message: String) : AddProductoUiState
-    data class Error(val message: String) : AddProductoUiState
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AddProductoUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AddProductoUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @HiltViewModel
@@ -66,19 +118,19 @@ class ProductoViewModel @Inject constructor(
                     response.body()?.let { productosApi ->
                         _productos.clear()
                         _productos.addAll(productosApi.productos)
-                        productoUiState = ProductoUiState.Success("Productos cargados: ${_productos.size}")
+                        productoUiState = ProductoUiState.Success(R.string.productos_cargados_format, arrayOf(_productos.size))
                     } ?: run {
-                        productoUiState = ProductoUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                        productoUiState = ProductoUiState.Error(R.string.cuerpo_nulo_error)
                     }
                 } else {
-                    productoUiState = ProductoUiState.Error("Error servidor: ${response.code()}")
+                    productoUiState = ProductoUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 }
             } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error("Error de Red: Verifica tu conexión.")
+                productoUiState = ProductoUiState.Error(R.string.error_red_verificar)
             } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error("Error HTTP: ${e.code()}")
+                productoUiState = ProductoUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error("Error inesperado: ${e.message?.take(100)}")
+                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
             }
         }
     }
@@ -88,17 +140,17 @@ class ProductoViewModel @Inject constructor(
 
     internal fun agregarNuevoProducto(nombre: String, precio: String, cantidad: Int) {
         if (nombre.isBlank() || precio.isBlank()) {
-            _addProductoUiState.value = AddProductoUiState.Error("Todos los campos son requeridos.")
+            _addProductoUiState.value = AddProductoUiState.Error(R.string.campos_requeridos_error)
             return
         }
 
         val precioDouble = precio.toDoubleOrNull()
         if (precioDouble == null || precioDouble <= 0) {
-            _addProductoUiState.value = AddProductoUiState.Error("El precio debe ser un número mayor a cero.")
+            _addProductoUiState.value = AddProductoUiState.Error(R.string.error_precio_invalido)
             return
         }
         if (cantidad < 0) {
-            _addProductoUiState.value = AddProductoUiState.Error("La cantidad no puede ser negativa.")
+            _addProductoUiState.value = AddProductoUiState.Error(R.string.error_cantidad_negativa)
             return
         }
 
@@ -112,17 +164,17 @@ class ProductoViewModel @Inject constructor(
                 )
                 val response = productoRepository.postProducto(objProducto)
                 if (response.isSuccessful && response.body() != null) {
-                    _addProductoUiState.value = AddProductoUiState.Success("Producto '$nombre' guardado exitosamente.")
+                    _addProductoUiState.value = AddProductoUiState.Success(R.string.producto_guardado_success, arrayOf(nombre))
                     getProductos()
                 } else {
-                    _addProductoUiState.value = AddProductoUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    _addProductoUiState.value = AddProductoUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                _addProductoUiState.value = AddProductoUiState.Error("Error de red: ${e.message}")
+                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                _addProductoUiState.value = AddProductoUiState.Error("Error HTTP: ${e.code()}")
+                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                _addProductoUiState.value = AddProductoUiState.Error("Error al guardar: ${e.message}")
+                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_guardar_producto, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -142,17 +194,17 @@ class ProductoViewModel @Inject constructor(
             try {
                 val response = productoRepository.updateProducto(producto.nombrePr, producto.precioUni, producto.stock)
                 if (response.isSuccessful) {
-                    productoUiState = ProductoUiState.Success("Producto actualizado exitosamente.")
+                    productoUiState = ProductoUiState.Success(R.string.producto_actualizado_success)
                     getProductos()
                 } else {
-                    productoUiState = ProductoUiState.Error("Error al actualizar producto: ${response.code()} - ${response.message()}")
+                    productoUiState = ProductoUiState.Error(R.string.error_actualizar_producto_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error("Error de red al actualizar producto: ${e.message}")
+                productoUiState = ProductoUiState.Error(R.string.error_red_actualizar_producto, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error("Error HTTP al actualizar producto: ${e.code()}")
+                productoUiState = ProductoUiState.Error(R.string.error_http_actualizar_producto, arrayOf(e.code()))
             } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error("Error al actualizar producto: ${e.message}")
+                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -162,17 +214,17 @@ class ProductoViewModel @Inject constructor(
             try {
                 val response = productoRepository.deleteProducto(producto.nombrePr)
                 if (response.isSuccessful) {
-                    productoUiState = ProductoUiState.Success("Producto eliminado exitosamente.")
+                    productoUiState = ProductoUiState.Success(R.string.producto_eliminado_success)
                     getProductos()
                 } else {
-                    productoUiState = ProductoUiState.Error("Error al eliminar producto: ${response.code()} - ${response.message()}")
+                    productoUiState = ProductoUiState.Error(R.string.error_eliminar_producto_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error("Error de red al eliminar producto: ${e.message}")
+                productoUiState = ProductoUiState.Error(R.string.error_red_eliminar_producto, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error("Error HTTP al eliminar producto: ${e.code()}")
+                productoUiState = ProductoUiState.Error(R.string.error_http_eliminar_producto, arrayOf(e.code()))
             } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error("Error al eliminar producto: ${e.message}")
+                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
 
         }

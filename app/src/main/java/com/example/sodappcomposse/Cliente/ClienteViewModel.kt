@@ -3,6 +3,7 @@ package com.example.sodappcomposse.Cliente
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.State
@@ -11,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -21,15 +23,67 @@ import javax.inject.Inject
 sealed interface AddClienteUiState {
     object Idle : AddClienteUiState
     object Loading : AddClienteUiState
-    data class Success(val message: String) : AddClienteUiState
-    data class Error(val message: String) : AddClienteUiState
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AddClienteUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AddClienteUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 sealed class ClienteUiState {
     object Idle : ClienteUiState() //Estado inicial
     object Loading : ClienteUiState() //Cargando
-    data class Error(val message: String) : ClienteUiState() //Error
-    data class Success(val message: String) : ClienteUiState() //Éxito
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : ClienteUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : ClienteUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -57,19 +111,19 @@ class ClientesViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     response.body()?.let { clientesApi ->
                         clienteById.value = clientesApi.cliente
-                        clienteUiState = ClienteUiState.Success("Cliente cargado")
+                        clienteUiState = ClienteUiState.Success(R.string.cliente_cargado_success)
                     } ?: run {
-                        clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                        clienteUiState = ClienteUiState.Error(R.string.cuerpo_nulo_error)
                     }
                 } else {
-                    clienteUiState = ClienteUiState.Error("Error servidor: ${response.code()}")
+                    clienteUiState = ClienteUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 }
             } catch (e: IOException) {
-                clienteUiState = ClienteUiState.Error("Error de red: ${e.message}")
+                clienteUiState = ClienteUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                clienteUiState = ClienteUiState.Error("Error HTTP: ${e.code()}")
+                clienteUiState = ClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                clienteUiState = ClienteUiState.Error("Error inesperado: ${e.message}")
+                clienteUiState = ClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -84,19 +138,19 @@ class ClientesViewModel @Inject constructor(
                     response.body()?.let { clientesApi ->
                         _clientes.clear()
                         _clientes.addAll(clientesApi.clientes)
-                        clienteUiState = ClienteUiState.Success("Clientes cargados: ${_clientes.size}")
+                        clienteUiState = ClienteUiState.Success(R.string.clientes_cargados_format, arrayOf(_clientes.size))
                     } ?: run {
-                        clienteUiState = ClienteUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                        clienteUiState = ClienteUiState.Error(R.string.cuerpo_nulo_error)
                     }
                 } else {
-                    clienteUiState = ClienteUiState.Error("Error servidor: ${response.code()}")
+                    clienteUiState = ClienteUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 }
             } catch (e: IOException) {
-                clienteUiState = ClienteUiState.Error("Error de Red: Verifica tu conexión.")
+                clienteUiState = ClienteUiState.Error(R.string.error_red_verificar)
             } catch (e: HttpException) {
-                clienteUiState = ClienteUiState.Error("Error HTTP: ${e.code()}")
+                clienteUiState = ClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                clienteUiState = ClienteUiState.Error("Error inesperado: ${e.message?.take(100)}")
+                clienteUiState = ClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
             }
         }
     }
@@ -107,7 +161,7 @@ class ClientesViewModel @Inject constructor(
 
     internal fun agregarNuevoCliente(nombre: String, direccion: String, telefono: String) {
         if (nombre.isBlank() || direccion.isBlank() || telefono.isBlank()) {
-            _addClienteUiState.value = AddClienteUiState.Error("Todos los campos son requeridos.")
+            _addClienteUiState.value = AddClienteUiState.Error(R.string.campos_requeridos_error)
             return
         }
 
@@ -121,17 +175,17 @@ class ClientesViewModel @Inject constructor(
                 )
                 val response = clienteRepository.postCliente(objCliente)
                 if (response.isSuccessful && response.body() != null) {
-                    _addClienteUiState.value = AddClienteUiState.Success("Cliente '$nombre' guardado exitosamente.")
+                    _addClienteUiState.value = AddClienteUiState.Success(R.string.cliente_guardado_success, arrayOf(nombre))
                     getClientes()
                 } else {
-                    _addClienteUiState.value = AddClienteUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    _addClienteUiState.value = AddClienteUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error de red: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error inesperado: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -153,18 +207,18 @@ class ClientesViewModel @Inject constructor(
                 )
                 if (response.isSuccessful) {
                     _addClienteUiState.value =
-                        AddClienteUiState.Success("Cliente editado exitosamente.")
+                        AddClienteUiState.Success(R.string.cliente_editado_success)
                     getClientes()
                 } else {
                     _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al editar cliente: ${response.code()} - ${response.message()}")
+                        AddClienteUiState.Error(R.string.error_editar_cliente_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error de red al editar cliente: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_editar_cliente, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP al editar cliente: ${e.code()}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_editar_cliente, arrayOf(e.code()))
             } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error al editar cliente: ${e.message}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -181,21 +235,21 @@ class ClientesViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     // Si la eliminación en el servidor fue exitosa
                     _addClienteUiState.value =
-                        AddClienteUiState.Success("Cliente '${cliente.nombreCl}' eliminado correctamente.")
+                        AddClienteUiState.Success(R.string.cliente_eliminado_success, arrayOf(cliente.nombreCl))
 
                     // IMPORTANTE: Refrescar la lista local inmediatamente
                     getClientes()
                 } else {
                     // Error devuelto por el servidor (ej: 404, 500)
                     _addClienteUiState.value =
-                        AddClienteUiState.Error("Error al eliminar: ${response.code()} - ${response.message()}")
+                        AddClienteUiState.Error(R.string.error_eliminar_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error de red: Verifica tu conexión a internet.")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_conexion)
             } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error HTTP: ${e.code()}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error("Error inesperado: ${e.localizedMessage}")
+                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.localizedMessage ?: ""))
             }
         }
     }

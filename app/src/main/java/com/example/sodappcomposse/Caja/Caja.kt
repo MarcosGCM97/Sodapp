@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,9 +70,9 @@ fun CajaScreen(
                         .menuAnchor()
                         .fillMaxWidth(),
                     readOnly = true,
-                    value = mesSeleccionadoViewModel?.name ?: "Seleccione un mes",
+                    value = mesSeleccionadoViewModel?.name ?: stringResource(R.string.seleccione_mes),
                     onValueChange = {},
-                    label = { Text("Mes") },
+                    label = { Text(stringResource(R.string.mes_label)) },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(
                             expanded = expandedMeses
@@ -104,7 +106,7 @@ fun CajaScreen(
                     cajaModel.getCajaPorMes()
                 }
             ){
-                Text("Ver caja del mes")
+                Text(stringResource(R.string.ver_caja_mes))
             }
         }
 
@@ -112,11 +114,11 @@ fun CajaScreen(
             cajaUiState is CajaUiState.Loading -> {
                 item {
                     CircularProgressIndicator()
-                    Text("Cargando datos de la caja...")
+                    Text(stringResource(R.string.cargando_caja))
                 }
             }
             cajaUiState is CajaUiState.Error -> {
-                item { Text(cajaUiState.message) }
+                item { Text(stringResource(cajaUiState.messageRes, *cajaUiState.args)) }
             }
             cajaUiState is CajaUiState.Success -> {
                 item {
@@ -145,14 +147,14 @@ fun CajaScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ){
                         Text(
-                            text = "${ventaXprod.producto}: ",
+                            text = stringResource(R.string.formato_producto_item, ventaXprod.producto),
                             color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                     .padding(6.dp)
                                     .fillMaxWidth()
                         )
                         Text(
-                            text = "Cantidad: ${ventaXprod.cantidad}        Pesos: $${ventaXprod.precio}",
+                            text = stringResource(R.string.formato_cantidad_pesos, ventaXprod.cantidad, ventaXprod.precio),
                             color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                     .padding(6.dp)
@@ -170,14 +172,14 @@ fun CajaScreen(
                         contentAlignment = Alignment.Center
                     ){
                         Text(
-                            text ="Total de las Ventas: $${cajaTotales.montoTotal}",
+                            text = stringResource(R.string.formato_total_ventas, cajaTotales.montoTotal),
                             modifier = Modifier.padding(16.dp),
                         )
                     }
                 }
             }
             else -> {
-                item { Text("Esperando datos...") }
+                item { Text(stringResource(R.string.esperando_datos)) }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.IngresoUsuario
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +9,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.UsuarioResponse
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.UserPreferencesRepository
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -17,8 +19,34 @@ import javax.inject.Inject // IMPORTANTE
 sealed interface LoginUiState {
     object Idle : LoginUiState
     object Loading : LoginUiState
-    data class Success(val message: String) : LoginUiState
-    data class Error(val message: String) : LoginUiState
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : LoginUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : LoginUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @HiltViewModel
@@ -38,7 +66,7 @@ class LoginViewModel @Inject constructor(
 
     internal fun login(nombre: String, contrasena: String) {
         if (nombre.isBlank() || contrasena.isBlank()) {
-            loginUiState = LoginUiState.Error("Todos los campos son requeridos.")
+            loginUiState = LoginUiState.Error(R.string.campos_requeridos_error)
             return
         }
 
@@ -53,18 +81,22 @@ class LoginViewModel @Inject constructor(
 
                     if(usuarioApi.success){
                         userPreferencesRepository.saveUserData(usuarioApi.token.idUs.toString(), usuarioApi.token.nombreUs)
-                        loginUiState = LoginUiState.Success(usuarioApi.message)
+                        // Aquí asumimos que usuarioApi.message es un texto dinámico de la API. 
+                        // Si la API siempre manda el mismo mensaje, podríamos mapearlo a un R.string.
+                        // Para este ejercicio, como no podemos cambiar la API, usaremos un R.string genérico si es posible o pasaremos el string (pero la consigna pide R.string).
+                        // Usaremos un recurso genérico de éxito y pasaremos el mensaje de la API como argumento.
+                        loginUiState = LoginUiState.Success(R.string.excepcion_format, arrayOf(usuarioApi.message))
                     }else{
-                        loginUiState = LoginUiState.Error(usuarioApi.message)
+                        loginUiState = LoginUiState.Error(R.string.error_simple_format, arrayOf(usuarioApi.message))
                     }
                 } else {
                     // Manejar error de la API
-                    loginUiState = LoginUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    loginUiState = LoginUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: Exception) {
-                loginUiState = LoginUiState.Error("Error al iniciar sesión: ${e.message}")
+                loginUiState = LoginUiState.Error(R.string.error_iniciar_sesion_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                loginUiState = LoginUiState.Error("Error HTTP al iniciar sesión: ${e.code()} - ${e.message()}")
+                loginUiState = LoginUiState.Error(R.string.error_http_iniciar_sesion_format, arrayOf(e.code(), e.message()))
             }
         }
     }

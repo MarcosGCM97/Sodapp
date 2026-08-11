@@ -1,10 +1,12 @@
 package com.example.sodappcomposse.Caja
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Ventas.Venta
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +23,34 @@ import javax.inject.Inject
 sealed class CajaUiState {
     object Idle : CajaUiState()
     object Loading : CajaUiState()
-    data class Error(val message: String) : CajaUiState()
-    data class Success(val message: String) : CajaUiState()
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : CajaUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : CajaUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 data class CajaTotales(
@@ -84,32 +112,32 @@ class CajaViewModel @Inject constructor(
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {
                             if (responseBody.success == true && !responseBody.caja.isNullOrEmpty()) {
                                 _caja.value = responseBody
-                                cajaUiState = CajaUiState.Success("Datos cargados")
+                                cajaUiState = CajaUiState.Success(R.string.datos_cargados_success)
                             } else {
-                                cajaUiState = CajaUiState.Error("No hay ventas registradas para este mes.")
+                                cajaUiState = CajaUiState.Error(R.string.no_ventas_mes_error)
                             }
                         }
                     } else {
                         if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                            cajaUiState = CajaUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                            cajaUiState = CajaUiState.Error(R.string.cuerpo_nulo_error)
                         }
                     }
                 } else {
                     if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                        cajaUiState = CajaUiState.Error("Error API: ${response.code()}")
+                        cajaUiState = CajaUiState.Error(R.string.error_api_format, arrayOf(response.code()))
                     }
                 }
             } catch (e: IOException) {
                 if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error("Error de red: ${e.message?.take(100)}")
+                    cajaUiState = CajaUiState.Error(R.string.error_red_format, arrayOf(e.message?.take(100) ?: ""))
                 }
             } catch (e: HttpException) {
                 if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error("Error HTTP: ${e.code()}")
+                    cajaUiState = CajaUiState.Error(R.string.error_http_format, arrayOf(e.code()))
                 }
             } catch (e: Exception) {
                 if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error("Excepción: ${e.message?.take(100)}")
+                    cajaUiState = CajaUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
                 }
             }
         }

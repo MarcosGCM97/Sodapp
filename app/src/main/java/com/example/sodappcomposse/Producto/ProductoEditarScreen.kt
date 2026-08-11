@@ -31,6 +31,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
 @SuppressLint("UnrememberedMutableState")
@@ -61,7 +63,7 @@ fun ProductoEditarScreen(
 
     ScreenWithBackButtonWrapper(
         navController = navController,
-        title = "Editar Producto"
+        title = stringResource(R.string.editar_producto_titulo)
     ){
         Column(
             modifier = Modifier
@@ -83,7 +85,7 @@ fun ProductoEditarScreen(
             OutlinedTextField(
                 value = precioPr,
                 onValueChange = { precioPr = it },
-                label = { Text("Precio") },
+                label = { Text(stringResource(R.string.precio_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -92,7 +94,7 @@ fun ProductoEditarScreen(
             OutlinedTextField(
                 value = cantidadPr,
                 onValueChange = { cantidadPr = it },
-                label = { Text("Cantidad") },
+                label = { Text(stringResource(R.string.cantidad_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -112,7 +114,7 @@ fun ProductoEditarScreen(
                     navController.popBackStack()
                 }
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.guardar_label))
             }
         }
     }

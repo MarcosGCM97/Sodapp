@@ -39,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
@@ -64,7 +66,7 @@ fun TabInventario(
     LaunchedEffect(uiState) {
         when (uiState) {
             is ProductoUiState.Error -> {
-                Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(uiState.messageRes, *uiState.args), Toast.LENGTH_SHORT).show()
             }
             else -> {}
         }
@@ -91,7 +93,7 @@ fun TabInventario(
         OutlinedTextField(
             value = filtroNombre,
             onValueChange = { filtroNombre = it },
-            label = { Text("Buscar producto...") },
+            label = { Text(stringResource(R.string.buscar_producto_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -104,12 +106,12 @@ fun TabInventario(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "${productos.size} productos total",
+                text = stringResource(R.string.total_productos_format, productos.size),
                 style = MaterialTheme.typography.bodyMedium
             )
             if (cantidadStockBajo > 0) {
                 Text(
-                    text = "$cantidadStockBajo con stock bajo",
+                    text = stringResource(R.string.stock_bajo_format, cantidadStockBajo),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold
@@ -135,7 +137,7 @@ fun TabInventario(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Error al cargar productos",
+                        text = stringResource(R.string.error_cargar_productos),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -146,7 +148,7 @@ fun TabInventario(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No hay productos para mostrar")
+                        Text(stringResource(R.string.no_hay_productos))
                     }
                 } else {
                     LazyColumn(
@@ -208,13 +210,13 @@ fun CardProductoInventario(
 
             // Precio
             Text(
-                text = "Precio: $${producto.precioUni}",
+                text = stringResource(R.string.precio_format, producto.precioUni),
                 style = MaterialTheme.typography.bodyMedium
             )
 
             // Stock con color
             Text(
-                text = "Stock: $stockActual",
+                text = stringResource(R.string.stock_format, stockActual),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = colorStock
@@ -237,7 +239,7 @@ fun CardProductoInventario(
                     },
                     enabled = cantidadLocal > 0
                 ) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Disminuir stock")
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.disminuir_stock_desc))
                 }
 
                 OutlinedTextField(
@@ -263,7 +265,7 @@ fun CardProductoInventario(
                         hayCambiosPendientes = cantidadLocal != producto.stock
                     }
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Aumentar stock")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_stock_desc))
                 }
             }
 
@@ -275,7 +277,7 @@ fun CardProductoInventario(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Actualizar stock")
+                    Text(stringResource(R.string.actualizar_stock_label))
                 }
             }
         }

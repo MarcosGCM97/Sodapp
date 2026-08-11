@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +38,7 @@ import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.ProductoViewModel
+import com.example.sodappcomposse.R
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -85,7 +87,7 @@ fun Ventas(
                     navController.navigate(Agenda)
                 }
             ) {
-                Icon(Icons.Filled.DateRange, contentDescription = "Agendar")
+                Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }
@@ -95,10 +97,10 @@ fun Ventas(
                 item { CircularProgressIndicator() }
             }
             ventasUiState is VentasUiState.Error -> {
-                item { Text("Error: ${(ventasUiState).message}", color = MaterialTheme.colorScheme.error) }
+                item { Text(stringResource(ventasUiState.messageRes, *ventasUiState.args), color = MaterialTheme.colorScheme.error) }
             }
             ventasAgrupadas.isEmpty() && ventasUiState is VentasUiState.Success -> {
-                item { Text("No hay ventas para mostrar.") }
+                item { Text(stringResource(R.string.no_ventas_label)) }
             }
             ventasUiState is VentasUiState.Success -> {
                 items(ventasAgrupadas) { ventaAgrupada ->
@@ -106,7 +108,7 @@ fun Ventas(
                 }
             }
             else -> {
-                item { Text("Esperando datos...") }
+                item { Text(stringResource(R.string.esperando_datos)) }
             }
         }
     }
@@ -141,7 +143,7 @@ fun AddVentaForm(
             }
             is ClienteUiState.Error -> {
                 //Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
-                Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(clienteUiState.messageRes, *clienteUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
                 //Log.d("AddVentaForm", "Loading clients...")
@@ -159,7 +161,7 @@ fun AddVentaForm(
             }
             is ProductoUiState.Error -> {
                 //Log.d("AddVentaForm", "Error: ${productoUiState.message}")
-                Toast.makeText(context, productoUiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(productoUiState.messageRes, *productoUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ProductoUiState.Loading -> {
                 //Log.d("AddVentaForm", "Loading prods...")
@@ -201,7 +203,7 @@ fun AddVentaForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Cargar la venta", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.cargar_venta_titulo), style = MaterialTheme.typography.headlineSmall)
 
         ClientesDropDown()
 
@@ -214,7 +216,7 @@ fun AddVentaForm(
                 value = currentSelectedProductInDropdown,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Producto") },
+                label = { Text(stringResource(R.string.producto_label)) },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedProds)
                 },
@@ -248,9 +250,9 @@ fun AddVentaForm(
                                         precio = productoCompleto?.precioUni ?: 0.0
                                     )
                                 )
-                                Toast.makeText(context, "$selectionOption agregado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.producto_agregado_msg, selectionOption), Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(context, "$selectionOption ya está en la lista", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.producto_ya_en_lista_msg, selectionOption), Toast.LENGTH_SHORT).show()
                             }
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -266,20 +268,20 @@ fun AddVentaForm(
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Cliente: ${clienteParaVenta.value?.nombreCl ?: "No seleccionado"}",
+                    stringResource(R.string.cliente_format, clienteParaVenta.value?.nombreCl ?: stringResource(R.string.no_seleccionado)),
                     style = MaterialTheme.typography.bodyMedium, // Adjusted style
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Text(
-                    "Productos elegidos:",
+                    stringResource(R.string.productos_elegidos_titulo),
                     style = MaterialTheme.typography.bodyMedium, // Adjusted style
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
 
                 if (productosParaVenta.isEmpty()) {
                     Text(
-                        "- No hay productos elegidos",
+                        stringResource(R.string.no_productos_elegidos),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 } else {
@@ -310,11 +312,11 @@ fun AddVentaForm(
         Button(
             onClick = {
                 if (clienteParaVenta.value == null) {
-                    Toast.makeText(context, "Por favor, seleccione un cliente", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.seleccione_cliente_error), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
                 if (productosParaVenta.isEmpty()) {
-                    Toast.makeText(context, "Por favor, agregue al menos un producto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.agregue_producto_error), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
@@ -326,7 +328,7 @@ fun AddVentaForm(
                 if (productosSinStock.isNotEmpty()) {
                     Toast.makeText(
                         context,
-                        "Stock insuficiente: ${productosSinStock.joinToString { it.nombre }}",
+                        context.getString(R.string.stock_insuficiente_format, productosSinStock.joinToString { it.nombre }),
                         Toast.LENGTH_LONG
                     ).show()
                     return@Button
@@ -348,17 +350,17 @@ fun AddVentaForm(
                         clienteParaVenta.value = null
                         productosParaVenta.clear()
 
-                        Toast.makeText(context, "Venta cargada correctamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.venta_cargada_success), Toast.LENGTH_SHORT).show()
 
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Error al procesar: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.error_procesar_format, e.message ?: ""), Toast.LENGTH_LONG).show()
                     }
                 }
             },
             // Habilitar botón solo si hay cliente y productos
             enabled = clienteParaVenta.value != null && productosParaVenta.isNotEmpty()
         ) {
-            Text("Cargar venta")
+            Text(stringResource(R.string.cargar_venta_label))
         }
     }
 }
@@ -400,18 +402,18 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Cliente: ${venta.cliente?.nombreCl ?: "Desconocido"}",
+                text = stringResource(R.string.cliente_format, venta.cliente?.nombreCl ?: stringResource(R.string.desconocido_label)),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Fecha: ${venta.fecha}",
+                text = stringResource(R.string.fecha_format, venta.fecha),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Productos:",
+                text = stringResource(R.string.productos_titulo),
                 style = MaterialTheme.typography.titleSmall
             )
             venta.productos.forEach { producto ->
@@ -425,15 +427,15 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Text(
-                        text = "- ${producto.nombre}",
+                        text = stringResource(R.string.producto_item_format, producto.nombre),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "-Cantidad: ${producto.cantidad}",
+                        text = stringResource(R.string.cantidad_item_format, producto.cantidad),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "-Precio x 1: $${producto.precio}",
+                        text = stringResource(R.string.precio_item_format, producto.precio ?: 0.0),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(3.dp))
@@ -441,7 +443,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Total: $${totales.sumOf{ it ?: 0.0  }}",
+                text = stringResource(R.string.total_format, totales.sumOf{ it ?: 0.0  }),
                 style = MaterialTheme
                     .typography.bodyMedium
                     .copy(fontWeight = FontWeight.Bold)
@@ -451,11 +453,11 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 CardWpp(
                     context,
                     cliente,
-                    armarMensajeVentasWpp(venta, totales.sumOf{ it ?: 0.0  })
+                    armarMensajeVentasWpp(context, venta, totales.sumOf{ it ?: 0.0  })
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Cantidad Total de Items: ${venta.cantidadTotalVenta}",
+                    text = stringResource(R.string.cantidad_total_items_format, venta.cantidadTotalVenta),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End,
@@ -466,12 +468,14 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     }
 }
 
-fun armarMensajeVentasWpp(venta: VentaAgrupada, total : Double): String{
+fun armarMensajeVentasWpp(context: Context, venta: VentaAgrupada, total : Double): String{
     val productosString = venta.productos.joinToString(
         separator = ", ",
-        transform = { it.cantidad.toString() + " " + it.nombre + " por $" + it.precio.toString() + " c/u" }
+        transform = { 
+            context.getString(R.string.wpp_producto_format, it.cantidad, it.nombre, it.precio)
+        }
     )
-    return "Tu compra fue de $productosString, por un total de $$total. Acumulando una deuda de $${venta.cliente?.deudaCl ?: 0}. *Gracias por tu compra!*"
+    return context.getString(R.string.wpp_mensaje_ventas, productosString, total, venta.cliente?.deudaCl ?: 0.0)
 }
 
 @Composable
@@ -506,7 +510,7 @@ fun ProductoCantidadItem(
                 },
                 enabled = cantidad > 0
             ) {
-                Icon(Icons.Filled.Delete, contentDescription = "Disminuir cantidad")
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.disminuir_cantidad_desc))
             }
 
             OutlinedTextField(
@@ -532,15 +536,8 @@ fun ProductoCantidadItem(
             IconButton(onClick = {
                 onCantidadChange(cantidad + 1)
             }) {
-                Icon(Icons.Filled.Add, contentDescription = "Aumentar cantidad")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_cantidad_desc))
             }
         }
     }
 }
-
-/*
-@Preview(showSystemUi = true)
-@Composable
-fun PreviewVentasScreen(){
-    Ventas()
-}*/

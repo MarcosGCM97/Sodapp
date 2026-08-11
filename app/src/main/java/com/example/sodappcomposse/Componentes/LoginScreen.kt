@@ -119,13 +119,13 @@ fun CuerpoLogin(
     LaunchedEffect(loginUiState) {
         when (val currentState = loginModel.loginUiState) {
             is LoginUiState.Success -> {
-                Toast.makeText(contexto, currentState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(contexto, contexto.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_SHORT).show()
                 navBienvenida(nombre) // Navega aquí
                 // Opcional: Resetea el estado en el ViewModel para evitar navegaciones repetidas
                 // loginModel.resetLoginState() // Necesitarías esta función en LoginViewModel
             }
             is LoginUiState.Error -> {
-                Toast.makeText(contexto, currentState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(contexto, contexto.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_SHORT).show()
                 // loginModel.resetLoginState()
             }
             is LoginUiState.Loading -> {
@@ -233,9 +233,9 @@ fun CuerpoLogin(
             onClick = {
                 if(nombre.isNotBlank() && contrasenia.isNotBlank()){
                     loginModel.login(nombre, contrasenia)
-                    Toast.makeText(contexto, "Nombre/Contraseña valido", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(contexto, contexto.getString(R.string.login_nombre_contrasena_valido), Toast.LENGTH_SHORT).show()
                 }else{
-                    Toast.makeText(contexto, "Nombre/Contraseña invalido", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(contexto, contexto.getString(R.string.login_nombre_contrasena_invalido), Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier

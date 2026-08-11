@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
 
@@ -59,7 +61,7 @@ fun ClienteEditarScreen(
 
     ScreenWithBackButtonWrapper(
         navController = navController,
-        title = "Editar Cliente"
+        title = stringResource(R.string.editar_cliente_titulo)
     ){
         Column(
             modifier = Modifier
@@ -72,7 +74,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = nombreCliente,
                 onValueChange = { nombreCliente = it },
-                label = { Text("Nombre") },
+                label = { Text(stringResource(R.string.nombre_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -84,7 +86,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = telCliente,
                 onValueChange = { telCliente = it },
-                label = { Text("Teléfono") },
+                label = { Text(stringResource(R.string.telefono_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -96,7 +98,7 @@ fun ClienteEditarScreen(
             OutlinedTextField(
                 value = dirCliente,
                 onValueChange = { dirCliente = it },
-                label = { Text("Dirección") },
+                label = { Text(stringResource(R.string.direccion_label)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -120,7 +122,7 @@ fun ClienteEditarScreen(
                     navController.popBackStack()
                 }
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.guardar_label))
             }
         }
     }

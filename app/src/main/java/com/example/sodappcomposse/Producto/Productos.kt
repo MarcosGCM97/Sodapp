@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ProductoEditar
 import com.example.sodappcomposse.Cliente.AddClienteForm
 import com.example.sodappcomposse.Cliente.ClientesViewModel
@@ -49,7 +51,10 @@ fun Productos(
     val scrollState = rememberScrollState()
 
     var tabSeleccionado by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Productos", "Inventario")
+    val tabs = listOf(
+        stringResource(R.string.tab_productos),
+        stringResource(R.string.tab_inventario)
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = tabSeleccionado) {

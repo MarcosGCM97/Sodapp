@@ -1,0 +1,24 @@
+# Tareas de Migración de Strings en ViewModels
+
+- [x] **Preparación**
+    - [x] Agregar nuevos recursos de string a `strings.xml`
+- [x] **Sección: Cliente**
+    - [x] Refactorizar `AddClienteUiState` y `ClienteUiState` en `ClienteViewModel.kt`
+    - [x] Actualizar lógica de `ClienteViewModel.kt`
+    - [x] Actualizar `Clientes.kt` (UI) para resolver strings
+- [x] **Sección: Producto**
+    - [x] Refactorizar `ProductoUiState` y `AddProductoUiState` en `ProductoViewModel.kt`
+    - [x] Actualizar lógica de `ProductoViewModel.kt`
+    - [x] Actualizar `ProductoForm.kt` (UI) para resolver strings
+- [x] **Sección: Ventas**
+    - [x] Refactorizar `VentasUiState` en `VentasViewModel.kt`
+    - [x] Actualizar lógica de `VentasViewModel.kt`
+    - [x] Actualizar `Ventas.kt` (UI) para resolver strings
+- [x] **Sección: Caja**
+    - [x] Refactorizar `CajaUiState` en `CajaViewModel.kt`
+    - [x] Actualizar lógica de `CajaViewModel.kt`
+    - [x] Actualizar `Caja.kt` (UI) para resolver strings
+- [x] **Sección: Login**
+    - [x] Refactorizar `LoginUiState` en `LoginViewModel.kt`
+    - [x] Actualizar lógica de `LoginViewModel.kt`
+    - [x] Actualizar `LoginScreen.kt` (UI) para resolver strings

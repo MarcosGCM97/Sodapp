@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
@@ -98,7 +100,7 @@ fun DeudaScreen(
     // Usamos el nuevo wrapper
     ScreenWithBackButtonWrapper(
         navController = navController,
-        title = "Detalles de Deuda"
+        title = stringResource(R.string.detalles_deuda_titulo)
     ) {
         Column(modifier = Modifier
             .fillMaxSize()
@@ -118,18 +120,18 @@ fun DeudaScreen(
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Detalles del Cliente:", style = MaterialTheme.typography.titleMedium)
-                        Text("Nombre: ${cliente.value?.nombreCl}")
-                        Text("Dirección: ${cliente.value?.direccionCl}")
-                        Text("Teléfono: ${cliente.value?.numTelCl}")
+                        Text(stringResource(R.string.detalles_cliente_titulo), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.nombre_format, cliente.value?.nombreCl ?: ""))
+                        Text(stringResource(R.string.direccion_format, cliente.value?.direccionCl ?: ""))
+                        Text(stringResource(R.string.telefono_format, cliente.value?.numTelCl ?: ""))
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Saldo ventas:", style = MaterialTheme.typography.titleMedium)
-                        Text("$${cliente.value?.deudaCl}")
+                        Text(stringResource(R.string.saldo_ventas_label), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.deuda_format, cliente.value?.deudaCl ?: 0.0))
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Pagar deuda", style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.pagar_deuda_titulo), style = MaterialTheme.typography.headlineSmall)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -140,7 +142,7 @@ fun DeudaScreen(
                             OutlinedTextField(
                                 value = pagarMonto,
                                 onValueChange = { pagarMonto = it },
-                                label = { Text("Ingrese monto") },
+                                label = { Text(stringResource(R.string.ingrese_monto_label)) },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(
@@ -155,12 +157,12 @@ fun DeudaScreen(
                                     .clickable {
                                         val monto = pagarMonto.toDoubleOrNull()
                                         if (monto == null || monto <= 0) {
-                                            Toast.makeText(context, "Ingrese un monto válido mayor a cero", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.monto_invalido_msg), Toast.LENGTH_SHORT).show()
                                             return@clickable
                                         }
                                         val deudaActual = cliente.value?.deudaCl ?: 0.0
                                         if (monto > deudaActual) {
-                                            Toast.makeText(context, "El monto ($monto) supera la deuda actual ($deudaActual)", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.monto_supera_deuda_msg, monto, deudaActual), Toast.LENGTH_SHORT).show()
                                             return@clickable
                                         }
 
@@ -184,7 +186,7 @@ fun DeudaScreen(
                                     contentAlignment = Alignment.Center // Centra el Text
                                 ) {
                                     Text(
-                                        text = "Saldar",
+                                        text = stringResource(R.string.saldar_label),
                                         textAlign = TextAlign.Center,
                                         fontSize = 14.sp, // Descomenta y ajusta si necesitas un tamaño específico
                                         // fontWeight = FontWeight.Bold // Para que se destaque más
@@ -202,7 +204,7 @@ fun DeudaScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Botón de WhatsApp
-                            CardWpp(context, cliente.value, "Tienes una deuda de $${cliente.value?.deudaCl}")
+                            CardWpp(context, cliente.value, context.getString(R.string.deuda_format, cliente.value?.deudaCl ?: 0.0))
 
                             // Botón de Llamada
                             Card(
@@ -227,7 +229,7 @@ fun DeudaScreen(
                                 ) {
                                     Icon(
                                         Icons.Filled.Call,
-                                        contentDescription = "Llamar",
+                                        contentDescription = stringResource(R.string.llamar_desc),
                                         tint = Color.White,
                                         modifier = Modifier.size(40.dp)
                                     )
@@ -253,7 +255,7 @@ fun DeudaScreen(
                 ){
                     CircularProgressIndicator() // No necesita .align en Column con horizontalAlignment
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Cargando datos del cliente...")
+                    Text(stringResource(R.string.cargando_cliente))
                 }
             }
 
@@ -274,7 +276,7 @@ fun DeudaScreen(
                     contentColor = Color.White
                 )
             ){
-                Text("Ver ultimas compras del cliente")
+                Text(stringResource(R.string.ver_ultimas_compras))
             }
 
             if (ventasDelCliente.value.isNotEmpty() && ver) {
@@ -297,10 +299,10 @@ fun DeudaScreen(
                                     .padding(12.dp)
                                     .weight(1.5f)
                             ) {
-                                Text("Producto: ${venta.producto}")
-                                Text("Fecha: ${venta.fecha}")
-                                Text("Cantidad: ${venta.cantidad}")
-                                Text("Precio: $${venta.precio}")
+                                Text(stringResource(R.string.producto_format, venta.producto))
+                                Text(stringResource(R.string.fecha_format, venta.fecha))
+                                Text(stringResource(R.string.cantidad_format, venta.cantidad))
+                                Text(stringResource(R.string.precio_format, venta.precio))
                             }
                             IconButton(
                                 onClick = {
@@ -320,7 +322,7 @@ fun DeudaScreen(
                                     .weight(0.5f)
                                     .background(Color.Red)
                             ) {
-                                Icon(Icons.Filled.Close, contentDescription = "Eliminar")
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.eliminar_desc))
                             }
                         }
                     }
@@ -329,7 +331,7 @@ fun DeudaScreen(
                 Log.d("DeudaScreen", "No hay ventas para este cliente $ventasDelCliente, $ver")
                 if (cliente.value != null) {
                     Text(
-                        "Cargar ventas previas del cliente.",
+                        stringResource(R.string.cargar_ventas_previas),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )

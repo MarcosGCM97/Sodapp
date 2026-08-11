@@ -1,3 +1,181 @@
 <resources>
     <string name="app_name">SodApp</string>
+    <string name="producto_desconocido">"Producto Desconocido"</string>
+
+    <!-- Caja -->
+    <string name="seleccione_mes">Seleccione un mes</string>
+    <string name="mes_label">Mes</string>
+    <string name="ver_caja_mes">Ver caja del mes</string>
+    <string name="cargando_caja">Cargando datos de la caja...</string>
+    <string name="formato_producto_item">%1$s: </string>
+    <string name="formato_cantidad_pesos">Cantidad: %1$d        Pesos: $%2$.2f</string>
+    <string name="formato_total_ventas">Total de las Ventas: $%1$.2f</string>
+    <string name="esperando_datos">Esperando datos…</string>
+
+    <!-- Cliente -->
+    <string name="cargar_cliente_titulo">Cargar al cliente</string>
+    <string name="nombre_cliente_label">Nombre del Cliente</string>
+    <string name="direccion_label">Dirección</string>
+    <string name="telefono_label">Teléfono</string>
+    <string name="guardar_cliente">Guardar Cliente</string>
+    <string name="buscar_existente_label">o buscar uno existente:</string>
+    <string name="detalles_cliente_titulo">Detalles del Cliente:</string>
+    <string name="nombre_format">Nombre: %1$s</string>
+    <string name="direccion_format">Dirección: %1$s</string>
+    <string name="telefono_format">Teléfono: %1$s</string>
+    <string name="deuda_format">Deuda: $%1$.2f</string>
+    <string name="editar_desc">Editar</string>
+    <string name="deuda_desc">Deuda</string>
+    <string name="agendar_desc">Agendar</string>
+    <string name="eliminar_desc">Eliminar</string>
+    <string name="elegir_dia_titulo">Elegir día de visita</string>
+    <string name="selecciona_dia_label">Selecciona un día para agendar la visita:</string>
+    <string name="visita_agendada_msg">Visita agendada para %1$s los días: %2$s</string>
+    <string name="error_cliente_no_seleccionado">Error: No se seleccionó ningún cliente.</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="confirmar_eliminacion_titulo">Confirmar Eliminación</string>
+    <string name="confirmar_eliminar_cliente_msg">¿Estás seguro de que deseas eliminar al cliente \"%1$s\"? Esta acción no se puede deshacer y borrará sus datos de la base de datos.</string>
+    <string name="eliminar_label">Eliminar</string>
+    <string name="editar_cliente_titulo">Editar Cliente</string>
+    <string name="nombre_label">Nombre</string>
+    <string name="guardar_label">Guardar</string>
+    <string name="detalles_deuda_titulo">Detalles de Deuda</string>
+    <string name="saldo_ventas_label">Saldo ventas:</string>
+    <string name="pagar_deuda_titulo">Pagar deuda</string>
+    <string name="ingrese_monto_label">Ingrese monto</string>
+    <string name="monto_invalido_msg">Ingrese un monto válido mayor a cero</string>
+    <string name="monto_supera_deuda_msg">El monto (%1$.2f) supera la deuda actual (%2$.2f)</string>
+    <string name="saldar_label">Saldar</string>
+    <string name="llamar_desc">Llamar</string>
+    <string name="cargando_cliente">Cargando datos del cliente…</string>
+    <string name="ver_ultimas_compras">Ver ultimas compras del cliente</string>
+    <string name="producto_format">Producto: %1$s</string>
+    <string name="fecha_format">Fecha: %1$s</string>
+    <string name="cantidad_format">Cantidad: %1$d</string>
+    <string name="precio_format">Precio: $%1$.2f</string>
+    <string name="cargar_ventas_previas">Cargar ventas previas del cliente.</string>
+
+    <!-- Días de la semana -->
+    <string name="lunes">Lunes</string>
+    <string name="martes">Martes</string>
+    <string name="miercoles">Miércoles</string>
+    <string name="jueves">Jueves</string>
+    <string name="viernes">Viernes</string>
+    <string name="sabado">Sábado</string>
+    <string name="domingo">Domingo</string>
+    <!-- Producto -->
+    <string name="cargar_producto_titulo">Cargar al producto</string>
+    <string name="nombre_producto_label">Nombre del Producto</string>
+    <string name="precio_label">Precio</string>
+    <string name="cantidad_label">Cantidad</string>
+    <string name="guardar_producto">Guardar Producto</string>
+    <string name="detalles_producto_titulo">Detalles del Producto:</string>
+    <string name="editar_label">Editar</string>
+    <string name="confirmar_eliminar_producto_msg">¿Estás seguro de que deseas eliminar el producto \"%1$s\"? Esta acción no se puede deshacer.</string>
+    <string name="tab_productos">Productos</string>
+    <string name="tab_inventario">Inventario</string>
+    <string name="editar_producto_titulo">Editar Producto</string>
+    <string name="buscar_producto_label">Buscar producto…</string>
+    <string name="total_productos_format">%1$d productos total</string>
+    <string name="stock_bajo_format">%1$d con stock bajo</string>
+    <string name="error_cargar_productos">Error al cargar productos</string>
+    <string name="no_hay_productos">No hay productos para mostrar</string>
+    <string name="stock_format">Stock: %1$d</string>
+    <string name="disminuir_stock_desc">Disminuir stock</string>
+    <string name="aumentar_stock_desc">Aumentar stock</string>
+    <string name="actualizar_stock_label">Actualizar stock</string>
+
+    <!-- Agenda -->
+    <string name="agenda_reparto_titulo">Agenda de Reparto</string>
+    <string name="dia_semana_label">Día de la semana</string>
+    <string name="no_clientes_agendados_format">No hay clientes agendados para el %1$s.</string>
+    <string name="dias_entrega_format">Días de entrega: %1$s</string>
+
+    <!-- Ventas -->
+    <string name="error_format">Error: %1$s</string>
+    <string name="no_ventas_label">No hay ventas para mostrar.</string>
+    <string name="cargar_venta_titulo">Cargar la venta</string>
+    <string name="producto_label">Producto</string>
+    <string name="producto_agregado_msg">%1$s agregado</string>
+    <string name="producto_ya_en_lista_msg">%1$s ya está en la lista</string>
+    <string name="cliente_format">Cliente: %1$s</string>
+    <string name="no_seleccionado">No seleccionado</string>
+    <string name="productos_elegidos_titulo">Productos elegidos:</string>
+    <string name="no_productos_elegidos">- No hay productos elegidos</string>
+    <string name="seleccione_cliente_error">Por favor, seleccione un cliente</string>
+    <string name="agregue_producto_error">Por favor, agregue al menos un producto</string>
+    <string name="stock_insuficiente_format">Stock insuficiente: %1$s</string>
+    <string name="venta_cargada_success">Venta cargada correctamente</string>
+    <string name="error_procesar_format">Error al procesar: %1$s</string>
+    <string name="cargar_venta_label">Cargar venta</string>
+    <string name="desconocido_label">Desconocido</string>
+    <string name="productos_titulo">Productos:</string>
+    <string name="producto_item_format">- %1$s</string>
+    <string name="cantidad_item_format">-Cantidad: %1$d</string>
+    <string name="precio_item_format">-Precio x 1: $%1$.2f</string>
+    <string name="total_format">Total: $%1$.2f</string>
+    <string name="cantidad_total_items_format">Cantidad Total de Items: %1$d</string>
+    <string name="disminuir_cantidad_desc">Disminuir cantidad</string>
+    <string name="aumentar_cantidad_desc">Aumentar cantidad</string>
+    <string name="wpp_mensaje_ventas">Tu compra fue de %1$s, por un total de $%2$.2f. Acumulando una deuda de $%3$.2f. *Gracias por tu compra!*</string>
+    <string name="wpp_producto_format">%1$d %2$s por $%3$.2f c/u</string>
+
+    <!-- Mensajes de UiState (ViewModels) -->
+    <string name="error_red_verificar">Error de Red: Verifica tu conexión.</string>
+    <string name="error_servidor_format">Error servidor: %1$d</string>
+    <string name="error_http_format">Error HTTP: %1$d</string>
+    <string name="error_inesperado_format">Error inesperado: %1$s</string>
+    <string name="cuerpo_nulo_error">Respuesta exitosa pero cuerpo nulo.</string>
+    <string name="campos_requeridos_error">Todos los campos son requeridos.</string>
+    <string name="error_respuesta_format">Error en la respuesta: %1$d - %2$s</string>
+    <string name="error_red_format">Error de red: %1$s</string>
+
+    <!-- Cliente Viewmodel -->
+    <string name="cliente_cargado_success">Cliente cargado</string>
+    <string name="clientes_cargados_format">Clientes cargados: %1$d</string>
+    <string name="cliente_guardado_success">Cliente \'%1$s\' guardado exitosamente.</string>
+    <string name="cliente_editado_success">Cliente editado exitosamente.</string>
+    <string name="error_editar_cliente_format">Error al editar cliente: %1$d - %2$s</string>
+    <string name="error_red_editar_cliente">Error de red al editar cliente: %1$s</string>
+    <string name="error_http_editar_cliente">Error HTTP al editar cliente: %1$d</string>
+    <string name="cliente_eliminado_success">Cliente \'%1$s\' eliminado correctamente.</string>
+    <string name="error_eliminar_format">Error al eliminar: %1$d - %2$s</string>
+    <string name="error_red_conexion">Error de red: Verifica tu conexión a internet.</string>
+
+    <!-- Producto Viewmodel -->
+    <string name="productos_cargados_format">Productos cargados: %1$d</string>
+    <string name="error_precio_invalido">El precio debe ser un número mayor a cero.</string>
+    <string name="error_cantidad_negativa">La cantidad no puede ser negativa.</string>
+    <string name="producto_guardado_success">Producto \'%1$s\' guardado exitosamente.</string>
+    <string name="error_guardar_producto">Error al guardar: %1$s</string>
+    <string name="producto_actualizado_success">Producto actualizado exitosamente.</string>
+    <string name="error_actualizar_producto_format">Error al actualizar producto: %1$d - %2$s</string>
+    <string name="error_red_actualizar_producto">Error de red al actualizar producto: %1$s</string>
+    <string name="error_http_actualizar_producto">Error HTTP al actualizar producto: %1$d</string>
+    <string name="producto_eliminado_success">Producto eliminado exitosamente.</string>
+    <string name="error_eliminar_producto_format">Error al eliminar producto: %1$d - %2$s</string>
+    <string name="error_red_eliminar_producto">Error de red al eliminar producto: %1$s</string>
+    <string name="error_http_eliminar_producto">Error HTTP al eliminar producto: %1$d</string>
+
+    <!-- Ventas Viewmodel -->
+    <string name="ventas_cargadas_usuario_format">Ventas cargadas para usuario %1$s</string>
+    <string name="ventas_usuario_cargadas_format">Ventas de %1$s cargadas</string>
+    <string name="cuerpo_respuesta_nulo">Cuerpo de respuesta nulo</string>
+    <string name="error_simple_format">Error: %1$s</string>
+    <string name="venta_procesada_success">Venta procesada exitosamente</string>
+    <string name="venta_eliminada_success">Venta eliminada exitosamente</string>
+    <string name="error_actualizar_deuda_format">Venta eliminada, pero error al actualizar deuda: %1$s</string>
+    <string name="excepcion_format">Excepción: %1$s</string>
+
+    <!-- Caja Viewmodel -->
+    <string name="datos_cargados_success">Datos cargados</string>
+    <string name="no_ventas_mes_error">No hay ventas registradas para este mes.</string>
+    <string name="error_api_format">Error API: %1$d</string>
+
+    <!-- Login Viewmodel -->
+    <string name="login_nombre_contrasena_valido">Nombre/Contraseña valido</string>
+    <string name="login_nombre_contrasena_invalido">Nombre/Contraseña invalido</string>
+    <string name="error_iniciar_sesion_format">Error al iniciar sesión: %1$s</string>
+    <string name="error_http_iniciar_sesion_format">Error HTTP al iniciar sesión: %1$d - %2$s</string>
 </resources>

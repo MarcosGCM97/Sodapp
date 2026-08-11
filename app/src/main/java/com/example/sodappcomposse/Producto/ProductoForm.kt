@@ -40,6 +40,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ProductoEditar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,14 +65,14 @@ fun AddProductoForm(
     LaunchedEffect(addState) {
         when (val currentState = addState) {
             is AddProductoUiState.Success -> {
-                Toast.makeText(context, currentState.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_LONG).show()
                 nombreProducto = "" // Limpiar campos
                 precioProducto = ""
                 cantidadInputString = "1"
                 productosModel.resetAddProductoState() // Resetear el estado para futuros guardados
             }
             is AddProductoUiState.Error -> {
-                Toast.makeText(context, currentState.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_LONG).show()
                 productosModel.resetAddProductoState()
             }
             is AddProductoUiState.Loading -> {
@@ -89,11 +91,11 @@ fun AddProductoForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Cargar al producto", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.cargar_producto_titulo), style = MaterialTheme.typography.headlineSmall)
         OutlinedTextField(
             value = nombreProducto,
             onValueChange = { nombreProducto = it },
-            label = { Text("Nombre del Producto") },
+            label = { Text(stringResource(R.string.nombre_producto_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -102,7 +104,7 @@ fun AddProductoForm(
         OutlinedTextField(
             value = precioProducto,
             onValueChange = { precioProducto = it },
-            label = { Text("Precio") },
+            label = { Text(stringResource(R.string.precio_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -115,7 +117,7 @@ fun AddProductoForm(
                     cantidadInputString = newValue
                 }
             },
-            label = { Text("Cantidad") },
+            label = { Text(stringResource(R.string.cantidad_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -137,14 +139,14 @@ fun AddProductoForm(
             if (addState is AddProductoUiState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Guardar Producto")
+                Text(stringResource(R.string.guardar_producto))
             }
         }
 
         //Separador visual si quieres (opcional)
         Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-        Text("o buscar uno existente:", style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
+        Text(stringResource(R.string.buscar_existente_label), style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
 
         BuscarProducto(
             navController = navController
@@ -179,7 +181,7 @@ fun BuscarProducto(
             }
             is ProductoUiState.Error -> {
                 //Log.d("AddProductoForm", "Error: ${productoUiState.message}")
-                Toast.makeText(context, productoUiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(productoUiState.messageRes, *productoUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ProductoUiState.Loading -> {
                 //Log.d("AddProductoForm", "Loading productos...")
@@ -208,10 +210,10 @@ fun BuscarProducto(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Detalles del Producto:", style = MaterialTheme.typography.titleMedium)
-                Text("Nombre: ${producto.nombrePr}")
-                Text("Precio: ${producto.precioUni}")
-                Text("Cantidad: ${producto.stock}")
+                Text(stringResource(R.string.detalles_producto_titulo), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.nombre_format, producto.nombrePr))
+                Text(stringResource(R.string.precio_format, producto.precioUni))
+                Text(stringResource(R.string.cantidad_format, producto.stock))
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -224,9 +226,9 @@ fun BuscarProducto(
                             navController.navigate(ProductoEditar(nombre = producto.nombrePr))
                         }
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Editar")
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Editar")
+                        Text(stringResource(R.string.editar_label))
                     }
                     Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
                     Button(
@@ -237,7 +239,7 @@ fun BuscarProducto(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) // Color rojo para eliminar
                     ) {
-                        Icon(Icons.Filled.Close, contentDescription = "Eliminar")
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.eliminar_desc))
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                 }
@@ -253,10 +255,10 @@ fun BuscarProducto(
                 productoAEliminar = null // Limpiar el producto a eliminar
             },
             title = {
-                Text(text = "Confirmar Eliminación")
+                Text(text = stringResource(R.string.confirmar_eliminacion_titulo))
             },
             text = {
-                Text("¿Estás seguro de que deseas eliminar el producto \"${productoAEliminar?.nombrePr}\"? Esta acción no se puede deshacer.")
+                Text(context.getString(R.string.confirmar_eliminar_producto_msg, productoAEliminar?.nombrePr))
             },
             confirmButton = {
                 Button(
@@ -273,7 +275,7 @@ fun BuscarProducto(
                         productosModel.getProductos()
                     }
                 ) {
-                    Text("Eliminar")
+                    Text(stringResource(R.string.eliminar_label))
                 }
             },
             dismissButton = {
@@ -283,7 +285,7 @@ fun BuscarProducto(
                         productoAEliminar = null
                     }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancelar))
                 }
             }
         )

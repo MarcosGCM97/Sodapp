@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Ventas
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +11,7 @@ import com.example.sodappcomposse.Cliente.ClienteRepository
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoVenta
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +30,34 @@ import kotlinx.coroutines.flow.stateIn
 sealed class VentasUiState{
     object Idle: VentasUiState()
     object Loading: VentasUiState()
-    data class Error(val message: String): VentasUiState()
-    data class Success(val message: String): VentasUiState()
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()): VentasUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()): VentasUiState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @HiltViewModel
@@ -104,22 +132,22 @@ class VentasViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     response.body()?.let { responseBody ->
                         _ventasPorClienteId.value = responseBody.ventas
-                        ventasUiState = VentasUiState.Success("Ventas cargadas para usuario $idUsuario")
+                        ventasUiState = VentasUiState.Success(R.string.ventas_cargadas_usuario_format, arrayOf(idUsuario))
                     } ?: run {
-                        ventasUiState = VentasUiState.Error("Respuesta exitosa pero cuerpo nulo.")
+                        ventasUiState = VentasUiState.Error(R.string.cuerpo_nulo_error)
                     }
                 } else {
-                    ventasUiState = VentasUiState.Error("Error servidor: ${response.code()}")
+                    ventasUiState = VentasUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 }
             } catch (e: IOException) {
                 _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
                 _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
                 _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error("Excepción: ${e.message}")
+                ventasUiState = VentasUiState.Error(R.string.excepcion_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -144,19 +172,19 @@ class VentasViewModel @Inject constructor(
                 if (response.isSuccessful) {
                     response.body()?.let { ventaApi ->
                         _ventas.value = ventaApi.ventas
-                        ventasUiState = VentasUiState.Success("Ventas de $idUsuario cargadas")
+                        ventasUiState = VentasUiState.Success(R.string.ventas_usuario_cargadas_format, arrayOf(idUsuario))
                     } ?: run {
-                        ventasUiState = VentasUiState.Error("Cuerpo de respuesta nulo")
+                        ventasUiState = VentasUiState.Error(R.string.cuerpo_respuesta_nulo)
                     }
                 } else {
-                    ventasUiState = VentasUiState.Error("Error: ${response.code()}")
+                    ventasUiState = VentasUiState.Error(R.string.error_simple_format, arrayOf(response.code()))
                 }
             } catch (e: IOException) {
-                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message}")
+                ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -169,16 +197,16 @@ class VentasViewModel @Inject constructor(
             val response = ventaRepository.postVenta(ventaParaApi)
             if (response.isSuccessful && response.body() != null) {
                 // Producir efecto de éxito
-                ventasUiState = VentasUiState.Success("Venta procesada exitosamente")
+                ventasUiState = VentasUiState.Success(R.string.venta_procesada_success)
             } else {
-                ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                ventasUiState = VentasUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
             }
         } catch (e: IOException) {
-            ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+            ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
         } catch (e: HttpException) {
-            ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+            ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
         } catch (e: Exception) {
-            ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
+            ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
         }
     }
 
@@ -187,23 +215,23 @@ class VentasViewModel @Inject constructor(
             try {
                 val response = ventaRepository.deleteVenta(idVenta)
                 if (response.isSuccessful) {
-                    ventasUiState = VentasUiState.Success("Venta eliminada exitosamente")
+                    ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
                     try {
                         // actualizar deuda del cliente
                         clienteRepository.updateDeudaCliente(clienteId, valorVenta)
                     } catch (e: Exception) {
-                        ventasUiState = VentasUiState.Error("Venta eliminada, pero error al actualizar deuda: ${e.message}")
+                        ventasUiState = VentasUiState.Error(R.string.error_actualizar_deuda_format, arrayOf(e.message ?: ""))
                     }
                     getVentasByClienteId(clienteId.toString())
                 } else {
-                    ventasUiState = VentasUiState.Error("Error en la respuesta: ${response.code()} - ${response.message()}")
+                    ventasUiState = VentasUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
             } catch (e: IOException) {
-                ventasUiState = VentasUiState.Error("Error de red: ${e.message}")
+                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
             } catch (e: HttpException) {
-                ventasUiState = VentasUiState.Error("Error HTTP: ${e.code()}")
+                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
             } catch (e: Exception) {
-                ventasUiState = VentasUiState.Error("Error inesperado: ${e.message?.take(100)}")
+                ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
             }
         }
     }

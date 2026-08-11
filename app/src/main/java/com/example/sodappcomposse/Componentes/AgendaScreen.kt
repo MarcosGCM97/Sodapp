@@ -32,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Cliente.AgendaViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -58,10 +60,18 @@ fun AgendaScreen(
         LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // Formato "YYYY-MM-DD"
     }
 
-    val diasSemana = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado")
-    var diaSeleccionado by remember {
+    val diasSemana = listOf(
+        stringResource(R.string.lunes),
+        stringResource(R.string.martes),
+        stringResource(R.string.miercoles),
+        stringResource(R.string.jueves),
+        stringResource(R.string.viernes),
+        stringResource(R.string.sabado)
+    )
+    val lunes = stringResource(R.string.lunes)
+    var diaSeleccionado by remember(lunes) {
         mutableStateOf(
-            if (diasSemana.contains(nombreDelDiaHoy)) nombreDelDiaHoy else "Lunes"
+            if (diasSemana.contains(nombreDelDiaHoy)) nombreDelDiaHoy else lunes
         )
     }
 
@@ -78,7 +88,7 @@ fun AgendaScreen(
 
     ScreenWithBackButtonWrapper(
         navController = navController,
-        title = "Agenda de Reparto" // Título más descriptivo
+        title = stringResource(R.string.agenda_reparto_titulo) // Título más descriptivo
     ) {
         Column(
             modifier = Modifier
@@ -97,7 +107,7 @@ fun AgendaScreen(
                     value = diaSeleccionado,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Día de la semana") },
+                    label = { Text(stringResource(R.string.dia_semana_label)) },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDias)
                     },
@@ -141,7 +151,7 @@ fun AgendaScreen(
 
                     if (clientesDelDia.isEmpty()) {
                         Text(
-                            text = "No hay clientes agendados para el $diaSeleccionado.",
+                            text = stringResource(R.string.no_clientes_agendados_format, diaSeleccionado),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 24.dp)
@@ -193,7 +203,7 @@ fun AgendaScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
-                                            text = "Días de entrega: ${cliente.diasEntrega.joinToString(", ")}",
+                                            text = stringResource(R.string.dias_entrega_format, cliente.diasEntrega.joinToString(", ")),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
