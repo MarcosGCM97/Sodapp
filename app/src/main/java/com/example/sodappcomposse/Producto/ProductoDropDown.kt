@@ -30,10 +30,10 @@ fun ProductoDropDown(
     LaunchedEffect(productoUiState) {
         when(productoUiState){
             is ProductoUiState.Success -> {
-                Toast.makeText(context, "Productos cargados: ${productos.size}", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(context, "Productos cargados: ${productos.size}", Toast.LENGTH_SHORT).show()
             }
             is ProductoUiState.Error -> {
-                Toast.makeText(context, productoUiState.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(productoUiState.messageRes, *productoUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ProductoUiState.Loading -> {
                 //Toast.makeText(context, "Cargando productos...", Toast.LENGTH_SHORT).show()

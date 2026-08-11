@@ -31,7 +31,7 @@ import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun ClienteEditarScreen(

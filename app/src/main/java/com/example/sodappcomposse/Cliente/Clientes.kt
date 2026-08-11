@@ -46,7 +46,6 @@ import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.R
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Clientes(
     clientesModel: ClientesViewModel = hiltViewModel(),
@@ -73,7 +72,6 @@ fun Clientes(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddClienteForm(
@@ -181,7 +179,6 @@ fun AddClienteForm(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarCliente(

@@ -40,11 +40,11 @@ fun ClientesDropDown(
             is ClienteUiState.Success -> {
                 //Log.d("AddVentaForm", "Success: ${clientes.size} clients loaded.")
                 // onVentaAgregada() // Llama a esto si es apropiado aquí
-                Toast.makeText(context, "Clientes cargados: ${clientes.size}", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(context, "Clientes cargados: ${clientes.size}", Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Error -> {
-                //Log.d("AddVentaForm", "Error: ${clienteUiState.message}")
-                Toast.makeText(context, clienteUiState.message, Toast.LENGTH_SHORT).show()
+                //Log.d("AddVentaForm", "Error: ${clienteUiState.messageRes}")
+                Toast.makeText(context, context.getString(clienteUiState.messageRes, *clienteUiState.args), Toast.LENGTH_SHORT).show()
             }
             is ClienteUiState.Loading -> {
                 //Log.d("AddVentaForm", "Loading clients...")

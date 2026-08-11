@@ -8,8 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.Cliente.ClienteRepository
+import com.example.sodappcomposse.Cliente.ClienteResult
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoRepository
+import com.example.sodappcomposse.Producto.ProductoResult
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.UserPreferencesRepository
@@ -120,71 +122,47 @@ class VentasViewModel @Inject constructor(
 
     fun getVentasByClienteId(idCl: String) {
         viewModelScope.launch {
-            try {
-                ventasUiState = VentasUiState.Loading
+            ventasUiState = VentasUiState.Loading
 
-                // 1. Obtener el ID del usuario actual
-                val idUsuario = userPreferencesRepository.userId.first() ?: "0"
+            // 1. Obtener el ID del usuario actual
+            val idUsuario = userPreferencesRepository.userId.first() ?: "0"
 
-                // 2. Pasar idUsuario a la llamada de la API
-                val response = ventaRepository.getVentasByClienteId(idCl.toInt(), idUsuario)
-
-                if (response.isSuccessful) {
-                    response.body()?.let { responseBody ->
-                        _ventasPorClienteId.value = responseBody.ventas
-                        ventasUiState = VentasUiState.Success(R.string.ventas_cargadas_usuario_format, arrayOf(idUsuario))
-                    } ?: run {
-                        ventasUiState = VentasUiState.Error(R.string.cuerpo_nulo_error)
-                    }
-                } else {
-                    ventasUiState = VentasUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
+            // 2. Pasar idUsuario a la llamada de la API
+            when (val result = ventaRepository.getVentasByClienteId(idCl.toInt(), idUsuario)) {
+                is VentaResult.Success -> {
+                    _ventasPorClienteId.value = result.data.ventas
+                    ventasUiState = VentasUiState.Success(R.string.ventas_cargadas_usuario_format, arrayOf(idUsuario))
                 }
-            } catch (e: IOException) {
-                _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                _ventasPorClienteId.value = emptyList()
-                ventasUiState = VentasUiState.Error(R.string.excepcion_format, arrayOf(e.message ?: ""))
+                is VentaResult.Error -> {
+                    _ventasPorClienteId.value = emptyList()
+                    ventasUiState = VentasUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
 
     internal fun getVentas() {
         viewModelScope.launch {
-            try {
-                ventasUiState = VentasUiState.Loading
+            ventasUiState = VentasUiState.Loading
 
-                // Cargar productos para el mapeo de precios
-                val productsResponse = productoRepository.getProductos()
-                if (productsResponse.isSuccessful) {
-                    _productos.value = productsResponse.body()?.productos ?: emptyList()
+            // Cargar productos para el mapeo de precios
+            val productsResult = productoRepository.getProductos()
+            if (productsResult is ProductoResult.Success) {
+                _productos.value = productsResult.data.productos
+            }
+
+            // 1. Obtener el ID del usuario actual
+            val idUsuario = userPreferencesRepository.userId.first() ?: "0"
+
+            // 2. Llamar a la API enviando el usuario
+            when (val result = ventaRepository.getVentas(idUsuario)) {
+                is VentaResult.Success -> {
+                    _ventas.value = result.data.ventas
+                    ventasUiState = VentasUiState.Success(R.string.ventas_usuario_cargadas_format, arrayOf(idUsuario))
                 }
-
-                // 1. Obtener el ID del usuario actual
-                val idUsuario = userPreferencesRepository.userId.first() ?: "0"
-
-                // 2. Llamar a la API enviando el usuario
-                val response = ventaRepository.getVentas(idUsuario)
-
-                if (response.isSuccessful) {
-                    response.body()?.let { ventaApi ->
-                        _ventas.value = ventaApi.ventas
-                        ventasUiState = VentasUiState.Success(R.string.ventas_usuario_cargadas_format, arrayOf(idUsuario))
-                    } ?: run {
-                        ventasUiState = VentasUiState.Error(R.string.cuerpo_respuesta_nulo)
-                    }
-                } else {
-                    ventasUiState = VentasUiState.Error(R.string.error_simple_format, arrayOf(response.code()))
+                is VentaResult.Error -> {
+                    ventasUiState = VentasUiState.Error(result.messageRes, result.args)
                 }
-            } catch (e: IOException) {
-                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
             }
         }
     }
@@ -193,45 +171,33 @@ class VentasViewModel @Inject constructor(
         val idUsuario = userPreferencesRepository.userId.first() ?: "0"
         val ventaParaApi = VentaRequest(clienteId, productos, idUsuario)
 
-        try {
-            val response = ventaRepository.postVenta(ventaParaApi)
-            if (response.isSuccessful && response.body() != null) {
-                // Producir efecto de éxito
+        when (val result = ventaRepository.postVenta(ventaParaApi)) {
+            is VentaResult.Success -> {
                 ventasUiState = VentasUiState.Success(R.string.venta_procesada_success)
-            } else {
-                ventasUiState = VentasUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
             }
-        } catch (e: IOException) {
-            ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-        } catch (e: HttpException) {
-            ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-        } catch (e: Exception) {
-            ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
+            is VentaResult.Error -> {
+                ventasUiState = VentasUiState.Error(result.messageRes, result.args)
+            }
         }
     }
 
     internal fun eliminarVenta(idVenta: Int, clienteId: Int, valorVenta: Double){
         viewModelScope.launch {
-            try {
-                val response = ventaRepository.deleteVenta(idVenta)
-                if (response.isSuccessful) {
+            when (val result = ventaRepository.deleteVenta(idVenta)) {
+                is VentaResult.Success -> {
                     ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
-                    try {
-                        // actualizar deuda del cliente
-                        clienteRepository.updateDeudaCliente(clienteId, valorVenta)
-                    } catch (e: Exception) {
-                        ventasUiState = VentasUiState.Error(R.string.error_actualizar_deuda_format, arrayOf(e.message ?: ""))
+                    // actualizar deuda del cliente
+                    when (val updateResult = clienteRepository.updateDeudaCliente(clienteId, valorVenta)) {
+                        is ClienteResult.Success -> { /* Ok */ }
+                        is ClienteResult.Error -> {
+                            ventasUiState = VentasUiState.Error(updateResult.messageRes, updateResult.args)
+                        }
                     }
                     getVentasByClienteId(clienteId.toString())
-                } else {
-                    ventasUiState = VentasUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                ventasUiState = VentasUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                ventasUiState = VentasUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                ventasUiState = VentasUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
+                is VentaResult.Error -> {
+                    ventasUiState = VentasUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }

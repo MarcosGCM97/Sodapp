@@ -43,7 +43,6 @@ import com.example.sodappcomposse.R
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Ventas(
     ventaModel: VentasViewModel = hiltViewModel(),
@@ -114,7 +113,6 @@ fun Ventas(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddVentaForm(
@@ -378,7 +376,6 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     }
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @Composable
  fun BoxVentas(

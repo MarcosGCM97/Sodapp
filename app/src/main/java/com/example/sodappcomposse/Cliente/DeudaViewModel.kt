@@ -1,20 +1,46 @@
 package com.example.sodappcomposse.Cliente
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 sealed interface DeudaUiState {
     object Idle : DeudaUiState
     object Loading : DeudaUiState
-    data class Success(val message: String) : DeudaUiState
-    data class Error(val message: String) : DeudaUiState
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : DeudaUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : DeudaUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @HiltViewModel
@@ -28,19 +54,13 @@ class DeudaViewModel @Inject constructor(
     fun pagarDeudaCliente(idCl: Int, deuda: Double) {
         _uiState.value = DeudaUiState.Loading
         viewModelScope.launch {
-            try {
-                val response = clienteRepository.updateDeudaCliente(idCl, deuda)
-                if (response.isSuccessful) {
-                    _uiState.value = DeudaUiState.Success("Pago procesado exitosamente")
-                } else {
-                    _uiState.value = DeudaUiState.Error("Error al procesar pago: ${response.code()}")
+            when (val result = clienteRepository.updateDeudaCliente(idCl, deuda)) {
+                is ClienteResult.Success -> {
+                    _uiState.value = DeudaUiState.Success(R.string.venta_procesada_success)
                 }
-            } catch (e: IOException) {
-                _uiState.value = DeudaUiState.Error("Error de red: ${e.message}")
-            } catch (e: HttpException) {
-                _uiState.value = DeudaUiState.Error("Error HTTP: ${e.code()}")
-            } catch (e: Exception) {
-                _uiState.value = DeudaUiState.Error("Error inesperado: ${e.message}")
+                is ClienteResult.Error -> {
+                    _uiState.value = DeudaUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }

@@ -111,26 +111,15 @@ class ProductoViewModel @Inject constructor(
     internal fun getProductos(){
         viewModelScope.launch {
             productoUiState = ProductoUiState.Loading // Es buena practica
-            try {
-                val response = productoRepository.getProductos()
-
-                if(response.isSuccessful){
-                    response.body()?.let { productosApi ->
-                        _productos.clear()
-                        _productos.addAll(productosApi.productos)
-                        productoUiState = ProductoUiState.Success(R.string.productos_cargados_format, arrayOf(_productos.size))
-                    } ?: run {
-                        productoUiState = ProductoUiState.Error(R.string.cuerpo_nulo_error)
-                    }
-                } else {
-                    productoUiState = ProductoUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
+            when (val result = productoRepository.getProductos()) {
+                is ProductoResult.Success -> {
+                    _productos.clear()
+                    _productos.addAll(result.data.productos)
+                    productoUiState = ProductoUiState.Success(R.string.productos_cargados_format, arrayOf(_productos.size))
                 }
-            } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error(R.string.error_red_verificar)
-            } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
+                is ProductoResult.Error -> {
+                    productoUiState = ProductoUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -156,25 +145,19 @@ class ProductoViewModel @Inject constructor(
 
         _addProductoUiState.value = AddProductoUiState.Loading
         viewModelScope.launch {
-            try {
-                val objProducto = ProductoRequest(
-                    nombrePr = nombre,
-                    precioUni = precioDouble,
-                    stock = cantidad
-                )
-                val response = productoRepository.postProducto(objProducto)
-                if (response.isSuccessful && response.body() != null) {
+            val objProducto = ProductoRequest(
+                nombrePr = nombre,
+                precioUni = precioDouble,
+                stock = cantidad
+            )
+            when (val result = productoRepository.postProducto(objProducto)) {
+                is ProductoResult.Success -> {
                     _addProductoUiState.value = AddProductoUiState.Success(R.string.producto_guardado_success, arrayOf(nombre))
                     getProductos()
-                } else {
-                    _addProductoUiState.value = AddProductoUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                _addProductoUiState.value = AddProductoUiState.Error(R.string.error_guardar_producto, arrayOf(e.message ?: ""))
+                is ProductoResult.Error -> {
+                    _addProductoUiState.value = AddProductoUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -191,42 +174,29 @@ class ProductoViewModel @Inject constructor(
         if (producto == null) return
         _productoSeleccionadoParaEdicion.value = producto
         viewModelScope.launch {
-            try {
-                val response = productoRepository.updateProducto(producto.nombrePr, producto.precioUni, producto.stock)
-                if (response.isSuccessful) {
+            when (val result = productoRepository.updateProducto(producto.nombrePr, producto.precioUni, producto.stock)) {
+                is ProductoResult.Success -> {
                     productoUiState = ProductoUiState.Success(R.string.producto_actualizado_success)
                     getProductos()
-                } else {
-                    productoUiState = ProductoUiState.Error(R.string.error_actualizar_producto_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error(R.string.error_red_actualizar_producto, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error(R.string.error_http_actualizar_producto, arrayOf(e.code()))
-            } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
+                is ProductoResult.Error -> {
+                    productoUiState = ProductoUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
 
     fun eliminarProducto(producto: Producto) {
         viewModelScope.launch {
-            try {
-                val response = productoRepository.deleteProducto(producto.nombrePr)
-                if (response.isSuccessful) {
+            when (val result = productoRepository.deleteProducto(producto.nombrePr)) {
+                is ProductoResult.Success -> {
                     productoUiState = ProductoUiState.Success(R.string.producto_eliminado_success)
                     getProductos()
-                } else {
-                    productoUiState = ProductoUiState.Error(R.string.error_eliminar_producto_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                productoUiState = ProductoUiState.Error(R.string.error_red_eliminar_producto, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                productoUiState = ProductoUiState.Error(R.string.error_http_eliminar_producto, arrayOf(e.code()))
-            } catch (e: Exception) {
-                productoUiState = ProductoUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
+                is ProductoResult.Error -> {
+                    productoUiState = ProductoUiState.Error(result.messageRes, result.args)
+                }
             }
-
         }
     }
 

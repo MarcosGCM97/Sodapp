@@ -86,7 +86,6 @@ sealed class ClienteUiState {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class ClientesViewModel @Inject constructor(
     private val clienteRepository: ClienteRepository
@@ -106,24 +105,14 @@ class ClientesViewModel @Inject constructor(
     internal fun getClienteById(idCl: String){
 
         viewModelScope.launch {
-            try {
-                val response = clienteRepository.getClienteById(idCl.toInt())
-                if (response.isSuccessful) {
-                    response.body()?.let { clientesApi ->
-                        clienteById.value = clientesApi.cliente
-                        clienteUiState = ClienteUiState.Success(R.string.cliente_cargado_success)
-                    } ?: run {
-                        clienteUiState = ClienteUiState.Error(R.string.cuerpo_nulo_error)
-                    }
-                } else {
-                    clienteUiState = ClienteUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
+            when (val result = clienteRepository.getClienteById(idCl.toInt())) {
+                is ClienteResult.Success -> {
+                    clienteById.value = result.data.cliente
+                    clienteUiState = ClienteUiState.Success(R.string.cliente_cargado_success)
                 }
-            } catch (e: IOException) {
-                clienteUiState = ClienteUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                clienteUiState = ClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                clienteUiState = ClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
+                is ClienteResult.Error -> {
+                    clienteUiState = ClienteUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -131,26 +120,15 @@ class ClientesViewModel @Inject constructor(
     internal fun getClientes(){
         viewModelScope.launch {
             clienteUiState = ClienteUiState.Loading // Es buena practica
-            try {
-                val response = clienteRepository.getClientes()
-
-                if (response.isSuccessful) {
-                    response.body()?.let { clientesApi ->
-                        _clientes.clear()
-                        _clientes.addAll(clientesApi.clientes)
-                        clienteUiState = ClienteUiState.Success(R.string.clientes_cargados_format, arrayOf(_clientes.size))
-                    } ?: run {
-                        clienteUiState = ClienteUiState.Error(R.string.cuerpo_nulo_error)
-                    }
-                } else {
-                    clienteUiState = ClienteUiState.Error(R.string.error_servidor_format, arrayOf(response.code()))
+            when (val result = clienteRepository.getClientes()) {
+                is ClienteResult.Success -> {
+                    _clientes.clear()
+                    _clientes.addAll(result.data.clientes)
+                    clienteUiState = ClienteUiState.Success(R.string.clientes_cargados_format, arrayOf(_clientes.size))
                 }
-            } catch (e: IOException) {
-                clienteUiState = ClienteUiState.Error(R.string.error_red_verificar)
-            } catch (e: HttpException) {
-                clienteUiState = ClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                clienteUiState = ClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
+                is ClienteResult.Error -> {
+                    clienteUiState = ClienteUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -167,25 +145,19 @@ class ClientesViewModel @Inject constructor(
 
         _addClienteUiState.value = AddClienteUiState.Loading
         viewModelScope.launch {
-            try {
-                val objCliente = ClienteRequest(
-                    nombreCl = nombre,
-                    direccionCl = direccion,
-                    numTelCl = telefono
-                )
-                val response = clienteRepository.postCliente(objCliente)
-                if (response.isSuccessful && response.body() != null) {
+            val objCliente = ClienteRequest(
+                nombreCl = nombre,
+                direccionCl = direccion,
+                numTelCl = telefono
+            )
+            when (val result = clienteRepository.postCliente(objCliente)) {
+                is ClienteResult.Success -> {
                     _addClienteUiState.value = AddClienteUiState.Success(R.string.cliente_guardado_success, arrayOf(nombre))
                     getClientes()
-                } else {
-                    _addClienteUiState.value = AddClienteUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
+                is ClienteResult.Error -> {
+                    _addClienteUiState.value = AddClienteUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -198,27 +170,20 @@ class ClientesViewModel @Inject constructor(
     // Funciones para la lógica de edición (ejemplos)
     fun editarCliente(cliente: Cliente) {
         viewModelScope.launch {
-            try {
-                val response = clienteRepository.updateCliente(
-                    cliente.idCl,
-                    cliente.nombreCl,
-                    cliente.direccionCl,
-                    cliente.numTelCl
-                )
-                if (response.isSuccessful) {
+            when (val result = clienteRepository.updateCliente(
+                cliente.idCl,
+                cliente.nombreCl,
+                cliente.direccionCl,
+                cliente.numTelCl
+            )) {
+                is ClienteResult.Success -> {
                     _addClienteUiState.value =
                         AddClienteUiState.Success(R.string.cliente_editado_success)
                     getClientes()
-                } else {
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error(R.string.error_editar_cliente_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_editar_cliente, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_editar_cliente, arrayOf(e.code()))
-            } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.message ?: ""))
+                is ClienteResult.Error -> {
+                    _addClienteUiState.value = AddClienteUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -228,28 +193,19 @@ class ClientesViewModel @Inject constructor(
         _addClienteUiState.value = AddClienteUiState.Loading
 
         viewModelScope.launch {
-            try {
-                // Llamada a la API
-                val response = clienteRepository.eliminarCliente(cliente.idCl)
-
-                if (response.isSuccessful) {
+            when (val result = clienteRepository.eliminarCliente(cliente.idCl)) {
+                is ClienteResult.Success -> {
                     // Si la eliminación en el servidor fue exitosa
                     _addClienteUiState.value =
                         AddClienteUiState.Success(R.string.cliente_eliminado_success, arrayOf(cliente.nombreCl))
 
                     // IMPORTANTE: Refrescar la lista local inmediatamente
                     getClientes()
-                } else {
-                    // Error devuelto por el servidor (ej: 404, 500)
-                    _addClienteUiState.value =
-                        AddClienteUiState.Error(R.string.error_eliminar_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: IOException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_red_conexion)
-            } catch (e: HttpException) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-            } catch (e: Exception) {
-                _addClienteUiState.value = AddClienteUiState.Error(R.string.error_inesperado_format, arrayOf(e.localizedMessage ?: ""))
+                is ClienteResult.Error -> {
+                    // Error devuelto por el servidor
+                    _addClienteUiState.value = AddClienteUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }

@@ -103,41 +103,18 @@ class CajaViewModel @Inject constructor(
         _caja.value = DataCajaResponse(success = false, caja = emptyList())
 
         viewModelScope.launch {
-            try {
-                val response = cajaRepository.getCajaPorMes(mesNum)
-
-                if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody != null) {
-                        if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                            if (responseBody.success == true && !responseBody.caja.isNullOrEmpty()) {
-                                _caja.value = responseBody
-                                cajaUiState = CajaUiState.Success(R.string.datos_cargados_success)
-                            } else {
-                                cajaUiState = CajaUiState.Error(R.string.no_ventas_mes_error)
-                            }
-                        }
-                    } else {
-                        if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                            cajaUiState = CajaUiState.Error(R.string.cuerpo_nulo_error)
-                        }
+            val result = cajaRepository.getCajaPorMes(mesNum)
+            
+            // Verificamos si el mes sigue siendo el mismo después de la llamada al repo
+            if (_mesSeleccionadoUi.value?.numero == mesNum) {
+                when (result) {
+                    is CajaResult.Success -> {
+                        _caja.value = result.data
+                        cajaUiState = CajaUiState.Success(R.string.datos_cargados_success)
                     }
-                } else {
-                    if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                        cajaUiState = CajaUiState.Error(R.string.error_api_format, arrayOf(response.code()))
+                    is CajaResult.Error -> {
+                        cajaUiState = CajaUiState.Error(result.messageRes, result.args)
                     }
-                }
-            } catch (e: IOException) {
-                if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error(R.string.error_red_format, arrayOf(e.message?.take(100) ?: ""))
-                }
-            } catch (e: HttpException) {
-                if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error(R.string.error_http_format, arrayOf(e.code()))
-                }
-            } catch (e: Exception) {
-                if (_mesSeleccionadoUi.value?.numero == mesNum) {
-                    cajaUiState = CajaUiState.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
                 }
             }
         }

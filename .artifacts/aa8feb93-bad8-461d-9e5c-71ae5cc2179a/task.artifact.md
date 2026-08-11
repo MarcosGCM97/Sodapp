@@ -4,16 +4,40 @@
     - [x] Add `kotlinx-coroutines-test` and `mockk` to `libs.versions.toml`
     - [x] Add `testImplementation` to `app/build.gradle.kts`
     - [x] Gradle Sync
-- [/] Refactor CajaRepository
-    - [ ] Define `CajaResult` in `CajaRepository.kt`
-    - [ ] Update `CajaRepository` interface
-    - [ ] Update `CajaRepositoryImpl` with validation logic
-- [ ] Refactor CajaViewModel
-    - [ ] Simplify `getCajaPorMes` logic
-    - [ ] Handle `CajaResult` using `when`
-- [ ] Implement Unit Tests
-    - [ ] Create `CajaRepositoryImplTest.kt`
-    - [ ] Create `CajaViewModelTest.kt`
-- [ ] Verification
-    - [ ] Run unit tests
-    - [ ] Manual verification (if possible)
+- [x] Refactor CajaRepository
+    - [x] Define `CajaResult` in `CajaRepository.kt`
+    - [x] Update `CajaRepository` interface
+    - [x] Update `CajaRepositoryImpl` with validation logic
+- [x] Refactor CajaViewModel
+    - [x] Simplify `getCajaPorMes` logic
+    - [x] Handle `CajaResult` using `when`
+- [x] Implement Unit Tests
+    - [x] Create `CajaRepositoryImplTest.kt`
+    - [x] Create `CajaViewModelTest.kt`
+- [x] Verification
+    - [x] Run unit tests
+    - [x] Manual verification (if possible)
+- [x] Refactor All Other Components
+    - [x] Cliente & Agenda
+        - [x] Refactor ClienteRepository
+        - [x] Update ClientesViewModel
+        - [x] Fix Clientes.kt and ClientesDropdown.kt
+        - [x] Refactor AgendaRepository
+        - [x] Update AgendaViewModel
+    - [x] Producto
+        - [x] Refactor ProductoRepository
+        - [x] Update ProductoViewModel
+        - [x] Fix Productos.kt and ProductoDropDown.kt
+    - [x] Ventas
+        - [x] Refactor VentaRepository
+        - [x] Update VentasViewModel
+        - [x] Fix Ventas.kt
+    - [x] Auth
+        - [x] Refactor AuthRepository
+        - [x] Update LoginViewModel
+- [x] Verification
+    - [x] Run unit tests
+    - [x] Manual verification (if possible)
+- [x] Bug Fixes
+    - [x] Remove unnecessary `@RequiresApi` annotations
+    - [x] Enable core library desugaring for `java.time` support

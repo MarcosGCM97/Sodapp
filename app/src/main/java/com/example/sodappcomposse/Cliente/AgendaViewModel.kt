@@ -1,22 +1,47 @@
 package com.example.sodappcomposse.Cliente
 
-import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 sealed interface AgendaUiState {
     object Idle : AgendaUiState
     object Loading : AgendaUiState
-    data class Success(val message: String) : AgendaUiState
-    data class Error(val message: String) : AgendaUiState
+    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AgendaUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : AgendaUiState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Error) return false
+            if (messageRes != other.messageRes) return false
+            if (!args.contentEquals(other.args)) return false
+            return true
+        }
+        override fun hashCode(): Int {
+            var result = messageRes
+            result = 31 * result + args.contentHashCode()
+            return result
+        }
+    }
 }
 
 @HiltViewModel
@@ -33,20 +58,14 @@ class AgendaViewModel @Inject constructor(
     fun getDiasEntrega() {
         _uiState.value = AgendaUiState.Loading
         viewModelScope.launch {
-            try {
-                val response = agendaRepository.getDiasEntrega()
-                if (response.isSuccessful) {
-                    diasEntrega.value = response.body() ?: TodosLosDias()
-                    _uiState.value = AgendaUiState.Success("Días de entrega cargados")
-                } else {
-                    _uiState.value = AgendaUiState.Error("Error: ${response.code()}")
+            when (val result = agendaRepository.getDiasEntrega()) {
+                is AgendaResult.Success -> {
+                    diasEntrega.value = result.data
+                    _uiState.value = AgendaUiState.Success(R.string.datos_cargados_success)
                 }
-            } catch (e: IOException) {
-                _uiState.value = AgendaUiState.Error("Error de red: ${e.message}")
-            } catch (e: HttpException) {
-                _uiState.value = AgendaUiState.Error("Error HTTP: ${e.code()}")
-            } catch (e: Exception) {
-                _uiState.value = AgendaUiState.Error("Error inesperado: ${e.message}")
+                is AgendaResult.Error -> {
+                    _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -54,20 +73,14 @@ class AgendaViewModel @Inject constructor(
     fun getDiasEntregaById(idCl: Int) {
         _uiState.value = AgendaUiState.Loading
         viewModelScope.launch {
-            try {
-                val response = agendaRepository.getDiasEntregaById(idCl)
-                if (response.isSuccessful) {
-                    diasEntregaById.value = response.body()?.diasEntrega ?: emptyList()
-                    _uiState.value = AgendaUiState.Success("Días del cliente cargados")
-                } else {
-                    _uiState.value = AgendaUiState.Error("Error: ${response.code()}")
+            when (val result = agendaRepository.getDiasEntregaById(idCl)) {
+                is AgendaResult.Success -> {
+                    diasEntregaById.value = result.data.diasEntrega
+                    _uiState.value = AgendaUiState.Success(R.string.datos_cargados_success)
                 }
-            } catch (e: IOException) {
-                _uiState.value = AgendaUiState.Error("Error de red: ${e.message}")
-            } catch (e: HttpException) {
-                _uiState.value = AgendaUiState.Error("Error HTTP: ${e.code()}")
-            } catch (e: Exception) {
-                _uiState.value = AgendaUiState.Error("Error inesperado: ${e.message}")
+                is AgendaResult.Error -> {
+                    _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }
@@ -79,19 +92,13 @@ class AgendaViewModel @Inject constructor(
         val diasEntregaRequest = DiasEntrega(clienteId, diasSeleccionados)
 
         viewModelScope.launch {
-            try {
-                val response = agendaRepository.updateDiasEntrega(diasEntregaRequest)
-                if (response.isSuccessful) {
-                    _uiState.value = AgendaUiState.Success("Agenda actualizada exitosamente")
-                } else {
-                    _uiState.value = AgendaUiState.Error("Error al actualizar: ${response.code()}")
+            when (val result = agendaRepository.updateDiasEntrega(diasEntregaRequest)) {
+                is AgendaResult.Success -> {
+                    _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success) // Reusing a success string or should use a specific one
                 }
-            } catch (e: IOException) {
-                _uiState.value = AgendaUiState.Error("Error de red: ${e.message}")
-            } catch (e: HttpException) {
-                _uiState.value = AgendaUiState.Error("Error HTTP: ${e.code()}")
-            } catch (e: Exception) {
-                _uiState.value = AgendaUiState.Error("Error inesperado: ${e.message}")
+                is AgendaResult.Error -> {
+                    _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }

@@ -72,31 +72,20 @@ class LoginViewModel @Inject constructor(
 
         loginUiState = LoginUiState.Loading
         viewModelScope.launch {
-            try {
-                val userLogin = UsuarioRequest(nombreUs = nombre, contrasenaUs = contrasena)
-                val response = authRepository.login(userLogin)
-
-                if (response.isSuccessful && response.body() != null) {
-                    val usuarioApi = response.body()!!
-
+            val userLogin = UsuarioRequest(nombreUs = nombre, contrasenaUs = contrasena)
+            when (val result = authRepository.login(userLogin)) {
+                is AuthResult.Success -> {
+                    val usuarioApi = result.data
                     if(usuarioApi.success){
                         userPreferencesRepository.saveUserData(usuarioApi.token.idUs.toString(), usuarioApi.token.nombreUs)
-                        // Aquí asumimos que usuarioApi.message es un texto dinámico de la API. 
-                        // Si la API siempre manda el mismo mensaje, podríamos mapearlo a un R.string.
-                        // Para este ejercicio, como no podemos cambiar la API, usaremos un R.string genérico si es posible o pasaremos el string (pero la consigna pide R.string).
-                        // Usaremos un recurso genérico de éxito y pasaremos el mensaje de la API como argumento.
                         loginUiState = LoginUiState.Success(R.string.excepcion_format, arrayOf(usuarioApi.message))
-                    }else{
+                    } else {
                         loginUiState = LoginUiState.Error(R.string.error_simple_format, arrayOf(usuarioApi.message))
                     }
-                } else {
-                    // Manejar error de la API
-                    loginUiState = LoginUiState.Error(R.string.error_respuesta_format, arrayOf(response.code(), response.message()))
                 }
-            } catch (e: Exception) {
-                loginUiState = LoginUiState.Error(R.string.error_iniciar_sesion_format, arrayOf(e.message ?: ""))
-            } catch (e: HttpException) {
-                loginUiState = LoginUiState.Error(R.string.error_http_iniciar_sesion_format, arrayOf(e.code(), e.message()))
+                is AuthResult.Error -> {
+                    loginUiState = LoginUiState.Error(result.messageRes, result.args)
+                }
             }
         }
     }

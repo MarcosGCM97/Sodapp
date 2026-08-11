@@ -57,7 +57,7 @@ import com.example.sodappcomposse.Cliente.DeudaViewModel
 import com.example.sodappcomposse.ui.theme.BluePrimario
 import com.example.sodappcomposse.ui.theme.GreenPrimario
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @SuppressLint("UnrememberedMutableState", "StateFlowValueCalledInComposition", "DefaultLocale")
 @Composable
 fun DeudaScreen(

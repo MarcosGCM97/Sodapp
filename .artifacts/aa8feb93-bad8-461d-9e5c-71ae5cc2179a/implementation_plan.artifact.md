@@ -1,55 +1,41 @@
-# Implementation Plan - Refactor CajaViewModel and CajaRepository
+# Implementation Plan - General Repository and ViewModel Refactor
 
-Refactor `CajaViewModel` and `CajaRepository` to improve separation of concerns by moving HTTP response validation and exception handling from the ViewModel to the Repository. The ViewModel will then handle state based on a custom `CajaResult` sealed class.
+Apply the refactoring pattern established in SD-012 to all other components in the app. This involves moving HTTP validation and exception handling from ViewModels to Repositories using specific `Result` sealed classes.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> The implementation of tests requires `kotlinx-coroutines-test` and a mocking library (like `MockK` or `Mockito`). I will add these to `libs.versions.toml` and `app/build.gradle.kts` if not present, to ensure the new tests can run correctly.
+> This refactor affects all major modules of the app. I will proceed component by component to ensure stability.
+> I will also harmonize `AgendaUiState` to use `@StringRes` instead of raw `String` to be consistent with the rest of the app.
 
 ## Proposed Changes
 
-### Caja Component
+### 1. Cliente & Agenda Component
+- **[MODIFY] [ClienteRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Cliente/ClienteRepository.kt)**: Define `ClienteResult` and refactor all methods to return it.
+- **[MODIFY] [ClienteViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Cliente/ClienteViewModel.kt)**: Simplify methods using `when` on `ClienteResult`.
+- **[MODIFY] [AgendaRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Cliente/AgendaRepository.kt)**: Define `AgendaResult` and refactor methods.
+- **[MODIFY] [AgendaViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Cliente/AgendaViewModel.kt)**: Update `AgendaUiState` to use `@StringRes` and simplify logic.
 
-#### [MODIFY] [CajaRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/CajaRepository.kt)
-- Define `CajaResult` sealed class to represent success and error states.
-- Update `CajaRepository` interface to return `CajaResult` instead of `Response<DataCajaResponse>`.
-- Update `CajaRepositoryImpl` to handle API calls, response validation (success, null body, empty list), and exceptions (`IOException`, `HttpException`).
+### 2. Producto Component
+- **[MODIFY] [ProductoRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Producto/ProductoRepository.kt)**: Define `ProductoResult` and refactor methods.
+- **[MODIFY] [ProductoViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Producto/ProductoViewModel.kt)**: Simplify logic using `when` on `ProductoResult`.
 
-#### [MODIFY] [CajaViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Caja/CajaViewModel.kt)
-- Simplify `getCajaPorMes()` by removing nested `if` and `try-catch` blocks.
-- Use `when` to handle `CajaResult` from the repository.
-- Ensure the ViewModel only manages `CajaUiState` and updates the `_caja` flow.
+### 3. Ventas Component
+- **[MODIFY] [VentaRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/VentaRepository.kt)**: Define `VentaResult` and refactor methods.
+- **[MODIFY] [VentasViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/Ventas/VentasViewModel.kt)**: Simplify logic using `when` on `VentaResult`.
 
-### Dependencies
+### 4. Auth Component
+- **[MODIFY] [AuthRepository.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/IngresoUsuario/AuthRepository.kt)**: Define `AuthResult` and refactor methods.
+- **[MODIFY] [LoginViewModel.kt](file:///C:/Users/marco/SodAppComposse/app/src/main/java/com/example/sodappcomposse/IngresoUsuario/LoginViewModel.kt)**: Simplify logic using `when` on `AuthResult`.
 
-#### [MODIFY] [libs.versions.toml](file:///C:/Users/marco/SodAppComposse/gradle/libs.versions.toml)
-- Add versions and libraries for `kotlinx-coroutines-test` and `mockk`.
-
-#### [MODIFY] [app/build.gradle.kts](file:///C:/Users/marco/SodAppComposse/app/build.gradle.kts)
-- Add `testImplementation` for the new testing libraries.
-
-### Tests
-
-#### [NEW] [CajaRepositoryImplTest.kt](file:///C:/Users/marco/SodAppComposse/app/src/test/java/com/example/sodappcomposse/Caja/CajaRepositoryImplTest.kt)
-- Unit tests for `CajaRepositoryImpl` covering:
-    - Success with data.
-    - Success with empty list (error state for this app).
-    - Null body.
-    - API error (404, 500).
-    - Network exceptions.
-
-#### [NEW] [CajaViewModelTest.kt](file:///C:/Users/marco/SodAppComposse/app/src/test/java/com/example/sodappcomposse/Caja/CajaViewModelTest.kt)
-- Unit tests for `CajaViewModel` covering state transitions (Idle -> Loading -> Success/Error) based on repository results.
+### 5. Common Patterns
+- I will ensure all `Error` data classes in the `Result` sealed classes have proper `equals` and `hashCode` implementations to facilitate testing and predictable UI updates.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `./gradlew test` to execute the new unit tests.
-- Specifically:
-    - `CajaRepositoryImplTest`
-    - `CajaViewModelTest`
+- I will create unit tests for at least one refactored Repository and ViewModel as a sanity check (similar to `Caja` tests).
+- Run `./gradlew test` to ensure no regressions.
 
 ### Manual Verification
-- Deploy the app and navigate to the "Caja" section.
-- Select different months and verify that data loads correctly or displays appropriate error messages.
+- Deploy the app and perform basic operations (Login, Load Clients, Add Sale, etc.) to verify that the refactored logic still works as expected.
