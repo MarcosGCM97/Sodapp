@@ -14,8 +14,12 @@ import androidx.compose.ui.Modifier
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.Ventas.VentasViewModel
 import com.example.sodappcomposse.Cliente.ClientesViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.sodappcomposse.ui.theme.ThemeViewModel
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
-import dagger.hilt.android.AndroidEntryPoint // Asegúrate de importar esto
+import androidx.compose.foundation.isSystemInDarkTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -30,7 +34,12 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent{
-            SodAppComposseTheme {
+            val themeViewModel: ThemeViewModel = hiltViewModel()
+            val themeModeState = themeViewModel.themeMode.collectAsState()
+            val themeMode = themeModeState.value
+            val isDark = themeMode ?: isSystemInDarkTheme()
+
+            SodAppComposseTheme(darkTheme = isDark) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background // El fondo de Surface también usará el tema

@@ -1,5 +1,11 @@
 package com.example.sodappcomposse.Componentes
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.sodappcomposse.ui.theme.ThemeViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,8 +30,14 @@ import androidx.navigation.NavController
 fun ScreenWithBackButtonWrapper(
     navController: NavController,
     title: String, // Título para la TopAppBar
+    themeViewModel: ThemeViewModel = hiltViewModel(),
     content: @Composable () -> Unit // El contenido principal de la pantalla
 ) {
+    val themeModeState = themeViewModel.themeMode.collectAsState()
+    val themeMode = themeModeState.value
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = themeMode ?: isSystemDark
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -43,6 +55,12 @@ fun ScreenWithBackButtonWrapper(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+            )
+        },
+        floatingActionButton = {
+            ThemeToggleFAB(
+                isDark = isDark,
+                onToggle = { themeViewModel.toggleTheme(isDark) }
             )
         }
     ) { innerPadding ->

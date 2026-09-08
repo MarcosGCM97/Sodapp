@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Componentes
 
+import androidx.compose.material3.MaterialTheme
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -44,8 +45,8 @@ fun NavBottom(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NavyBackground)
-            .navigationBarsPadding() // Respeta la altura de la barra de navegación del sistema
+            .background(MaterialTheme.colorScheme.surface) // Usar surface para adaptarse al tema
+            .navigationBarsPadding() 
             .padding(top = 18.dp, bottom = 18.dp, start = 8.dp, end = 8.dp)
     ) {
         Row(

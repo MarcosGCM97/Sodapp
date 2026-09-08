@@ -1,6 +1,11 @@
 package com.example.sodappcomposse.Componentes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.sodappcomposse.ui.theme.ThemeViewModel
+import com.example.sodappcomposse.Componentes.ThemeToggleFAB
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -78,13 +83,24 @@ fun ContenidoCaja(modifier: Modifier = Modifier) {
 fun BienvenidaScreen(
     nombreUser: String,
     navLogin: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ){
     var contenidoActual by remember { mutableStateOf(ContenidoBienvenida.VENTAS) }
+    val themeModeState = themeViewModel.themeMode.collectAsState()
+    val themeMode = themeModeState.value
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = themeMode ?: isSystemDark
 
     Scaffold(
         topBar = {
             Encabezado(nombre = nombreUser, navLogin = navLogin)
+        },
+        floatingActionButton = {
+            ThemeToggleFAB(
+                isDark = isDark,
+                onToggle = { themeViewModel.toggleTheme(isDark) }
+            )
         },
         bottomBar = {
             NavBottom(

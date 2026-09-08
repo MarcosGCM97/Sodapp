@@ -28,6 +28,7 @@ class UserPreferencesRepository @Inject constructor(
         val USER_ID = stringPreferencesKey("user_id_v2")
         val USER_NAME = stringPreferencesKey("user_name_v2")
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+        val THEME_MODE = stringPreferencesKey("theme_mode") // "system", "light", "dark"
     }
 
     // Función para guardar los datos al hacer Login
@@ -92,4 +93,19 @@ class UserPreferencesRepository @Inject constructor(
         .map { preferences ->
             preferences[PreferencesKeys.USER_NAME]
         }
+
+    val themeMode: Flow<Boolean?> = context.dataStore.data
+        .map { preferences ->
+            when (preferences[PreferencesKeys.THEME_MODE]) {
+                "light" -> false
+                "dark" -> true
+                else -> null
+            }
+        }
+
+    suspend fun setThemeMode(isDark: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.THEME_MODE] = if (isDark) "dark" else "light"
+        }
+    }
 }

@@ -61,7 +61,7 @@ private val LightColorScheme = lightColorScheme(
 fun SodAppComposseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Deshabilitamos por defecto para priorizar nuestra paleta
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -70,8 +70,8 @@ fun SodAppComposseTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> LightColorScheme
-        else -> DarkColorScheme
+        darkTheme -> DarkColorScheme // Corregido: Dark -> DarkColorScheme
+        else -> LightColorScheme // Corregido: Light -> LightColorScheme
     }
 
     MaterialTheme(

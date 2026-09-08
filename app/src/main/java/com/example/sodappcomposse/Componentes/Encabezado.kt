@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Componentes
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,7 +47,7 @@ fun Encabezado(
         )
         Text(
             text = "SodApp",
-            color = azulFuerte,
+            color = MaterialTheme.colorScheme.primary, // Usar color del tema
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -54,7 +55,7 @@ fun Encabezado(
         )
         Text(
             text = nombre,
-            color = Color.Blue,
+            color = MaterialTheme.colorScheme.secondary, // Usar color del tema
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -64,6 +65,7 @@ fun Encabezado(
         Icon(
             imageVector = Icons.Default.AccountCircle,
             contentDescription = "Icono",
+            tint = MaterialTheme.colorScheme.onSurface, // Tinte adaptativo
             modifier = Modifier
                 .size(50.dp)
         )

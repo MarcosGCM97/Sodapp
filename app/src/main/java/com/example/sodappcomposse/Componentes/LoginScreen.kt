@@ -1,5 +1,9 @@
 package com.example.sodappcomposse.Componentes
 
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.sodappcomposse.ui.theme.ThemeViewModel
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,13 +54,29 @@ import com.example.sodappcomposse.IngresoUsuario.LoginUiState
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
 @Composable
-fun LoginScreen(navBienvenida: (String) -> Unit){
-    SodAppComposseTheme {
+fun LoginScreen(
+    themeViewModel: ThemeViewModel = hiltViewModel(),
+    navBienvenida: (String) -> Unit
+){
+    val themeModeState = themeViewModel.themeMode.collectAsState()
+    val themeMode = themeModeState.value
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = themeMode ?: isSystemDark
+
+    Scaffold(
+        floatingActionButton = {
+            ThemeToggleFAB(
+                isDark = isDark,
+                onToggle = { themeViewModel.toggleTheme(isDark) }
+            )
+        }
+    ) { padding ->
         Column(modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)) { // Fondo general
-            EncabezadoLogin() // EncabezadoLogin ahora tomará contexto del tema si usa MaterialTheme.colorScheme
-            CuerpoLogin(navBienvenida)  // CuerpoLogin también
+            .padding(padding)
+            .background(MaterialTheme.colorScheme.background)) { 
+            EncabezadoLogin() 
+            CuerpoLogin(navBienvenida)  
         }
     }
 }
