@@ -171,10 +171,7 @@ class ClientesViewModel @Inject constructor(
     fun editarCliente(cliente: Cliente) {
         viewModelScope.launch {
             when (val result = clienteRepository.updateCliente(
-                cliente.idCl,
-                cliente.nombreCl,
-                cliente.direccionCl,
-                cliente.numTelCl
+                cliente
             )) {
                 is ClienteResult.Success -> {
                     _addClienteUiState.value =

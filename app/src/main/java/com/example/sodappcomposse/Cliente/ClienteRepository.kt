@@ -29,7 +29,7 @@ interface ClienteRepository {
     suspend fun getClientes(forceRefresh: Boolean = false): ClienteResult<ClienteResponse>
     suspend fun getClienteById(id: Int): ClienteResult<ClienteResponseById>
     suspend fun postCliente(clienteRequest: ClienteRequest): ClienteResult<PostResponse>
-    suspend fun updateCliente(id: Int, nombre: String, direccion: String, telefono: String): ClienteResult<PostResponse>
+    suspend fun updateCliente(cliente: Cliente): ClienteResult<PostResponse>
     suspend fun eliminarCliente(id: Int): ClienteResult<PostResponse>
     suspend fun updateDeudaCliente(id: Int, deuda: Double?): ClienteResult<PostResponse>
     fun clearCache()
@@ -73,8 +73,8 @@ class ClienteRepositoryImpl @Inject constructor(
         return result
     }
 
-    override suspend fun updateCliente(id: Int, nombre: String, direccion: String, telefono: String): ClienteResult<PostResponse> {
-        val result = handleApiCall { apiServices.updateCliente(id, nombre, direccion, telefono) }
+    override suspend fun updateCliente(cliente: Cliente): ClienteResult<PostResponse> {
+        val result = handleApiCall { apiServices.updateCliente(cliente) }
         if (result is ClienteResult.Success) clearCache()
         return result
     }

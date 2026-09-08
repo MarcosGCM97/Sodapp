@@ -115,6 +115,13 @@ class ProductoViewModel @Inject constructor(
                 is ProductoResult.Success -> {
                     _productos.clear()
                     _productos.addAll(result.data.productos)
+                    
+                    // Sincronizar el producto seleccionado para el DropDown/Card
+                    val seleccionado = productosParaDropDown.value
+                    if (seleccionado != null) {
+                        productosParaDropDown.value = _productos.find { it.nombrePr == seleccionado.nombrePr }
+                    }
+                    
                     productoUiState = ProductoUiState.Success(R.string.productos_cargados_format, arrayOf(_productos.size))
                 }
                 is ProductoResult.Error -> {

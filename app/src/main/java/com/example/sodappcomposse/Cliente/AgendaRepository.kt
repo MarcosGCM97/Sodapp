@@ -28,7 +28,7 @@ sealed class AgendaResult<out T> {
 interface AgendaRepository {
     suspend fun getDiasEntrega(): AgendaResult<TodosLosDias>
     suspend fun getDiasEntregaById(id: Int): AgendaResult<DiasEntregaByid>
-    suspend fun updateDiasEntrega(diasEntrega: DiasEntrega): AgendaResult<PostResponse>
+    suspend fun updateDiasEntrega(diasEntrega: DiasEntregaUpdateRequest): AgendaResult<PostResponse>
 }
 
 class AgendaRepositoryImpl @Inject constructor(
@@ -42,7 +42,7 @@ class AgendaRepositoryImpl @Inject constructor(
         apiServices.getDiasEntregaById(id)
     }
 
-    override suspend fun updateDiasEntrega(diasEntrega: DiasEntrega): AgendaResult<PostResponse> = handleApiCall {
+    override suspend fun updateDiasEntrega(diasEntrega: DiasEntregaUpdateRequest): AgendaResult<PostResponse> = handleApiCall {
         apiServices.updateDiasEntrega(diasEntrega)
     }
 

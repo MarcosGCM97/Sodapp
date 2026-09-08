@@ -89,12 +89,30 @@ class AgendaViewModel @Inject constructor(
         if (clienteId == null) return
         
         _uiState.value = AgendaUiState.Loading
-        val diasEntregaRequest = DiasEntrega(clienteId, diasSeleccionados)
+
+        val lunes = if (diasSeleccionados.contains("Lunes")) 1 else 0
+        val martes = if (diasSeleccionados.contains("Martes")) 1 else 0
+        val miercoles = if (diasSeleccionados.contains("Miércoles")) 1 else 0
+        val jueves = if (diasSeleccionados.contains("Jueves")) 1 else 0
+        val viernes = if (diasSeleccionados.contains("Viernes")) 1 else 0
+        val sabado = if (diasSeleccionados.contains("Sábado")) 1 else 0
+        val domingo = if (diasSeleccionados.contains("Domingo")) 1 else 0
+
+        val diasEntregaRequest = DiasEntregaUpdateRequest(
+            cl_ide = clienteId,
+            cl_lun = lunes,
+            cl_mar = martes,
+            cl_mie = miercoles,
+            cl_jue = jueves,
+            cl_vie = viernes,
+            cl_sab = sabado,
+            cl_dom = domingo
+        )
 
         viewModelScope.launch {
             when (val result = agendaRepository.updateDiasEntrega(diasEntregaRequest)) {
                 is AgendaResult.Success -> {
-                    _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success) // Reusing a success string or should use a specific one
+                    _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success) 
                 }
                 is AgendaResult.Error -> {
                     _uiState.value = AgendaUiState.Error(result.messageRes, result.args)

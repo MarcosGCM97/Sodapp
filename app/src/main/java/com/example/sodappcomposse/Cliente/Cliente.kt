@@ -49,6 +49,17 @@ data class DiasEntrega(
     var dias: List<String> = emptyList()
 )
 
+data class DiasEntregaUpdateRequest(
+    @SerializedName("cl_ide") val cl_ide: Int,
+    @SerializedName("cl_lun") val cl_lun: Int,
+    @SerializedName("cl_mar") val cl_mar: Int,
+    @SerializedName("cl_mie") val cl_mie: Int,
+    @SerializedName("cl_jue") val cl_jue: Int,
+    @SerializedName("cl_vie") val cl_vie: Int,
+    @SerializedName("cl_sab") val cl_sab: Int,
+    @SerializedName("cl_dom") val cl_dom: Int
+)
+
 data class DiasEntregaByid(
     @SerializedName("success")
     var success: Boolean = false,
