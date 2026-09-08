@@ -1,21 +1,18 @@
 package com.example.sodappcomposse.Componentes
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,135 +23,136 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.sodappcomposse.ContenidoBienvenida
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
+// Colores personalizados según especificación
+private val NavyBackground = Color(0xFF1E2A38)
+private val PurpleAccent = Color(0xFF6A5ACD)
+private val GrayInactive = Color(0xFFC8CFD8)
+
 @Composable
 fun NavBottom(
     currentRoute: ContenidoBienvenida,
-    onContenidoSeleccionado: (ContenidoBienvenida) -> Unit){
-    val selectedBackgroundColor = MaterialTheme.colorScheme.primaryContainer
-    val unselectedBackgroundColor = MaterialTheme.colorScheme.surfaceVariant
-
-    val selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-    val unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-
-    Column(
+    onContenidoSeleccionado: (ContenidoBienvenida) -> Unit
+) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 40.dp)
-            .background(MaterialTheme.colorScheme.surface),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        //verticalArrangement = Arrangement.Top,
-
+            .background(NavyBackground)
+            .navigationBarsPadding() // Respeta la altura de la barra de navegación del sistema
+            .padding(top = 18.dp, bottom = 18.dp, start = 8.dp, end = 8.dp)
     ) {
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Ítem VENTAS
-            CustomNavIconButton(
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.VENTAS) },
-                isSelected = currentRoute == ContenidoBienvenida.VENTAS,
-                selectedBackgroundColor = selectedBackgroundColor,
-                unselectedBackgroundColor = unselectedBackgroundColor,
-                selectedIconColor = selectedIconColor,
-                unselectedIconColor = unselectedIconColor,
+            ExpandableNavItem(
+                label = "Ventas",
                 iconResId = R.drawable.outline_format_list_bulleted_24,
-                contentDescription = "Ventas"
+                isSelected = currentRoute == ContenidoBienvenida.VENTAS,
+                onClick = { onContenidoSeleccionado(ContenidoBienvenida.VENTAS) }
             )
 
             // Ítem CLIENTES
-            CustomNavIconButton(
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CLIENTES) },
-                isSelected = currentRoute == ContenidoBienvenida.CLIENTES,
-                selectedBackgroundColor = selectedBackgroundColor,
-                unselectedBackgroundColor = unselectedBackgroundColor,
-                selectedIconColor = selectedIconColor,
-                unselectedIconColor = unselectedIconColor,
+            ExpandableNavItem(
+                label = "Clientes",
                 iconResId = R.drawable.outline_person_add_24,
-                contentDescription = "Clientes"
+                isSelected = currentRoute == ContenidoBienvenida.CLIENTES,
+                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CLIENTES) }
             )
 
-            // Ítem STOCK
-            CustomNavIconButton(
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.STOCK) },
-                isSelected = currentRoute == ContenidoBienvenida.STOCK,
-                selectedBackgroundColor = selectedBackgroundColor,
-                unselectedBackgroundColor = unselectedBackgroundColor,
-                selectedIconColor = selectedIconColor,
-                unselectedIconColor = unselectedIconColor,
+            // Ítem STOCK (Inventario)
+            ExpandableNavItem(
+                label = "Inventario",
                 iconResId = R.drawable.outline_stacked_inbox_24,
-                contentDescription = "Stock"
+                isSelected = currentRoute == ContenidoBienvenida.STOCK,
+                onClick = { onContenidoSeleccionado(ContenidoBienvenida.STOCK) }
             )
 
             // Ítem CAJA
-            CustomNavIconButton(
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CAJA) },
-                isSelected = currentRoute == ContenidoBienvenida.CAJA,
-                selectedBackgroundColor = selectedBackgroundColor,
-                unselectedBackgroundColor = unselectedBackgroundColor,
-                selectedIconColor = selectedIconColor,
-                unselectedIconColor = unselectedIconColor,
+            ExpandableNavItem(
+                label = "Caja",
                 iconResId = R.drawable.outline_money_bag_24,
-                contentDescription = "Caja"
+                isSelected = currentRoute == ContenidoBienvenida.CAJA,
+                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CAJA) }
             )
         }
     }
 }
 
 @Composable
-private fun CustomNavIconButton(
-    onClick: () -> Unit,
-    isSelected: Boolean,
-    selectedBackgroundColor: Color,
-    unselectedBackgroundColor: Color,
-    selectedIconColor: Color,
-    unselectedIconColor: Color,
+private fun ExpandableNavItem(
+    label: String,
     @DrawableRes iconResId: Int,
-    contentDescription: String
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
-    val iconColor = if (isSelected) selectedIconColor else unselectedIconColor
+    // Animación de color de fondo (de transparente a morado)
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected) PurpleAccent else Color.Transparent,
+        animationSpec = tween(durationMillis = 300),
+        label = "pillBackground"
+    )
 
-    IconButton(
-        onClick = onClick,
+    // Animación de color de icono
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White else GrayInactive,
+        animationSpec = tween(durationMillis = 300),
+        label = "contentColor"
+    )
+
+    Row(
         modifier = Modifier
-            .size(60.dp) // Tamaño del área del botón
-            // Usamos .clip antes de .background para asegurar que el fondo respete la forma
-            .clip(CircleShape)
-            .background(color = backgroundColor) // Ya no se necesita el shape aquí debido al clip
-            // Opcional: añadir un borde si está seleccionado
-            .then(
-                if (isSelected) Modifier.border(
-                    2.dp,
-                    MaterialTheme.colorScheme.primary,
-                    CircleShape
-                )
-                else Modifier
-            )
+            .clip(RoundedCornerShape(24.dp))
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .animateContentSize(
+                animationSpec = tween(durationMillis = 300)
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         Icon(
             painter = painterResource(iconResId),
-            contentDescription = contentDescription,
-            modifier = Modifier.size(30.dp), // Tamaño del ícono en sí
-            tint = iconColor // Aplicar el color del ícono
+            contentDescription = label,
+            tint = contentColor,
+            modifier = Modifier.size(24.dp)
         )
+
+        AnimatedVisibility(
+            visible = isSelected,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = label,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+            }
+        }
     }
 }
 
-
-// --- Para el Preview ---
-@Preview(showBackground = true, name = "NavBottom Original Style Light")
+// --- Previews ---
+@Preview(showBackground = true, name = "NavBottom Expandible - Ventas Seleccionada")
 @Composable
-fun NavBottomOriginalStylePreviewLight() {
-    SodAppComposseTheme(darkTheme = false) {
-        var currentRoutePreview by remember { mutableStateOf(ContenidoBienvenida.VENTAS) }
+fun NavBottomExpandablePreview() {
+    var currentRoutePreview by remember { mutableStateOf(ContenidoBienvenida.VENTAS) }
+    SodAppComposseTheme {
         NavBottom(
             currentRoute = currentRoutePreview,
             onContenidoSeleccionado = { currentRoutePreview = it }
@@ -162,11 +160,11 @@ fun NavBottomOriginalStylePreviewLight() {
     }
 }
 
-@Preview(showBackground = true, name = "NavBottom Original Style Dark")
+@Preview(showBackground = true, name = "NavBottom Expandible - Clientes Seleccionada")
 @Composable
-fun NavBottomOriginalStylePreviewDark() {
-    SodAppComposseTheme(darkTheme = true) {
-        var currentRoutePreview by remember { mutableStateOf(ContenidoBienvenida.CLIENTES) }
+fun NavBottomExpandableClientsPreview() {
+    var currentRoutePreview by remember { mutableStateOf(ContenidoBienvenida.CLIENTES) }
+    SodAppComposseTheme {
         NavBottom(
             currentRoute = currentRoutePreview,
             onContenidoSeleccionado = { currentRoutePreview = it }

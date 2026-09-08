@@ -1,0 +1,8 @@
+- `[x]` Crear plan de implementación
+- `[/]` Modificar `NavBottom.kt` para el nuevo diseño expandible
+    - `[ ]` Definir constantes de color (Navy, Morado, Gris)
+    - `[ ]` Rediseñar `NavBottom` con fondo Navy
+    - `[ ]` Implementar `ExpandableNavItem` (reemplazo de `CustomNavIconButton`)
+    - `[ ]` Añadir animaciones de expansión y fade de texto
+- `[ ]` Verificar cambios y previsualizaciones
+- `[ ]` Crear walkthrough de la tarea
