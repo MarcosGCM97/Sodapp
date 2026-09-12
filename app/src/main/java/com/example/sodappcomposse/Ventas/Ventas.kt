@@ -39,9 +39,13 @@ import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Funciones.formatearPrecio
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 @Composable
 fun Ventas(
@@ -432,7 +436,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = stringResource(R.string.precio_item_format, producto.precio ?: 0.0),
+                        text = stringResource(R.string.precio_item_format, formatearPrecio(producto.precio ?: 0.0)),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(3.dp))
@@ -440,7 +444,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.total_format, totales.sumOf{ it ?: 0.0  }),
+                text = stringResource(R.string.total_format, formatearPrecio(totales.sumOf{ it ?: 0.0  })),
                 style = MaterialTheme
                     .typography.bodyMedium
                     .copy(fontWeight = FontWeight.Bold)
@@ -465,14 +469,15 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     }
 }
 
+@SuppressLint("StringFormatMatches")
 fun armarMensajeVentasWpp(context: Context, venta: VentaAgrupada, total : Double): String{
     val productosString = venta.productos.joinToString(
         separator = ", ",
         transform = { 
-            context.getString(R.string.wpp_producto_format, it.cantidad, it.nombre, it.precio)
+            context.getString(R.string.wpp_producto_format, it.cantidad, it.nombre, formatearPrecio(it.precio))
         }
     )
-    return context.getString(R.string.wpp_mensaje_ventas, productosString, total, venta.cliente?.deudaCl ?: 0.0)
+    return context.getString(R.string.wpp_mensaje_ventas, productosString, formatearPrecio(total), formatearPrecio(venta.cliente?.deudaCl))
 }
 
 @Composable

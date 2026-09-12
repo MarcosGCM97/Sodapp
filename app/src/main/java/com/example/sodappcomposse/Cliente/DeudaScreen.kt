@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
@@ -127,7 +128,7 @@ fun DeudaScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(stringResource(R.string.saldo_ventas_label), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.deuda_format, cliente.value?.deudaCl ?: 0.0))
+                        Text(stringResource(R.string.deuda_format, formatearPrecio(cliente.value?.deudaCl ?: 0.0)))
 
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -162,7 +163,7 @@ fun DeudaScreen(
                                         }
                                         val deudaActual = cliente.value?.deudaCl ?: 0.0
                                         if (monto > deudaActual) {
-                                            Toast.makeText(context, context.getString(R.string.monto_supera_deuda_msg, monto, deudaActual), Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.monto_supera_deuda_msg, formatearPrecio(monto), formatearPrecio(deudaActual)), Toast.LENGTH_SHORT).show()
                                             return@clickable
                                         }
 
@@ -204,7 +205,7 @@ fun DeudaScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Botón de WhatsApp
-                            CardWpp(context, cliente.value, context.getString(R.string.deuda_format, cliente.value?.deudaCl ?: 0.0))
+                            CardWpp(context, cliente.value, context.getString(R.string.deuda_format, formatearPrecio(cliente.value?.deudaCl ?: 0.0)))
 
                             // Botón de Llamada
                             Card(
@@ -302,7 +303,7 @@ fun DeudaScreen(
                                 Text(stringResource(R.string.producto_format, venta.producto))
                                 Text(stringResource(R.string.fecha_format, venta.fecha))
                                 Text(stringResource(R.string.cantidad_format, venta.cantidad))
-                                Text(stringResource(R.string.precio_format, venta.precio))
+                                Text(stringResource(R.string.precio_format, formatearPrecio(venta.precio)))
                             }
                             IconButton(
                                 onClick = {

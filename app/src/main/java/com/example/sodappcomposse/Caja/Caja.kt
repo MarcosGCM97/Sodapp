@@ -33,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Funciones.formatearPrecio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -154,7 +155,7 @@ fun CajaScreen(
                                     .fillMaxWidth()
                         )
                         Text(
-                            text = stringResource(R.string.formato_cantidad_pesos, ventaXprod.cantidad, ventaXprod.precio),
+                            text = stringResource(R.string.formato_cantidad_pesos, ventaXprod.cantidad, formatearPrecio(ventaXprod.precio)),
                             color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                     .padding(6.dp)
@@ -172,7 +173,7 @@ fun CajaScreen(
                         contentAlignment = Alignment.Center
                     ){
                         Text(
-                            text = stringResource(R.string.formato_total_ventas, cajaTotales.montoTotal),
+                            text = stringResource(R.string.formato_total_ventas, formatearPrecio(cajaTotales.montoTotal)),
                             modifier = Modifier.padding(16.dp),
                         )
                     }

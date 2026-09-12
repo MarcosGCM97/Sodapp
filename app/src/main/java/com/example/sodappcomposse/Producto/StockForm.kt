@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Funciones.formatearPrecio
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
@@ -210,7 +211,7 @@ fun CardProductoInventario(
 
             // Precio
             Text(
-                text = stringResource(R.string.precio_format, producto.precioUni),
+                text = stringResource(R.string.precio_format, formatearPrecio(producto.precioUni)),
                 style = MaterialTheme.typography.bodyMedium
             )
 

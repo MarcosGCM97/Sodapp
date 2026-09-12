@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.ProductoEditar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -212,7 +213,7 @@ fun BuscarProducto(
             ) {
                 Text(stringResource(R.string.detalles_producto_titulo), style = MaterialTheme.typography.titleMedium)
                 Text(stringResource(R.string.nombre_format, producto.nombrePr))
-                Text(stringResource(R.string.precio_format, producto.precioUni))
+                Text(stringResource(R.string.precio_format, formatearPrecio(producto.precioUni)))
                 Text(stringResource(R.string.cantidad_format, producto.stock))
 
                 Spacer(modifier = Modifier.height(8.dp))

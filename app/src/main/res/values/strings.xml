@@ -8,8 +8,8 @@
     <string name="ver_caja_mes">Ver caja del mes</string>
     <string name="cargando_caja">Cargando datos de la caja...</string>
     <string name="formato_producto_item">%1$s: </string>
-    <string name="formato_cantidad_pesos">Cantidad: %1$d        Pesos: $%2$.2f</string>
-    <string name="formato_total_ventas">Total de las Ventas: $%1$.2f</string>
+    <string name="formato_cantidad_pesos">Cantidad: %1$d        Pesos: $%2$s</string>
+    <string name="formato_total_ventas">Total de las Ventas: $%1$s</string>
     <string name="esperando_datos">Esperando datos…</string>
 
     <!-- Cliente -->
@@ -23,7 +23,7 @@
     <string name="nombre_format">Nombre: %1$s</string>
     <string name="direccion_format">Dirección: %1$s</string>
     <string name="telefono_format">Teléfono: %1$s</string>
-    <string name="deuda_format">Deuda: $%1$.2f</string>
+    <string name="deuda_format">Deuda: $%1$s</string>
     <string name="editar_desc">Editar</string>
     <string name="deuda_desc">Deuda</string>
     <string name="agendar_desc">Agendar</string>
@@ -45,7 +45,7 @@
     <string name="pagar_deuda_titulo">Pagar deuda</string>
     <string name="ingrese_monto_label">Ingrese monto</string>
     <string name="monto_invalido_msg">Ingrese un monto válido mayor a cero</string>
-    <string name="monto_supera_deuda_msg">El monto (%1$.2f) supera la deuda actual (%2$.2f)</string>
+    <string name="monto_supera_deuda_msg">El monto (%1$s) supera la deuda actual (%2$s)</string>
     <string name="saldar_label">Saldar</string>
     <string name="llamar_desc">Llamar</string>
     <string name="cargando_cliente">Cargando datos del cliente…</string>
@@ -53,7 +53,7 @@
     <string name="producto_format">Producto: %1$s</string>
     <string name="fecha_format">Fecha: %1$s</string>
     <string name="cantidad_format">Cantidad: %1$d</string>
-    <string name="precio_format">Precio: $%1$.2f</string>
+    <string name="precio_format">Precio: $%1$s</string>
     <string name="cargar_ventas_previas">Cargar ventas previas del cliente.</string>
 
     <!-- Días de la semana -->
@@ -113,13 +113,13 @@
     <string name="productos_titulo">Productos:</string>
     <string name="producto_item_format">- %1$s</string>
     <string name="cantidad_item_format">-Cantidad: %1$d</string>
-    <string name="precio_item_format">-Precio x 1: $%1$.2f</string>
-    <string name="total_format">Total: $%1$.2f</string>
+    <string name="precio_item_format">-Precio x 1: $%1$s</string>
+    <string name="total_format">Total: $%1$s</string>
     <string name="cantidad_total_items_format">Cantidad Total de Items: %1$d</string>
     <string name="disminuir_cantidad_desc">Disminuir cantidad</string>
     <string name="aumentar_cantidad_desc">Aumentar cantidad</string>
-    <string name="wpp_mensaje_ventas">Tu compra fue de %1$s, por un total de $%2$.2f. Acumulando una deuda de $%3$.2f. *Gracias por tu compra!*</string>
-    <string name="wpp_producto_format">%1$d %2$s por $%3$.2f c/u</string>
+    <string name="wpp_mensaje_ventas">Tu compra fue de %1$s, por un total de $%2$s. Acumulando una deuda de $%3$s. *Gracias por tu compra!*</string>
+    <string name="wpp_producto_format">%1$d %2$s por $%3$s c/u</string>
 
     <!-- Mensajes de UiState (ViewModels) -->
     <string name="error_red_verificar">Error de Red: Verifica tu conexión.</string>
