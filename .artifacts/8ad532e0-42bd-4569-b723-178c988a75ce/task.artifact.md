@@ -1,19 +1,11 @@
-# Tareas: Implementación de Modo Oscuro Manual
+# Tareas: Corrección de Persistencia y Refinamiento del FAB
 
-- [ ] `[/]` Core Logic & Persistence
-    - [ ] `[/]` Actualizar `UserPreferencesRepository` con claves de tema
-    - [ ] `[x]` Crear `ThemeViewModel` (ya iniciado, corregir errores)
-    - [ ] [ ] Ajustar `Theme.kt` para soportar selección manual y corregir lógica
-- [ ] [ ] Componentes UI
-    - [ ] [ ] Crear `ThemeToggleFAB`
-    - [ ] [ ] Ajustar `NavBottom.kt` (quitar colores hardcodeados)
-    - [ ] [ ] Ajustar `Encabezado.kt` (quitar colores hardcodeados)
-- [ ] [ ] Integración en Pantallas
-    - [ ] [ ] Inyectar `ThemeViewModel` en `MainActivity`
-    - [ ] [ ] Agregar FAB a `BienvenidaScreen`
-    - [ ] [ ] Agregar FAB a `ScreenWithBackButtonWrapper`
-    - [ ] [ ] Agregar FAB a `LoginScreen`
-- [ ] [ ] Verificación
-    - [ ] [ ] Probar persistencia
-    - [ ] [ ] Probar independencia del sistema
-    - [ ] [ ] Probar UI en todas las pantallas
+- [x] Core UI & Theme Persistence
+    - [x] Actualizar `MainActivity.kt` para observación global del tema
+    - [x] Limpiar `SodAppComposseTheme` en `LoginScreen.kt`
+- [x] Refinamiento del FAB
+    - [x] Reducir tamaño (usar `SmallFloatingActionButton`)
+    - [x] Ajustar posición (reducir padding inferior)
+- [x] Verificación Final
+    - [ ] [ ] Probar flujo Login -> Home (Persistencia)
+    - [ ] [ ] Validar estética del FAB

@@ -6,6 +6,7 @@ Se ha implementado con éxito la nueva barra de navegación inferior con estilo 
 
 ### UI y Diseño
 - **NavBottom.kt**: Se rediseñó completamente el componente para usar un fondo Navy (`#1E2A38`).
+- **Soporte Edge-to-Edge**: Se añadió `navigationBarsPadding()` para evitar que la barra se superponga con los botones de navegación del sistema (Back/Home/Recents), y se aumentó el padding vertical a `20.dp` para mejorar la visibilidad.
 - **ExpandableNavItem**: Nuevo componente interno que reemplaza a los botones circulares anteriores. Utiliza `animateContentSize` para expandirse suavemente cuando se selecciona.
 - **Animaciones**:
     - **Ancho**: Transición suave al expandirse para mostrar el texto.

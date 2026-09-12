@@ -1,3 +1,3 @@
-- `[ ]` Sincronizar `productosParaDropDown` en `ProductoViewModel.getProductos()`
-- `[ ]` Verificar consistencia en `editarProducto`
-- `[ ]` Crear walkthrough de la solución
+- `[x]` Sincronizar `productosParaDropDown` en `ProductoViewModel.getProductos()`
+- `[x]` Verificar consistencia en `editarProducto`
+- `[x]` Crear walkthrough de la solución
