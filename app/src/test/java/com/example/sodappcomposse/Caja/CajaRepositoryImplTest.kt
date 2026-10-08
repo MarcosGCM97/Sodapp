@@ -7,7 +7,9 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -54,6 +56,39 @@ class CajaRepositoryImplTest {
         // Assert
         assertTrue(result is CajaResult.Error)
         assertEquals(R.string.no_ventas_mes_error, (result as CajaResult.Error).messageRes)
+    }
+
+    @Test
+    fun `getCajaPorMes returns Success with empty list when month has no sales`() = runTest {
+        coEvery { apiServices.getCajaPorMes(2) } returns Response.success(
+            DataCajaResponse(success = true, caja = emptyList())
+        )
+
+        val result = repository.getCajaPorMes(2)
+
+        assertTrue(result is CajaResult.Success)
+        assertEquals(emptyList<Venta>(), (result as CajaResult.Success).data.caja)
+    }
+
+    @Test
+    fun `getCajaPorMes returns Success with empty list when caja is null`() = runTest {
+        coEvery { apiServices.getCajaPorMes(2) } returns Response.success(
+            DataCajaResponse(success = true, caja = null)
+        )
+
+        val result = repository.getCajaPorMes(2)
+
+        assertTrue(result is CajaResult.Success)
+        assertEquals(emptyList<Venta>(), (result as CajaResult.Success).data.caja)
+    }
+
+    @Test
+    fun `getCajaPorMes rethrows cancellation instead of mapping it to Error`() {
+        coEvery { apiServices.getCajaPorMes(1) } throws CancellationException("cancelled")
+
+        assertThrows(CancellationException::class.java) {
+            kotlinx.coroutines.runBlocking { repository.getCajaPorMes(1) }
+        }
     }
 
     @Test
