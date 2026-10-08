@@ -173,6 +173,8 @@ class VentasViewModel @Inject constructor(
 
         when (val result = ventaRepository.postVenta(ventaParaApi)) {
             is VentaResult.Success -> {
+                // The backend updated the client's debt; drop the stale cached client list
+                clienteRepository.clearCache()
                 ventasUiState = VentasUiState.Success(R.string.venta_procesada_success)
             }
             is VentaResult.Error -> {
