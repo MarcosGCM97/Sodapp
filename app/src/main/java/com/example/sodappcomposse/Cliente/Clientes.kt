@@ -363,12 +363,18 @@ fun BuscarCliente(
                         mostrarDialogoAgenda = false
                         if (clienteSeleccionado != null) {
                             // Convertir el Set a una List o un formato que tu ViewModel espere
-                            agendaModel.updateDiasEntrega( // Nombre de función actualizado
-                                clienteSeleccionado?.idCl,
-                                diasSeleccionadosAgenda.toList() // Enviar como lista
-                            )
+                            val nombreCliente = clienteSeleccionado?.nombreCl
                             val textoDias = if (diasSeleccionadosAgenda.isEmpty()) "ningún día" else diasSeleccionadosAgenda.joinToString()
-                            Toast.makeText(context, context.getString(R.string.visita_agendada_msg, clienteSeleccionado?.nombreCl, textoDias), Toast.LENGTH_LONG).show()
+                            // Show feedback only once the backend answers
+                            agendaModel.updateDiasEntrega(
+                                clienteSeleccionado?.idCl,
+                                diasSeleccionadosAgenda.toList()
+                            ) { result ->
+                                when (result) {
+                                    is AgendaResult.Success -> Toast.makeText(context, context.getString(R.string.visita_agendada_msg, nombreCliente, textoDias), Toast.LENGTH_LONG).show()
+                                    is AgendaResult.Error -> Toast.makeText(context, context.getString(result.messageRes, *result.args), Toast.LENGTH_LONG).show()
+                                }
+                            }
                         } else {
                             Toast.makeText(context, context.getString(R.string.error_cliente_no_seleccionado), Toast.LENGTH_SHORT).show()
                         }
