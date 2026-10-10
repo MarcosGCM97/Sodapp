@@ -6,6 +6,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -85,7 +86,11 @@ class AgendaViewModel @Inject constructor(
         }
     }
 
-    fun updateDiasEntrega(clienteId: Int?, diasSeleccionados: List<String>) {
+    fun updateDiasEntrega(
+        clienteId: Int?,
+        diasSeleccionados: List<String>,
+        onResult: (AgendaResult<PostResponse>) -> Unit = {}
+    ) {
         if (clienteId == null) return
         
         _uiState.value = AgendaUiState.Loading
@@ -110,14 +115,18 @@ class AgendaViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            when (val result = agendaRepository.updateDiasEntrega(diasEntregaRequest)) {
+            val result = agendaRepository.updateDiasEntrega(diasEntregaRequest)
+            when (result) {
                 is AgendaResult.Success -> {
-                    _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success) 
+                    _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success)
+                    // Reload from the backend so the dialog reflects what was actually saved
+                    getDiasEntregaById(clienteId)
                 }
                 is AgendaResult.Error -> {
                     _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
                 }
             }
+            onResult(result)
         }
     }
 }
