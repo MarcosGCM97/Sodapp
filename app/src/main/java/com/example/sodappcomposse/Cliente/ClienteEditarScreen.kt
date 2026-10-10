@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -125,9 +127,11 @@ fun ClienteEditarScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val guardando = editarUiState is AddClienteUiState.Loading
             Button(
                 modifier = Modifier
                     .width(200.dp),
+                enabled = !guardando,
                 onClick = {
                     val clienteEditado = Cliente(
                         idCl = clienteElegido?.idCl ?: 0,
@@ -140,7 +144,14 @@ fun ClienteEditarScreen(
                     clienteModel.editarCliente(clienteEditado)
                 }
             ) {
-                Text(stringResource(R.string.guardar_label))
+                if (guardando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(stringResource(R.string.guardar_label))
+                }
             }
         }
     }

@@ -169,6 +169,9 @@ class ClientesViewModel @Inject constructor(
 
     // Funciones para la lógica de edición (ejemplos)
     fun editarCliente(cliente: Cliente) {
+        // Ignore repeated taps while an update is already in flight
+        if (_addClienteUiState.value is AddClienteUiState.Loading) return
+        _addClienteUiState.value = AddClienteUiState.Loading
         viewModelScope.launch {
             when (val result = clienteRepository.updateCliente(
                 cliente
