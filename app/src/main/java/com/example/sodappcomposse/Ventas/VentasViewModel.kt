@@ -167,18 +167,21 @@ class VentasViewModel @Inject constructor(
         }
     }
 
-    internal suspend fun postVenta(clienteId: Int, productos: List<ProductoVenta>){
+    /** Returns true only when the backend accepted the sale. */
+    internal suspend fun postVenta(clienteId: Int, productos: List<ProductoVenta>): Boolean {
         val idUsuario = userPreferencesRepository.userId.first() ?: "0"
         val ventaParaApi = VentaRequest(clienteId, productos, idUsuario)
 
-        when (val result = ventaRepository.postVenta(ventaParaApi)) {
+        return when (val result = ventaRepository.postVenta(ventaParaApi)) {
             is VentaResult.Success -> {
                 // The backend updated the client's debt; drop the stale cached client list
                 clienteRepository.clearCache()
                 ventasUiState = VentasUiState.Success(R.string.venta_procesada_success)
+                true
             }
             is VentaResult.Error -> {
                 ventasUiState = VentasUiState.Error(result.messageRes, result.args)
+                false
             }
         }
     }

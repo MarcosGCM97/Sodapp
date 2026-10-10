@@ -340,10 +340,19 @@ fun AddVentaForm(
                 scope.launch {
                     try {
                         // 1. Ejecuta la petición al backend (dentro de la corrutina)
-                        ventaModel.postVenta(
+                        val guardada = ventaModel.postVenta(
                             clienteId = clienteParaVenta.value!!.idCl,
                             productos = productosParaVenta.toList() // toList() crea una copia estable para la API
                         )
+
+                        // Si el backend rechazó la venta, avisar y conservar el formulario
+                        val estado = ventaModel.ventasUiState
+                        if (!guardada) {
+                            if (estado is VentasUiState.Error) {
+                                Toast.makeText(context, context.getString(estado.messageRes, *estado.args), Toast.LENGTH_LONG).show()
+                            }
+                            return@launch
+                        }
 
                         // 2. Refresca la lista de ventas
                         ventaModel.getVentas()
