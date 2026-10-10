@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -71,16 +72,28 @@ class AgendaViewModel @Inject constructor(
         }
     }
 
+    // Client whose delivery days are currently requested; results for any other client are stale
+    private var clienteSolicitadoId: Int? = null
+    private var cargaDiasJob: Job? = null
+
     fun getDiasEntregaById(idCl: Int) {
-        _uiState.value = AgendaUiState.Loading
-        viewModelScope.launch {
-            when (val result = agendaRepository.getDiasEntregaById(idCl)) {
+        cargarDiasEntregaById(idCl, reportarEstado = true)
+    }
+
+    private fun cargarDiasEntregaById(idCl: Int, reportarEstado: Boolean) {
+        cargaDiasJob?.cancel()
+        clienteSolicitadoId = idCl
+        if (reportarEstado) _uiState.value = AgendaUiState.Loading
+        cargaDiasJob = viewModelScope.launch {
+            val result = agendaRepository.getDiasEntregaById(idCl)
+            if (clienteSolicitadoId != idCl) return@launch
+            when (result) {
                 is AgendaResult.Success -> {
                     diasEntregaById.value = result.data.diasEntrega
-                    _uiState.value = AgendaUiState.Success(R.string.datos_cargados_success)
+                    if (reportarEstado) _uiState.value = AgendaUiState.Success(R.string.datos_cargados_success)
                 }
                 is AgendaResult.Error -> {
-                    _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
+                    if (reportarEstado) _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
                 }
             }
         }
@@ -119,8 +132,12 @@ class AgendaViewModel @Inject constructor(
             when (result) {
                 is AgendaResult.Success -> {
                     _uiState.value = AgendaUiState.Success(R.string.venta_procesada_success)
-                    // Reload from the backend so the dialog reflects what was actually saved
-                    getDiasEntregaById(clienteId)
+                    // Reload from the backend so the dialog reflects what was actually saved,
+                    // unless another client was selected meanwhile. The reload is silent so a
+                    // failure there does not hide the save result.
+                    if (clienteSolicitadoId == null || clienteSolicitadoId == clienteId) {
+                        cargarDiasEntregaById(clienteId, reportarEstado = false)
+                    }
                 }
                 is AgendaResult.Error -> {
                     _uiState.value = AgendaUiState.Error(result.messageRes, result.args)
