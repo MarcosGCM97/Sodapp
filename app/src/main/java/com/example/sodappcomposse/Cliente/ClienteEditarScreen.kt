@@ -2,6 +2,7 @@ package com.example.sodappcomposse.Cliente
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,23 @@ fun ClienteEditarScreen(
             nombreCliente = it.nombreCl
             telCliente = it.numTelCl
             dirCliente = it.direccionCl
+        }
+    }
+
+    // Leave the screen only after the backend confirms the update; popping earlier
+    // clears this ViewModel and cancels the request in flight
+    val editarUiState = clienteModel.addClienteUiState.value
+    LaunchedEffect(editarUiState) {
+        when (editarUiState) {
+            is AddClienteUiState.Success -> {
+                clienteModel.resetAddClienteState()
+                navController.popBackStack()
+            }
+            is AddClienteUiState.Error -> {
+                Toast.makeText(contexto, contexto.getString(editarUiState.messageRes, *editarUiState.args), Toast.LENGTH_SHORT).show()
+                clienteModel.resetAddClienteState()
+            }
+            else -> Unit
         }
     }
 
@@ -118,8 +136,8 @@ fun ClienteEditarScreen(
                         direccionCl = dirCliente,
                         deudaCl = clienteElegido?.deudaCl ?: 0.0
                     )
+                    // Navigation happens in the LaunchedEffect once the update succeeds
                     clienteModel.editarCliente(clienteEditado)
-                    navController.popBackStack()
                 }
             ) {
                 Text(stringResource(R.string.guardar_label))

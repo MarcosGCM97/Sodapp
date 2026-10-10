@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Cliente
 
+import android.util.Log
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
@@ -34,6 +35,8 @@ interface AgendaRepository {
 class AgendaRepositoryImpl @Inject constructor(
     private val apiServices: ApiServices
 ) : AgendaRepository {
+    private val TAG = "AgendaRepository"
+
     override suspend fun getDiasEntrega(): AgendaResult<TodosLosDias> = handleApiCall {
         apiServices.getDiasEntrega()
     }
@@ -60,10 +63,14 @@ class AgendaRepositoryImpl @Inject constructor(
                 AgendaResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
             }
         } catch (e: IOException) {
+            // Also catches unreadable response bodies (e.g. MalformedJsonException, EOFException)
+            Log.e(TAG, "Agenda request failed", e)
             AgendaResult.Error(R.string.error_red_verificar)
         } catch (e: HttpException) {
+            Log.e(TAG, "Agenda request failed", e)
             AgendaResult.Error(R.string.error_http_format, arrayOf(e.code()))
         } catch (e: Exception) {
+            Log.e(TAG, "Agenda request failed", e)
             AgendaResult.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
         }
     }

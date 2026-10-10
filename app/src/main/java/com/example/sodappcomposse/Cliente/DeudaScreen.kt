@@ -86,6 +86,22 @@ fun DeudaScreen(
             navController.popBackStack()
         }
     }
+    // Refresh the client only after the debt update has finished on the backend
+    val deudaUiState = deudaModel.uiState.value
+    LaunchedEffect(deudaUiState) {
+        when (deudaUiState) {
+            is DeudaUiState.Success -> {
+                clienteModel.getClienteById(clienteId.toString())
+                deudaModel.resetState()
+            }
+            is DeudaUiState.Error -> {
+                Toast.makeText(context, context.getString(deudaUiState.messageRes, *deudaUiState.args), Toast.LENGTH_SHORT).show()
+                deudaModel.resetState()
+            }
+            else -> Unit
+        }
+    }
+
     val cliente = clienteModel.clienteById // Manteniendo tu estructura actual por ahora
 
     val ventasDelCliente = ventaModel.ventasPorClienteId
@@ -172,7 +188,6 @@ fun DeudaScreen(
                                             monto
                                         )
                                         pagarMonto = ""
-                                        clienteModel.getClienteById(clienteId.toString())
                                     },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(
