@@ -22,7 +22,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug builds talk to the test API folder on the server
+            buildConfigField("String", "API_PATH", "\"api_2/\"")
+        }
         release {
+            buildConfigField("String", "API_PATH", "\"api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

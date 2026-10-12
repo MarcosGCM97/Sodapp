@@ -9,7 +9,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "http://www.aplicaciones-servicios-1997.site/"
+    // API_PATH is "api_2/" for debug builds and "api/" for release builds
+    private const val BASE_URL = "http://www.aplicaciones-servicios-1997.site/" + BuildConfig.API_PATH
 
     // Interceptor para logs (solo en modo DEBUG)
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

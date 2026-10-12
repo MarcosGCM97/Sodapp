@@ -27,7 +27,7 @@ import retrofit2.http.PUT
 //TOKEN PARA GITHUB EXPIRA EN &= DIAS DESDE EL 20/07/25
 interface ApiServices {
 
-    @POST("api/login.php")
+    @POST("login.php")
     suspend fun login(
         @Body usuarioRequest: UsuarioRequest
     ): Response<UsuarioResponse>
@@ -36,41 +36,41 @@ interface ApiServices {
     //suspend fun getUsuario(): Response<Usuario>
 
     //{"cl_ide":"14","cl_nom":"Agust\u00edn brocca","cl_dir":"s\/n","cl_tel":"3513476902","cl_deb":"4500","cl_emp":"Ariza"}
-    @GET("api/clientes.php")
+    @GET("clientes.php")
     suspend fun getClientes(): Response<ClienteResponse>
 
-    @GET("api/clientes.php")
+    @GET("clientes.php")
     suspend fun getClienteById(@Query("id") id: Int): Response<ClienteResponseById>
 
-    @DELETE("api/clientes.php")
+    @DELETE("clientes.php")
     suspend fun eliminarCliente(@Query("id") id: Int): Response<PostResponse>
 
-    @POST("api/clientes.php")
+    @POST("clientes.php")
     suspend fun postCliente(
         @Body clienteRequest: ClienteRequest
     ): Response<PostResponse>
 
-    @PUT("api/clientes.php")
+    @PUT("clientes.php")
     suspend fun updateCliente(
         @Body cliente: Cliente
     ): Response<PostResponse>
 
     /*"pr_ide":"1","pr_nom":"vidon de agua","pr_val":"4500.00","pr_stk":"1","pr_emp":"Ariza","created_at":null,"updated_at":null*/
-    @GET("api/productos.php")
+    @GET("productos.php")
     suspend fun getProductos(): Response<ProductoResponse>
 
-    @GET("api/productos.php")
+    @GET("productos.php")
     suspend fun getProductoByName(@Query("nombre") nombre: String): Response<ProductoResponseByName>
 
-    @DELETE("api/productos.php")
+    @DELETE("productos.php")
     suspend fun deleteProducto(@Query("nombre") nombre: String): Response<PostResponse>
 
-    @POST("api/productos.php")
+    @POST("productos.php")
     suspend fun postProducto(
         @Body productoRequest: ProductoRequest
     ): Response<PostResponse>
 
-    @PUT("api/productos.php")
+    @PUT("productos.php")
     suspend fun updateProducto(
         @Query("nombre") nombre: String,
         @Query("precio") precio: Double,
@@ -78,44 +78,44 @@ interface ApiServices {
     ): Response<PostResponse>
 
 /*cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide*/
-    @GET("api/ventas.php")
+    @GET("ventas.php")
     suspend fun getVentas(
         @Query("usuarioId") usuarioId: String
     ): Response<VentaApiResponse>
 
-    @GET("api/ventas.php")
+    @GET("ventas.php")
     suspend fun getVentasByClienteId(
         @Query("id") id: Int,
         @Query("usuarioId") usuarioId: String
     ): Response<VentaApiResponseById>
 
-    @POST("api/ventas.php")
+    @POST("ventas.php")
     suspend fun postVenta(
         @Body ventaRequest: VentaRequest
     ): Response<PostResponse>
 
-    @DELETE("api/ventas.php")
+    @DELETE("ventas.php")
     suspend fun deleteVenta(
         @Query("id") id: Int?,
         //@Query("cantidad") cantidad: Int
     ): Response<PostResponse>
 
-    @PUT("api/deudaCliente.php")
+    @PUT("deudaCliente.php")
     suspend fun updateDeudaCliente(
         @Query("id") id: Int,
         @Query("deuda") deuda: Double?
     ): Response<PostResponse>
 
-    @GET("api/cajaMes.php")
+    @GET("cajaMes.php")
     suspend fun getCajaPorMes(@Query("mes") mes: Int): Response<DataCajaResponse>
 
-    @GET("api/dias.php")
+    @GET("dias.php")
     suspend fun getDiasEntrega(): Response<TodosLosDias>
 
-    @GET("api/dias.php")
+    @GET("dias.php")
     suspend fun getDiasEntregaById(@Query("id") id: Int): Response<DiasEntregaByid>
 
-    @PUT("api/dias.php")
+    @PUT("dias.php")
     suspend fun updateDiasEntrega(
         @Body diasEntrega: DiasEntregaUpdateRequest
     ): Response<PostResponse>
