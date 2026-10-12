@@ -14,5 +14,5 @@ data class DataCajaResponse(
 data class CantidadDeVentasPorProducto(
     val producto: String,
     val cantidad: Int,
-    val precio: Double
+    val monto: Double
 )

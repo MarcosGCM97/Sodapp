@@ -2,6 +2,7 @@ package com.example.sodappcomposse.Caja
 
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.R
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -37,8 +38,9 @@ class CajaRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    if (body.success == true && !body.caja.isNullOrEmpty()) {
-                        CajaResult.Success(body)
+                    if (body.success == true) {
+                        // An empty month is a valid result, not an error
+                        CajaResult.Success(body.copy(caja = body.caja ?: emptyList()))
                     } else {
                         CajaResult.Error(R.string.no_ventas_mes_error)
                     }
@@ -48,6 +50,8 @@ class CajaRepositoryImpl @Inject constructor(
             } else {
                 CajaResult.Error(R.string.error_api_format, arrayOf(response.code()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             CajaResult.Error(R.string.error_red_format, arrayOf(e.message?.take(100) ?: ""))
         } catch (e: HttpException) {
