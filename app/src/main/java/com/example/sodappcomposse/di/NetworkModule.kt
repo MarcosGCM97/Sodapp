@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.RetrofitInstance
 import com.example.sodappcomposse.UserPreferencesRepository
+import com.example.sodappcomposse.auth.AuthInterceptor
+import com.example.sodappcomposse.auth.AuthSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,8 +19,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideApiServices(): ApiServices {
-        return RetrofitInstance.api
+    fun provideAuthInterceptor(authSession: AuthSession): AuthInterceptor {
+        return AuthInterceptor(authSession)
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiServices(authInterceptor: AuthInterceptor): ApiServices {
+        return RetrofitInstance.create(authInterceptor)
     }
 
     @Provides

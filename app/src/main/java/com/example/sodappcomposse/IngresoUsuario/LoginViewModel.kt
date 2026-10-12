@@ -9,8 +9,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.API.UsuarioResponse
+import com.example.sodappcomposse.Cliente.ClienteRepository
+import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.UserPreferencesRepository
+import com.example.sodappcomposse.auth.AuthSession
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import dagger.hilt.android.lifecycle.HiltViewModel // IMPORTANTE
@@ -52,11 +55,17 @@ sealed interface LoginUiState {
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val authSession: AuthSession,
+    private val clienteRepository: ClienteRepository,
+    private val productoRepository: ProductoRepository
 ) : ViewModel() {
     private val TAG = "UsuarioViewModel"
 
     val isLoggedIn = userPreferencesRepository.isLoggedIn
+
+    // True when the server rejected the session token (401); observed by the navigation layer
+    val sessionExpired = authSession.sessionExpired
 
     var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
         private set
@@ -76,11 +85,19 @@ class LoginViewModel @Inject constructor(
             when (val result = authRepository.login(userLogin)) {
                 is AuthResult.Success -> {
                     val usuarioApi = result.data
-                    if(usuarioApi.success){
-                        userPreferencesRepository.saveUserData(usuarioApi.token.idUs.toString(), usuarioApi.token.nombreUs)
-                        loginUiState = LoginUiState.Success(R.string.excepcion_format, arrayOf(usuarioApi.message))
-                    } else {
-                        loginUiState = LoginUiState.Error(R.string.error_simple_format, arrayOf(usuarioApi.message))
+                    val usuario = usuarioApi.usuario
+                    val token = usuarioApi.token
+                    loginUiState = when {
+                        !usuarioApi.success ->
+                            LoginUiState.Error(R.string.error_simple_format, arrayOf(usuarioApi.message))
+                        usuario == null || token.isNullOrBlank() ->
+                            LoginUiState.Error(R.string.error_simple_format, arrayOf("respuesta de login sin sesión"))
+                        else -> {
+                            // A different user may log in: never reuse data cached for the previous one
+                            clearCachedUserData()
+                            authSession.startSession(usuario.idUs.toString(), usuario.nombreUs, token)
+                            LoginUiState.Success(R.string.excepcion_format, arrayOf(usuarioApi.message))
+                        }
                     }
                 }
                 is AuthResult.Error -> {
@@ -97,9 +114,18 @@ class LoginViewModel @Inject constructor(
     }
 
     fun logout() {
+        clearCachedUserData()
+        resetLoginState()
         viewModelScope.launch {
-            userPreferencesRepository.clearUserData()
-            resetLoginState()
+            authSession.endSession()
         }
+    }
+
+    // Called when the server answered 401: same cleanup as an explicit logout
+    fun onSessionExpired() = logout()
+
+    private fun clearCachedUserData() {
+        clienteRepository.clearCache()
+        productoRepository.clearCache()
     }
 }

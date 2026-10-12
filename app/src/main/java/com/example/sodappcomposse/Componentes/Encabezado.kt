@@ -20,8 +20,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.azulFuerte
 
@@ -29,8 +27,8 @@ import com.example.sodappcomposse.ui.theme.azulFuerte
 @Composable
 fun Encabezado(
     nombre: String,
-    navLogin: () -> Unit,
-    loginModel: LoginViewModel = hiltViewModel()
+    // Ends the session and goes back to login (handled by the Navigator)
+    navLogin: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -71,10 +69,7 @@ fun Encabezado(
         )
 
         TextButton(
-            onClick = {
-                loginModel.logout()
-                navLogin()
-            },
+            onClick = navLogin,
             modifier = Modifier
                 .width(70.dp)
         ) {

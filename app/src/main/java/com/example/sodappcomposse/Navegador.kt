@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -55,9 +58,21 @@ fun Navigator(
         return
     }
 
+    // Fixed once the session state is known, so clearing the session later does not rebuild the graph
+    val startDestination: Any = remember { if (isLoggedIn == true) Bienvenida("") else Login }
+
+    val sessionExpired by loginViewModel.sessionExpired.collectAsState()
+    LaunchedEffect(sessionExpired) {
+        // sessionExpired only flips back to false on the next login, so several 401s navigate once
+        if (sessionExpired) {
+            loginViewModel.onSessionExpired()
+            navController.navigateToLoginClearingBackStack()
+        }
+    }
+
     NavHost(
         navController = navController, 
-        startDestination = if (isLoggedIn == true) Bienvenida("") else Login
+        startDestination = startDestination
     ){
         composable<Login> {
             LoginScreen { nombre ->
@@ -72,9 +87,9 @@ fun Navigator(
             BienvenidaScreen(
                 nombreUser = route.nombre,
                 navLogin = {
-                    navController.navigate(Login) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    // Logout runs in the activity-scoped ViewModel so popping this screen cannot cancel it
+                    loginViewModel.logout()
+                    navController.navigateToLoginClearingBackStack()
                 },
                 navController = navController
             )
@@ -98,5 +113,13 @@ fun Navigator(
         composable<Agenda> {
             AgendaScreen(navController = navController)
         }
+    }
+}
+
+// Pops every screen so their ViewModels (and the previous user's data) are cleared
+private fun NavHostController.navigateToLoginClearingBackStack() {
+    navigate(Login) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
     }
 }

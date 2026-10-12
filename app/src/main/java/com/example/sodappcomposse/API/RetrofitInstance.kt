@@ -1,37 +1,43 @@
 package com.example.sodappcomposse.API
 
-import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.BuildConfig
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Builds the single [ApiServices] client of the app. It is created through Hilt
+ * (see di/NetworkModule) so the auth interceptor can be injected.
+ */
 object RetrofitInstance {
 
     // API_PATH is "api_2/" for debug builds and "api/" for release builds
     private const val BASE_URL = "http://www.aplicaciones-servicios-1997.site/" + BuildConfig.API_PATH
 
-    // Interceptor para logs (solo en modo DEBUG)
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BODY
-        } else {
-            HttpLoggingInterceptor.Level.NONE
+    fun create(authInterceptor: Interceptor): ApiServices {
+        // Interceptor para logs (solo en modo DEBUG)
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+            // Never log the session token
+            redactHeader("Authorization")
         }
-    }
 
-    private val httpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor) // Añadir el interceptor
-        .build()
-
-    // Creación de la instancia de Retrofit (lazy para que se cree solo cuando se necesite)
-    val api: ApiServices by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient) // Usar el cliente OkHttp configurado
-            .addConverterFactory(GsonConverterFactory.create()) // Especificar el convertidor JSON
+        val httpClient = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
             .build()
-            .create(com.example.sodappcomposse.API.ApiServices::class.java) // Crear la implementación de tu interfaz ApiService
+
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(httpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiServices::class.java)
     }
 }
