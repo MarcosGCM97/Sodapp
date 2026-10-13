@@ -54,6 +54,22 @@ class DeudaViewModelTest {
     }
 
     @Test
+    fun `pagarDeudaCliente ignores new payments until the screen resets after a success`() = runTest {
+        coEvery { repository.updateDeudaCliente(7, any()) } returns ClienteResult.Success(PostResponse(true, "ok"))
+
+        viewModel.pagarDeudaCliente(7, 500.0)
+        advanceUntilIdle()
+        viewModel.pagarDeudaCliente(7, 300.0)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, any()) }
+
+        viewModel.resetState()
+        viewModel.pagarDeudaCliente(7, 300.0)
+        advanceUntilIdle()
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 300.0) }
+    }
+
+    @Test
     fun `pagarDeudaCliente can pay again after the previous payment failed`() = runTest {
         coEvery { repository.updateDeudaCliente(7, 500.0) } returns ClienteResult.Error(R.string.cuerpo_nulo_error)
 

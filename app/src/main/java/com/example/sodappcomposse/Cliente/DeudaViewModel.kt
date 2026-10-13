@@ -51,9 +51,13 @@ class DeudaViewModel @Inject constructor(
     private val _uiState = mutableStateOf<DeudaUiState>(DeudaUiState.Idle)
     val uiState: State<DeudaUiState> = _uiState
 
+    val isPagoEnCurso: Boolean
+        get() = _uiState.value is DeudaUiState.Loading || _uiState.value is DeudaUiState.Success
+
     fun pagarDeudaCliente(idCl: Int, deuda: Double) {
-        // A second payment while one is in flight would be validated against a stale debt
-        if (_uiState.value is DeudaUiState.Loading) return
+        // A payment stays in progress until the screen has reloaded the debt and called resetState();
+        // accepting another one before that would validate it against a stale debt
+        if (isPagoEnCurso) return
         _uiState.value = DeudaUiState.Loading
         viewModelScope.launch {
             when (val result = clienteRepository.updateDeudaCliente(idCl, deuda)) {
