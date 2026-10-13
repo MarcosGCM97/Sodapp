@@ -23,8 +23,8 @@ android {
 
     buildTypes {
         debug {
-            // Debug builds talk to the test API folder on the server
-            buildConfigField("String", "API_PATH", "\"api_2/\"")
+            // Debug builds use the production API folder; switch to "api_2/" to test against the staging copy
+            buildConfigField("String", "API_PATH", "\"api/\"")
         }
         release {
             buildConfigField("String", "API_PATH", "\"api/\"")
