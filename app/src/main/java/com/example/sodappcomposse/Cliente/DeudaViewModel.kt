@@ -52,6 +52,8 @@ class DeudaViewModel @Inject constructor(
     val uiState: State<DeudaUiState> = _uiState
 
     fun pagarDeudaCliente(idCl: Int, deuda: Double) {
+        // A second payment while one is in flight would be validated against a stale debt
+        if (_uiState.value is DeudaUiState.Loading) return
         _uiState.value = DeudaUiState.Loading
         viewModelScope.launch {
             when (val result = clienteRepository.updateDeudaCliente(idCl, deuda)) {
