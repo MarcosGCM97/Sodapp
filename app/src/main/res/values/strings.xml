@@ -167,6 +167,7 @@
     <string name="venta_eliminada_success">Venta eliminada exitosamente</string>
     <string name="error_actualizar_deuda_format">Venta eliminada, pero error al actualizar deuda: %1$s</string>
     <string name="excepcion_format">Excepción: %1$s</string>
+    <string name="login_success_format">Bienvenido, %1$s</string>
 
     <!-- Caja Viewmodel -->
     <string name="datos_cargados_success">Datos cargados</string>

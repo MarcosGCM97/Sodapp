@@ -96,7 +96,7 @@ class LoginViewModel @Inject constructor(
                             // A different user may log in: never reuse data cached for the previous one
                             clearCachedUserData()
                             authSession.startSession(usuario.idUs.toString(), usuario.nombreUs, token)
-                            LoginUiState.Success(R.string.excepcion_format, arrayOf(usuarioApi.message))
+                            LoginUiState.Success(R.string.login_success_format, arrayOf(usuario.nombreUs))
                         }
                     }
                 }

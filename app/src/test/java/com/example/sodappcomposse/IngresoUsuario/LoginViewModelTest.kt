@@ -1,6 +1,7 @@
 package com.example.sodappcomposse.IngresoUsuario
 
 import com.example.sodappcomposse.API.UsuarioResponse
+import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Cliente.ClienteRepository
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.UserPreferencesRepository
@@ -20,6 +21,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -65,6 +67,20 @@ class LoginViewModelTest {
         verify { clienteRepository.clearCache() }
         verify { productoRepository.clearCache() }
         assertTrue(viewModel.loginUiState is LoginUiState.Success)
+    }
+
+    @Test
+    fun `successful login shows a welcome message, not the exception template`() = runTest {
+        coEvery { authRepository.login(any()) } returns AuthResult.Success(
+            UsuarioResponse(true, "Usuario encontrado.", Usuario(idUs = 5, nombreUs = "marcos"), "jwt-123")
+        )
+
+        viewModel.login("marcos", "secret")
+        advanceUntilIdle()
+
+        val state = viewModel.loginUiState as LoginUiState.Success
+        assertEquals(R.string.login_success_format, state.messageRes)
+        assertTrue(state.args.contentEquals(arrayOf<Any>("marcos")))
     }
 
     @Test
