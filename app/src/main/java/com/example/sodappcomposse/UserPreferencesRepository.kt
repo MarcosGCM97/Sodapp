@@ -27,15 +27,17 @@ class UserPreferencesRepository @Inject constructor(
         val COMPLETED_DELIVERIES = stringSetPreferencesKey("completed_deliveries")
         val USER_ID = stringPreferencesKey("user_id_v2")
         val USER_NAME = stringPreferencesKey("user_name_v2")
+        val AUTH_TOKEN = stringPreferencesKey("auth_token")
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         val THEME_MODE = stringPreferencesKey("theme_mode") // "system", "light", "dark"
     }
 
     // Función para guardar los datos al hacer Login
-    suspend fun saveUserData(id: String, name: String) {
+    suspend fun saveUserData(id: String, name: String, token: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_ID] = id
             preferences[PreferencesKeys.USER_NAME] = name
+            preferences[PreferencesKeys.AUTH_TOKEN] = token
             preferences[PreferencesKeys.IS_LOGGED_IN] = true
         }
     }
@@ -82,6 +84,12 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.COMPLETED_DELIVERIES] = cleanedDeliveries
         }
     }
+
+    // Session JWT sent as "Authorization: Bearer" by the network layer
+    val token: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.AUTH_TOKEN]
+        }
 
     val userId: Flow<String?> = context.dataStore.data
         .map { preferences ->

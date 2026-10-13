@@ -22,7 +22,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug builds use the production API folder; switch to "api_2/" to test against the staging copy
+            buildConfigField("String", "API_PATH", "\"api/\"")
+        }
         release {
+            buildConfigField("String", "API_PATH", "\"api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -66,6 +71,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
