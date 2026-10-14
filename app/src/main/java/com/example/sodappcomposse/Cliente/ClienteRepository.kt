@@ -3,6 +3,7 @@ package com.example.sodappcomposse.Cliente
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -54,6 +55,9 @@ class ClienteRepositoryImpl @Inject constructor(
                 } else {
                     ClienteResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 }
+            } catch (e: CancellationException) {
+                // Rethrow so a cancelled load is never cached as an error
+                throw e
             } catch (e: IOException) {
                 ClienteResult.Error(R.string.error_red_verificar)
             } catch (e: Exception) {
@@ -108,6 +112,9 @@ class ClienteRepositoryImpl @Inject constructor(
             } else {
                 ClienteResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
             }
+        } catch (e: CancellationException) {
+            // Rethrow so a cancelled caller is not told the request failed (and does not act on stale data)
+            throw e
         } catch (e: IOException) {
             ClienteResult.Error(R.string.error_red_verificar)
         } catch (e: HttpException) {
