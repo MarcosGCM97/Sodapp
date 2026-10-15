@@ -3,6 +3,7 @@ package com.example.sodappcomposse.Ventas
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
+import com.google.gson.JsonParser
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -62,7 +63,7 @@ class VentaRepositoryImpl @Inject constructor(
                     VentaResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                VentaResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                insufficientStockError(response) ?: VentaResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
             }
         } catch (e: IOException) {
             VentaResult.Error(R.string.error_red_verificar)
@@ -71,5 +72,25 @@ class VentaRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             VentaResult.Error(R.string.error_inesperado_format, arrayOf(e.message?.take(100) ?: ""))
         }
+    }
+
+    /**
+     * Maps the backend's 409 `{"error":"Stock insuficiente: <nombre>"}` to a localized error
+     * carrying the product name. Returns null for any other response or an unreadable body.
+     */
+    private fun insufficientStockError(response: retrofit2.Response<*>): VentaResult.Error? {
+        if (response.code() != 409) return null
+        val error = try {
+            val json = JsonParser.parseString(response.errorBody()?.string().orEmpty())
+            json.asJsonObject.get("error")?.asString
+        } catch (e: Exception) {
+            null
+        } ?: return null
+        if (!error.startsWith(INSUFFICIENT_STOCK_PREFIX)) return null
+        return VentaResult.Error(R.string.stock_insuficiente_format, arrayOf(error.removePrefix(INSUFFICIENT_STOCK_PREFIX)))
+    }
+
+    private companion object {
+        const val INSUFFICIENT_STOCK_PREFIX = "Stock insuficiente: "
     }
 }
