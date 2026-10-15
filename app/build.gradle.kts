@@ -23,11 +23,16 @@ android {
 
     buildTypes {
         debug {
-            // Debug builds use the production API folder; switch to "api_2/" to test against the staging copy
-            buildConfigField("String", "API_PATH", "\"api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://www.aplicaciones-servicios-1997.site/api/\"")
+        }
+        // Testing environment: debug build that talks to the local backend
+        create("staging") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            buildConfigField("String", "BASE_URL", "\"http://localhost:8765/\"")
         }
         release {
-            buildConfigField("String", "API_PATH", "\"api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://www.aplicaciones-servicios-1997.site/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
