@@ -103,16 +103,18 @@ class ClientesViewModel @Inject constructor(
     var clienteById : MutableState<Cliente?> = mutableStateOf(null)
 
     internal fun getClienteById(idCl: String){
+        viewModelScope.launch { recargarClienteById(idCl) }
+    }
 
-        viewModelScope.launch {
-            when (val result = clienteRepository.getClienteById(idCl.toInt())) {
-                is ClienteResult.Success -> {
-                    clienteById.value = result.data.cliente
-                    clienteUiState = ClienteUiState.Success(R.string.cliente_cargado_success)
-                }
-                is ClienteResult.Error -> {
-                    clienteUiState = ClienteUiState.Error(result.messageRes, result.args)
-                }
+    // Suspends until the client is reloaded, so callers can wait for fresh data (e.g. the updated debt)
+    internal suspend fun recargarClienteById(idCl: String) {
+        when (val result = clienteRepository.getClienteById(idCl.toInt())) {
+            is ClienteResult.Success -> {
+                clienteById.value = result.data.cliente
+                clienteUiState = ClienteUiState.Success(R.string.cliente_cargado_success)
+            }
+            is ClienteResult.Error -> {
+                clienteUiState = ClienteUiState.Error(result.messageRes, result.args)
             }
         }
     }

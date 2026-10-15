@@ -91,7 +91,8 @@ fun DeudaScreen(
     LaunchedEffect(deudaUiState) {
         when (deudaUiState) {
             is DeudaUiState.Success -> {
-                clienteModel.getClienteById(clienteId.toString())
+                // Keep the pay button locked until the refreshed debt is on screen
+                clienteModel.recargarClienteById(clienteId.toString())
                 deudaModel.resetState()
             }
             is DeudaUiState.Error -> {
@@ -171,7 +172,7 @@ fun DeudaScreen(
                                 modifier = Modifier
                                     .width(90.dp)
                                     .height(40.dp)
-                                    .clickable {
+                                    .clickable(enabled = !deudaModel.isPagoEnCurso) {
                                         val monto = pagarMonto.toDoubleOrNull()
                                         if (monto == null || monto <= 0) {
                                             Toast.makeText(context, context.getString(R.string.monto_invalido_msg), Toast.LENGTH_SHORT).show()
@@ -201,12 +202,20 @@ fun DeudaScreen(
                                         .padding(8.dp),
                                     contentAlignment = Alignment.Center // Centra el Text
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.saldar_label),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 14.sp, // Descomenta y ajusta si necesitas un tamaño específico
-                                        // fontWeight = FontWeight.Bold // Para que se destaque más
-                                    )
+                                    if (deudaModel.isPagoEnCurso) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            color = Color.White,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Text(
+                                            text = stringResource(R.string.saldar_label),
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 14.sp, // Descomenta y ajusta si necesitas un tamaño específico
+                                            // fontWeight = FontWeight.Bold // Para que se destaque más
+                                        )
+                                    }
                                 }
                             }
                         }
