@@ -13,8 +13,8 @@ import retrofit2.converter.gson.GsonConverterFactory
  */
 object RetrofitInstance {
 
-    // API_PATH comes from app/build.gradle.kts per build type ("api/" or the "api_2/" staging copy)
-    private const val BASE_URL = "http://www.aplicaciones-servicios-1997.site/" + BuildConfig.API_PATH
+    // BASE_URL comes from app/build.gradle.kts per build type (staging -> local backend, debug/release -> production)
+    private const val BASE_URL = BuildConfig.BASE_URL
 
     fun create(authInterceptor: Interceptor): ApiServices {
         // Interceptor para logs (solo en modo DEBUG)
