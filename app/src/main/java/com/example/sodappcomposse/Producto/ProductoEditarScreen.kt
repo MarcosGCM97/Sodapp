@@ -51,6 +51,8 @@ fun ProductoEditarScreen(
     var nombrePr by remember { mutableStateOf("") }
     var precioPr by remember { mutableStateOf("") }
     var cantidadPr by remember { mutableStateOf("") }
+    var retornablePr by remember { mutableStateOf(false) }
+    var vaciosPr by remember { mutableStateOf("0") }
 
     val productoElegido = productoModel.productos.find { it.nombrePr == nombreProducto }
 
@@ -58,6 +60,8 @@ fun ProductoEditarScreen(
         productoElegido?.let {
             precioPr = it.precioUni.toString()
             cantidadPr = it.stock.toString()
+            retornablePr = it.esRetornable
+            vaciosPr = it.vacios.toString()
         }
     }
 
@@ -100,6 +104,12 @@ fun ProductoEditarScreen(
                     .height(60.dp),
                 singleLine = true
             )
+            RetornableFields(
+                retornable = retornablePr,
+                onRetornableChange = { retornablePr = it },
+                vacios = vaciosPr,
+                onVaciosChange = { vaciosPr = it }
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 modifier = Modifier
@@ -110,7 +120,20 @@ fun ProductoEditarScreen(
                         precioUni = precioPr.toDoubleOrNull() ?: productoElegido?.precioUni ?: 0.0,
                         stock = cantidadPr.toIntOrNull() ?: productoElegido?.stock ?: 0
                     )
-                    productoModel.editarProducto(prodEditado)
+                    // Only send the container columns when the user changed them, so an
+                    // untouched edit keeps sending the same PUT as before
+                    val vaciosEditados = vaciosPr.toIntOrNull() ?: productoElegido?.vacios ?: 0
+                    val envasesCambiados = productoElegido != null &&
+                        (retornablePr != productoElegido.esRetornable || (retornablePr && vaciosEditados != productoElegido.vacios))
+                    if (envasesCambiados) {
+                        productoModel.editarProducto(
+                            prodEditado,
+                            retornable = retornablePr,
+                            vacios = if (retornablePr) vaciosEditados else productoElegido?.vacios ?: 0
+                        )
+                    } else {
+                        productoModel.editarProducto(prodEditado)
+                    }
                     navController.popBackStack()
                 }
             ) {

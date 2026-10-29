@@ -54,6 +54,8 @@ import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.Ventas.VentasViewModel
+import com.example.sodappcomposse.Ventas.VentasUiState
+import com.example.sodappcomposse.Envases.EnvasesClienteSection
 import com.example.sodappcomposse.Cliente.DeudaViewModel
 import com.example.sodappcomposse.ui.theme.BluePrimario
 import com.example.sodappcomposse.ui.theme.GreenPrimario
@@ -282,6 +284,16 @@ fun DeudaScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(stringResource(R.string.cargando_cliente))
                 }
+            }
+
+            // Sección de Envases: se recarga cuando cambian las ventas del cliente (alta o baja)
+            val idClienteEnvases = clienteId?.toIntOrNull()
+            if (cliente.value != null && idClienteEnvases != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                EnvasesClienteSection(
+                    clienteId = idClienteEnvases,
+                    recargarKey = ventaModel.ventasUiState.takeIf { it is VentasUiState.Success }
+                )
             }
 
             // Sección de Últimas Ventas

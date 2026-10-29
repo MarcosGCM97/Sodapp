@@ -9,6 +9,10 @@ import com.example.sodappcomposse.Cliente.DiasEntrega
 import com.example.sodappcomposse.Cliente.DiasEntregaUpdateRequest
 import com.example.sodappcomposse.Cliente.DiasEntregaByid
 import com.example.sodappcomposse.Cliente.TodosLosDias
+import com.example.sodappcomposse.Envases.EnvaseResponse
+import com.example.sodappcomposse.Envases.EnvasesClienteResponse
+import com.example.sodappcomposse.Envases.LlenarEnvasesRequest
+import com.example.sodappcomposse.Envases.SaldoEnvasesRequest
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
@@ -74,7 +78,10 @@ interface ApiServices {
     suspend fun updateProducto(
         @Query("nombre") nombre: String,
         @Query("precio") precio: Double,
-        @Query("cantidad") cantidad: Int
+        @Query("cantidad") cantidad: Int,
+        // Optional: null leaves the product's container columns untouched
+        @Query("retornable") retornable: Int?,
+        @Query("vacios") vacios: Int?
     ): Response<PostResponse>
 
 /*cl.cl_nom, cl.cl_dir, cl.cl_tel, pr.pr_nom, pr.pr_val, vt.vt_can, vt.vt_fec, vt.vt_ide*/
@@ -105,6 +112,15 @@ interface ApiServices {
         @Query("id") id: Int,
         @Query("deuda") deuda: Double?
     ): Response<PostResponse>
+
+    @GET("envases.php")
+    suspend fun getEnvasesCliente(@Query("clienteId") clienteId: Int): Response<EnvasesClienteResponse>
+
+    @PUT("envases.php")
+    suspend fun setSaldoEnvases(@Body request: SaldoEnvasesRequest): Response<EnvaseResponse>
+
+    @POST("envases.php")
+    suspend fun llenarEnvases(@Body request: LlenarEnvasesRequest): Response<EnvaseResponse>
 
     @GET("cajaMes.php")
     suspend fun getCajaPorMes(@Query("mes") mes: Int): Response<DataCajaResponse>

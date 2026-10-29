@@ -193,6 +193,8 @@ class VentasViewModel @Inject constructor(
             when (val result = ventaRepository.deleteVenta(idVenta)) {
                 is VentaResult.Success -> {
                     ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
+                    // The backend may have reverted empty containers; drop the stale cached product list
+                    productoRepository.clearCache()
                     // actualizar deuda del cliente
                     when (val updateResult = clienteRepository.updateDeudaCliente(clienteId, valorVenta)) {
                         is ClienteResult.Success -> { /* Ok */ }

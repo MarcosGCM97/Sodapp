@@ -15,6 +15,14 @@ data class Producto(
     @SerializedName("pr_stk")
     var stock: Int = 0,
 
+    // TINYINT(1): 1 = returnable container
+    @SerializedName("pr_ret")
+    var retornable: Int = 0,
+
+    // Empty containers in the warehouse
+    @SerializedName("pr_vac")
+    var vacios: Int = 0,
+
     @SerializedName("pr_emp")
     var empresa: String = "",
 
@@ -23,7 +31,10 @@ data class Producto(
 
     @SerializedName("updated_at")
     var fechaActualizacion: String = ""
-)
+) {
+    val esRetornable: Boolean
+        get() = retornable == 1
+}
 
 data class ProductoRequest(
     @SerializedName("nombrePr")
@@ -33,7 +44,13 @@ data class ProductoRequest(
     var precioUni: Double = 0.0,
 
     @SerializedName("stock")
-    var stock: Int = 0
+    var stock: Int = 0,
+
+    @SerializedName("retornable")
+    var retornable: Boolean = false,
+
+    @SerializedName("vacios")
+    var vacios: Int = 0
 )
 
 data class ProductoResponse(

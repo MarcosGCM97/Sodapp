@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sodappcomposse.Envases.EnvaseRepository
 import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -84,7 +85,8 @@ sealed interface AddProductoUiState {
 
 @HiltViewModel
 class ProductoViewModel @Inject constructor(
-    private val productoRepository: ProductoRepository
+    private val productoRepository: ProductoRepository,
+    private val envaseRepository: EnvaseRepository
 ) : ViewModel() {
     private val TAG = "ProductoViewModel"
 
@@ -134,7 +136,13 @@ class ProductoViewModel @Inject constructor(
     private val _addProductoUiState = mutableStateOf<AddProductoUiState>(AddProductoUiState.Idle)
     val addProductoUiState: State<AddProductoUiState> = _addProductoUiState
 
-    internal fun agregarNuevoProducto(nombre: String, precio: String, cantidad: Int) {
+    internal fun agregarNuevoProducto(
+        nombre: String,
+        precio: String,
+        cantidad: Int,
+        retornable: Boolean = false,
+        vacios: Int = 0
+    ) {
         if (nombre.isBlank() || precio.isBlank()) {
             _addProductoUiState.value = AddProductoUiState.Error(R.string.campos_requeridos_error)
             return
@@ -145,7 +153,7 @@ class ProductoViewModel @Inject constructor(
             _addProductoUiState.value = AddProductoUiState.Error(R.string.error_precio_invalido)
             return
         }
-        if (cantidad < 0) {
+        if (cantidad < 0 || vacios < 0) {
             _addProductoUiState.value = AddProductoUiState.Error(R.string.error_cantidad_negativa)
             return
         }
@@ -155,7 +163,9 @@ class ProductoViewModel @Inject constructor(
             val objProducto = ProductoRequest(
                 nombrePr = nombre,
                 precioUni = precioDouble,
-                stock = cantidad
+                stock = cantidad,
+                retornable = retornable,
+                vacios = if (retornable) vacios else 0
             )
             when (val result = productoRepository.postProducto(objProducto)) {
                 is ProductoResult.Success -> {
@@ -177,11 +187,12 @@ class ProductoViewModel @Inject constructor(
     val productoSeleccionadoParaEdicion: State<Producto?> = _productoSeleccionadoParaEdicion
 
     // Función para actualizar el producto seleccionado
-    fun editarProducto(producto: Producto?) {
+    // retornable/vacios null = no tocar las columnas de envases (mismo PUT que antes)
+    fun editarProducto(producto: Producto?, retornable: Boolean? = null, vacios: Int? = null) {
         if (producto == null) return
         _productoSeleccionadoParaEdicion.value = producto
         viewModelScope.launch {
-            when (val result = productoRepository.updateProducto(producto.nombrePr, producto.precioUni, producto.stock)) {
+            when (val result = productoRepository.updateProducto(producto.nombrePr, producto.precioUni, producto.stock, retornable, vacios)) {
                 is ProductoResult.Success -> {
                     productoUiState = ProductoUiState.Success(R.string.producto_actualizado_success)
                     getProductos()
@@ -220,5 +231,23 @@ class ProductoViewModel @Inject constructor(
             stock = nuevaCantidad
         )
         editarProducto(productoParaEditar)
+    }
+
+    /** Turns [cantidad] empty containers of a returnable product into full stock. */
+    fun llenarEnvases(producto: Producto, cantidad: Int) {
+        if (cantidad <= 0) return
+        viewModelScope.launch {
+            when (val result = envaseRepository.llenarEnvases(producto.nombrePr, cantidad)) {
+                is ProductoResult.Success -> {
+                    // The backend changed stock and empties; drop the stale cached product list
+                    productoRepository.clearCache()
+                    productoUiState = ProductoUiState.Success(R.string.envases_llenados_success, arrayOf(cantidad, producto.nombrePr))
+                    getProductos()
+                }
+                is ProductoResult.Error -> {
+                    productoUiState = ProductoUiState.Error(result.messageRes, result.args)
+                }
+            }
+        }
     }
 }

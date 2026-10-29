@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +39,7 @@ import com.example.sodappcomposse.Cliente.ClientesDropDown
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
+import com.example.sodappcomposse.Producto.conDevueltos
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
@@ -302,6 +305,17 @@ fun AddVentaForm(
                             },
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
+                        // Envases devueltos: solo para productos retornables; el resto envía 0
+                        val esRetornable = productos.find { it.nombrePr == productoVenta.nombre }?.esRetornable == true
+                        if (esRetornable) {
+                            EnvasesDevueltosItem(
+                                devueltos = productoVenta.devueltos,
+                                onDevueltosChange = { nuevos ->
+                                    productosParaVenta[index] = productoVenta.conDevueltos(nuevos)
+                                },
+                                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                            )
+                        }
                         // Optional: Add a Divider between items
                         // if (index < productosParaVenta.size - 1) {
                         //     Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -549,6 +563,51 @@ fun ProductoCantidadItem(
             }) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_cantidad_desc))
             }
+        }
+    }
+}
+
+
+/** "Envases devueltos" stepper for a returnable product in the sale form (default 0, never negative). */
+@Composable
+fun EnvasesDevueltosItem(
+    devueltos: Int,
+    onDevueltosChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val disminuirDesc = stringResource(R.string.disminuir_devueltos_desc)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.envases_devueltos_label),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(
+            onClick = { onDevueltosChange(devueltos - 1) },
+            enabled = devueltos > 0,
+            modifier = Modifier.semantics { contentDescription = disminuirDesc }
+        ) {
+            Text(text = "−", style = MaterialTheme.typography.titleLarge)
+        }
+        OutlinedTextField(
+            value = devueltos.toString(),
+            onValueChange = { newValue ->
+                if (newValue.isEmpty()) {
+                    onDevueltosChange(0)
+                } else {
+                    newValue.toIntOrNull()?.let { onDevueltosChange(it) }
+                }
+            },
+            modifier = Modifier.width(75.dp),
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        IconButton(onClick = { onDevueltosChange(devueltos + 1) }) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_devueltos_desc))
         }
     }
 }
