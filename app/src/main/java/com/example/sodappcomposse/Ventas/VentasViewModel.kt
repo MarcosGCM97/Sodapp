@@ -176,6 +176,8 @@ class VentasViewModel @Inject constructor(
             is VentaResult.Success -> {
                 // The backend updated the client's debt; drop the stale cached client list
                 clienteRepository.clearCache()
+                // The backend decremented product stock; drop the stale cached product list
+                productoRepository.clearCache()
                 ventasUiState = VentasUiState.Success(R.string.venta_procesada_success)
                 true
             }

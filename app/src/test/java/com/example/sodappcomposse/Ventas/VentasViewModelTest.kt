@@ -28,6 +28,7 @@ class VentasViewModelTest {
 
     private lateinit var ventaRepository: VentaRepository
     private lateinit var clienteRepository: ClienteRepository
+    private lateinit var productoRepository: ProductoRepository
     private lateinit var viewModel: VentasViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -36,12 +37,13 @@ class VentasViewModelTest {
         Dispatchers.setMain(testDispatcher)
         ventaRepository = mockk()
         clienteRepository = mockk(relaxed = true)
+        productoRepository = mockk(relaxed = true)
         val userPreferences: UserPreferencesRepository = mockk()
         every { userPreferences.userId } returns flowOf("7")
         viewModel = VentasViewModel(
             ventaRepository,
             clienteRepository,
-            mockk<ProductoRepository>(relaxed = true),
+            productoRepository,
             userPreferences
         )
     }
@@ -60,6 +62,7 @@ class VentasViewModelTest {
         assertFalse(saved)
         assertTrue(viewModel.ventasUiState is VentasUiState.Error)
         verify(exactly = 0) { clienteRepository.clearCache() }
+        verify(exactly = 0) { productoRepository.clearCache() }
     }
 
     @Test
@@ -70,5 +73,14 @@ class VentasViewModelTest {
 
         assertTrue(saved)
         assertEquals(VentasUiState.Success(R.string.venta_procesada_success), viewModel.ventasUiState)
+    }
+
+    @Test
+    fun `an accepted sale drops the cached product list so stock is reloaded`() = runTest {
+        coEvery { ventaRepository.postVenta(any()) } returns VentaResult.Success(PostResponse(true, "ok"))
+
+        viewModel.postVenta(clienteId = 1, productos = emptyList())
+
+        verify(exactly = 1) { productoRepository.clearCache() }
     }
 }
