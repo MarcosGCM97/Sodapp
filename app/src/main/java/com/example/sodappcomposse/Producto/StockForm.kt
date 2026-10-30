@@ -306,6 +306,14 @@ private fun LlenarEnvasesRow(
         text = stringResource(R.string.envases_vacios_format, producto.vacios),
         style = MaterialTheme.typography.bodyMedium
     )
+    Text(
+        text = stringResource(R.string.envases_en_clientes_format, producto.enClientes),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Text(
+        text = stringResource(R.string.envases_total_format, producto.totalEnvases),
+        style = MaterialTheme.typography.bodyMedium
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

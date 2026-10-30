@@ -31,6 +31,16 @@ class ProductoParsingTest {
     }
 
     @Test
+    fun `a returnable product maps pr_cli and totals full, empty and client containers`() {
+        val json = """{"pr_ide":"1","pr_nom":"Bidon 20L","pr_val":"4500.00","pr_stk":"14","pr_ret":"1","pr_vac":"5","pr_cli":"1"}"""
+
+        val producto = gson.fromJson(json, Producto::class.java)
+
+        assertEquals(1, producto.enClientes)
+        assertEquals(20, producto.totalEnvases)
+    }
+
+    @Test
     fun `a product without the container fields keeps parsing as non returnable`() {
         val json = """{"pr_ide":"1","pr_nom":"Soda","pr_val":"900.00","pr_stk":"7"}"""
 
@@ -38,6 +48,7 @@ class ProductoParsingTest {
 
         assertFalse(producto.esRetornable)
         assertEquals(0, producto.vacios)
+        assertEquals(0, producto.enClientes)
         assertEquals(7, producto.stock)
         assertEquals(900.0, producto.precioUni, 0.0)
     }

@@ -23,6 +23,10 @@ data class Producto(
     @SerializedName("pr_vac")
     var vacios: Int = 0,
 
+    // Containers held by clients (sum of their balances); computed by the API
+    @SerializedName("pr_cli")
+    var enClientes: Int = 0,
+
     @SerializedName("pr_emp")
     var empresa: String = "",
 
@@ -34,6 +38,10 @@ data class Producto(
 ) {
     val esRetornable: Boolean
         get() = retornable == 1
+
+    /** Every container of a returnable product: full in stock, empty in the warehouse and held by clients. */
+    val totalEnvases: Int
+        get() = stock + vacios + enClientes
 }
 
 data class ProductoRequest(

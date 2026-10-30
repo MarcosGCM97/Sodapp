@@ -184,6 +184,8 @@
     <string name="retornable_label">Retornable</string>
     <string name="envases_vacios_label">Envases vacíos</string>
     <string name="envases_vacios_format">Envases vacíos: %1$d</string>
+    <string name="envases_en_clientes_format">Envases en clientes: %1$d</string>
+    <string name="envases_total_format">Total de envases: %1$d</string>
     <string name="llenar_label">Llenar</string>
     <string name="envases_llenados_success">Se llenaron %1$d envases de %2$s.</string>
     <string name="envases_devueltos_label">Envases devueltos</string>
