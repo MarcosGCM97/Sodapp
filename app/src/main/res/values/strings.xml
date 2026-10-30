@@ -45,6 +45,8 @@
     <string name="pagar_deuda_titulo">Pagar deuda</string>
     <string name="ingrese_monto_label">Ingrese monto</string>
     <string name="monto_invalido_msg">Ingrese un monto válido mayor a cero</string>
+    <string name="forma_pago_label">Forma de pago</string>
+    <string name="forma_pago_requerida_msg">Seleccione la forma de pago</string>
     <string name="monto_supera_deuda_msg">El monto (%1$s) supera la deuda actual (%2$s)</string>
     <string name="saldar_label">Saldar</string>
     <string name="llamar_desc">Llamar</string>

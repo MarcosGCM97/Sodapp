@@ -51,16 +51,31 @@ class DeudaViewModel @Inject constructor(
     private val _uiState = mutableStateOf<DeudaUiState>(DeudaUiState.Idle)
     val uiState: State<DeudaUiState> = _uiState
 
+    private val _formasPago = mutableStateOf<List<FormaPago>>(emptyList())
+    val formasPago: State<List<FormaPago>> = _formasPago
+
+    fun cargarFormasPago() {
+        viewModelScope.launch {
+            when (val result = clienteRepository.getFormasPago()) {
+                is ClienteResult.Success -> _formasPago.value = result.data.formas
+                is ClienteResult.Error -> {
+                    _formasPago.value = emptyList()
+                    _uiState.value = DeudaUiState.Error(result.messageRes, result.args)
+                }
+            }
+        }
+    }
+
     val isPagoEnCurso: Boolean
         get() = _uiState.value is DeudaUiState.Loading || _uiState.value is DeudaUiState.Success
 
-    fun pagarDeudaCliente(idCl: Int, deuda: Double) {
+    fun pagarDeudaCliente(idCl: Int, deuda: Double, formaPago: Int) {
         // A payment stays in progress until the screen has reloaded the debt and called resetState();
         // accepting another one before that would validate it against a stale debt
         if (isPagoEnCurso) return
         _uiState.value = DeudaUiState.Loading
         viewModelScope.launch {
-            when (val result = clienteRepository.updateDeudaCliente(idCl, deuda)) {
+            when (val result = clienteRepository.updateDeudaCliente(idCl, deuda, formaPago)) {
                 is ClienteResult.Success -> {
                     _uiState.value = DeudaUiState.Success(R.string.venta_procesada_success)
                 }

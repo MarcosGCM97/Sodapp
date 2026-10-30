@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -82,6 +83,7 @@ fun DeudaScreen(
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
+            deudaModel.cargarFormasPago()
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
             Log.e("DeudaScreen", "clienteId es nulo o inválido: $clienteId")
@@ -110,6 +112,8 @@ fun DeudaScreen(
     val ventasDelCliente = ventaModel.ventasPorClienteId
 
     var pagarMonto by remember { mutableStateOf("") }
+    // No default method: every payment is stored with the method the user picked
+    var formaPagoSeleccionada by remember { mutableStateOf<Int?>(null) }
 
     var ver by remember { mutableStateOf(false) }
 
@@ -152,6 +156,16 @@ fun DeudaScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(stringResource(R.string.pagar_deuda_titulo), style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.forma_pago_label), style = MaterialTheme.typography.labelLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            deudaModel.formasPago.value.forEach { forma ->
+                                FilterChip(
+                                    selected = formaPagoSeleccionada == forma.id,
+                                    onClick = { formaPagoSeleccionada = forma.id },
+                                    label = { Text(forma.nombre) }
+                                )
+                            }
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -186,11 +200,19 @@ fun DeudaScreen(
                                             return@clickable
                                         }
 
+                                        val formaPago = formaPagoSeleccionada
+                                        if (formaPago == null) {
+                                            Toast.makeText(context, context.getString(R.string.forma_pago_requerida_msg), Toast.LENGTH_SHORT).show()
+                                            return@clickable
+                                        }
+
                                         deudaModel.pagarDeudaCliente(
                                             cliente.value?.idCl ?: 0,
-                                            monto
+                                            monto,
+                                            formaPago
                                         )
                                         pagarMonto = ""
+                                        formaPagoSeleccionada = null
                                     },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(

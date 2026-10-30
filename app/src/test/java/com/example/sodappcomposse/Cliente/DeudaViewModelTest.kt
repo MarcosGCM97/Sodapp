@@ -39,47 +39,78 @@ class DeudaViewModelTest {
 
     @Test
     fun `pagarDeudaCliente ignores new payments while one is in flight`() = runTest {
-        coEvery { repository.updateDeudaCliente(7, any()) } coAnswers {
+        coEvery { repository.updateDeudaCliente(7, any(), any()) } coAnswers {
             delay(1000)
             ClienteResult.Success(PostResponse(true, "ok"))
         }
 
-        viewModel.pagarDeudaCliente(7, 500.0)
-        viewModel.pagarDeudaCliente(7, 300.0)
+        viewModel.pagarDeudaCliente(7, 500.0, 2)
+        viewModel.pagarDeudaCliente(7, 300.0, 2)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { repository.updateDeudaCliente(7, any()) }
-        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 500.0) }
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, any(), any()) }
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 500.0, 2) }
         assertEquals(DeudaUiState.Success(R.string.venta_procesada_success), viewModel.uiState.value)
     }
 
     @Test
     fun `pagarDeudaCliente ignores new payments until the screen resets after a success`() = runTest {
-        coEvery { repository.updateDeudaCliente(7, any()) } returns ClienteResult.Success(PostResponse(true, "ok"))
+        coEvery { repository.updateDeudaCliente(7, any(), any()) } returns ClienteResult.Success(PostResponse(true, "ok"))
 
-        viewModel.pagarDeudaCliente(7, 500.0)
+        viewModel.pagarDeudaCliente(7, 500.0, 2)
         advanceUntilIdle()
-        viewModel.pagarDeudaCliente(7, 300.0)
+        viewModel.pagarDeudaCliente(7, 300.0, 2)
         advanceUntilIdle()
-        coVerify(exactly = 1) { repository.updateDeudaCliente(7, any()) }
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, any(), any()) }
 
         viewModel.resetState()
-        viewModel.pagarDeudaCliente(7, 300.0)
+        viewModel.pagarDeudaCliente(7, 300.0, 2)
         advanceUntilIdle()
-        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 300.0) }
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 300.0, 2) }
     }
 
     @Test
     fun `pagarDeudaCliente can pay again after the previous payment failed`() = runTest {
-        coEvery { repository.updateDeudaCliente(7, 500.0) } returns ClienteResult.Error(R.string.cuerpo_nulo_error)
+        coEvery { repository.updateDeudaCliente(7, 500.0, 2) } returns ClienteResult.Error(R.string.cuerpo_nulo_error)
 
-        viewModel.pagarDeudaCliente(7, 500.0)
+        viewModel.pagarDeudaCliente(7, 500.0, 2)
         advanceUntilIdle()
         assertEquals(DeudaUiState.Error(R.string.cuerpo_nulo_error), viewModel.uiState.value)
 
-        viewModel.pagarDeudaCliente(7, 500.0)
+        viewModel.pagarDeudaCliente(7, 500.0, 2)
         advanceUntilIdle()
 
-        coVerify(exactly = 2) { repository.updateDeudaCliente(7, 500.0) }
+        coVerify(exactly = 2) { repository.updateDeudaCliente(7, 500.0, 2) }
+    }
+    @Test
+    fun `pagarDeudaCliente sends the chosen payment method`() = runTest {
+        coEvery { repository.updateDeudaCliente(7, 500.0, 3) } returns ClienteResult.Success(PostResponse(true, "ok"))
+
+        viewModel.pagarDeudaCliente(7, 500.0, 3)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repository.updateDeudaCliente(7, 500.0, 3) }
+    }
+
+    @Test
+    fun `cargarFormasPago exposes the selectable payment methods`() = runTest {
+        val formas = listOf(FormaPago(2, "Efectivo"), FormaPago(3, "Transferencia"))
+        coEvery { repository.getFormasPago() } returns ClienteResult.Success(FormasPagoResponse(true, formas))
+
+        viewModel.cargarFormasPago()
+        advanceUntilIdle()
+
+        assertEquals(formas, viewModel.formasPago.value)
+    }
+
+    @Test
+    fun `cargarFormasPago failure leaves no methods and reports the error`() = runTest {
+        coEvery { repository.getFormasPago() } returns ClienteResult.Error(R.string.error_red_verificar)
+
+        viewModel.cargarFormasPago()
+        advanceUntilIdle()
+
+        assertEquals(emptyList<FormaPago>(), viewModel.formasPago.value)
+        assertEquals(DeudaUiState.Error(R.string.error_red_verificar), viewModel.uiState.value)
     }
 }

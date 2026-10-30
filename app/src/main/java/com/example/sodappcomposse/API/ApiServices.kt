@@ -6,6 +6,7 @@ import com.example.sodappcomposse.Cliente.ClienteRequest
 import com.example.sodappcomposse.Cliente.ClienteResponse
 import com.example.sodappcomposse.Cliente.ClienteResponseById
 import com.example.sodappcomposse.Cliente.DiasEntrega
+import com.example.sodappcomposse.Cliente.FormasPagoResponse
 import com.example.sodappcomposse.Cliente.DiasEntregaUpdateRequest
 import com.example.sodappcomposse.Cliente.DiasEntregaByid
 import com.example.sodappcomposse.Cliente.TodosLosDias
@@ -110,8 +111,13 @@ interface ApiServices {
     @PUT("deudaCliente.php")
     suspend fun updateDeudaCliente(
         @Query("id") id: Int,
-        @Query("deuda") deuda: Double?
+        @Query("deuda") deuda: Double?,
+        // null keeps the old request shape; the backend then stores "Sin especificar"
+        @Query("formaPago") formaPago: Int? = null
     ): Response<PostResponse>
+
+    @GET("pagos.php")
+    suspend fun getFormasPago(@Query("formas") formas: Int = 1): Response<FormasPagoResponse>
 
     @GET("envases.php")
     suspend fun getEnvasesCliente(@Query("clienteId") clienteId: Int): Response<EnvasesClienteResponse>
