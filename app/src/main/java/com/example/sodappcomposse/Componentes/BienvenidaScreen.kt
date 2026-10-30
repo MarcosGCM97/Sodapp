@@ -17,6 +17,7 @@ import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
 import com.example.sodappcomposse.Bienvenida
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,7 +97,8 @@ fun BienvenidaScreen(
     navController: NavController,
     themeViewModel: ThemeViewModel = hiltViewModel()
 ){
-    var contenidoActual by remember { mutableStateOf(ContenidoBienvenida.VENTAS) }
+    // Saveable so coming back from a detail screen (e.g. a client) returns to the same section
+    var contenidoActual by rememberSaveable { mutableStateOf(ContenidoBienvenida.VENTAS) }
     // The client screen's "Cobrar" button leaves the client id here before popping back
     val handle = remember { runCatching { navController.getBackStackEntry<Bienvenida>() }.getOrNull()?.savedStateHandle }
     val clienteACobrar by (handle?.getStateFlow<Int?>(CLAVE_COBRAR_CLIENTE, null)
