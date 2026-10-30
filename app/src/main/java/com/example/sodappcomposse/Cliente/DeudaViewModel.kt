@@ -66,6 +66,22 @@ class DeudaViewModel @Inject constructor(
         }
     }
 
+    private val _deudores = mutableStateOf<List<Deudor>>(emptyList())
+    val deudores: State<List<Deudor>> = _deudores
+
+    // Highest balance first: the clients that owe the most are collected first
+    fun cargarDeudores() {
+        viewModelScope.launch {
+            when (val result = clienteRepository.getDeudores()) {
+                is ClienteResult.Success -> _deudores.value = result.data.deudores.sortedByDescending { it.saldo }
+                is ClienteResult.Error -> {
+                    _deudores.value = emptyList()
+                    _uiState.value = DeudaUiState.Error(result.messageRes, result.args)
+                }
+            }
+        }
+    }
+
     private val _pagos = mutableStateOf<List<Pago>>(emptyList())
     val pagos: State<List<Pago>> = _pagos
 

@@ -11,7 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
+import com.example.sodappcomposse.Bienvenida
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,7 +43,12 @@ fun ContenidoVentas(modifier: Modifier = Modifier, navController: NavController)
 }
 
 @Composable
-fun ContenidoClientes(modifier: Modifier = Modifier, navController: NavController) {
+fun ContenidoClientes(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    clienteACobrar: Int? = null,
+    onClienteACobrarUsado: () -> Unit = {}
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -48,7 +56,9 @@ fun ContenidoClientes(modifier: Modifier = Modifier, navController: NavControlle
         contentAlignment = Alignment.Center
     ) {
         Clientes(
-            navController = navController
+            navController = navController,
+            clienteACobrar = clienteACobrar,
+            onClienteACobrarUsado = onClienteACobrarUsado
         )
     }
 }
@@ -87,6 +97,13 @@ fun BienvenidaScreen(
     themeViewModel: ThemeViewModel = hiltViewModel()
 ){
     var contenidoActual by remember { mutableStateOf(ContenidoBienvenida.VENTAS) }
+    // The client screen's "Cobrar" button leaves the client id here before popping back
+    val handle = remember { runCatching { navController.getBackStackEntry<Bienvenida>() }.getOrNull()?.savedStateHandle }
+    val clienteACobrar by (handle?.getStateFlow<Int?>(CLAVE_COBRAR_CLIENTE, null)
+        ?: kotlinx.coroutines.flow.MutableStateFlow(null)).collectAsState()
+    LaunchedEffect(clienteACobrar) {
+        if (clienteACobrar != null) contenidoActual = ContenidoBienvenida.CLIENTES
+    }
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
@@ -125,7 +142,11 @@ fun BienvenidaScreen(
                 when (contenidoActual){
                     ContenidoBienvenida.VENTAS -> ContenidoVentas(navController = navController)
                     ContenidoBienvenida.STOCK -> ContenidoStock(navController = navController)
-                    ContenidoBienvenida.CLIENTES -> ContenidoClientes(navController = navController)
+                    ContenidoBienvenida.CLIENTES -> ContenidoClientes(
+                        navController = navController,
+                        clienteACobrar = clienteACobrar,
+                        onClienteACobrarUsado = { handle?.set(CLAVE_COBRAR_CLIENTE, null) }
+                    )
                     ContenidoBienvenida.CAJA -> ContenidoCaja()
                 }
             }

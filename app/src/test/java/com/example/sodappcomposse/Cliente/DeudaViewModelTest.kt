@@ -134,4 +134,26 @@ class DeudaViewModelTest {
         assertEquals(emptyList<Pago>(), viewModel.pagos.value)
         assertEquals(DeudaUiState.Error(R.string.error_red_verificar), viewModel.uiState.value)
     }
+    @Test
+    fun `cargarDeudores lists the debtors with the highest balance first`() = runTest {
+        val ana = Deudor(1, "Ana", 1200.0)
+        val juan = Deudor(2, "Juan", 4500.0)
+        coEvery { repository.getDeudores() } returns ClienteResult.Success(DeudoresResponse(true, listOf(ana, juan)))
+
+        viewModel.cargarDeudores()
+        advanceUntilIdle()
+
+        assertEquals(listOf(juan, ana), viewModel.deudores.value)
+    }
+
+    @Test
+    fun `cargarDeudores failure leaves no debtors and reports the error`() = runTest {
+        coEvery { repository.getDeudores() } returns ClienteResult.Error(R.string.error_red_verificar)
+
+        viewModel.cargarDeudores()
+        advanceUntilIdle()
+
+        assertEquals(emptyList<Deudor>(), viewModel.deudores.value)
+        assertEquals(DeudaUiState.Error(R.string.error_red_verificar), viewModel.uiState.value)
+    }
 }

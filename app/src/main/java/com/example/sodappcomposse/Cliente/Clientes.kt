@@ -27,6 +27,10 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,9 +54,36 @@ import com.example.sodappcomposse.Funciones.formatearPrecio
 @Composable
 fun Clientes(
     clientesModel: ClientesViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    clienteACobrar: Int? = null,
+    onClienteACobrarUsado: () -> Unit = {}
 ){
-    val TAG = "Clientes"
+    // 0 = Clientes, 1 = Cobros
+    var tabSeleccionado by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(clienteACobrar) {
+        if (clienteACobrar != null) tabSeleccionado = 1
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = tabSeleccionado) {
+            listOf(stringResource(R.string.tab_clientes), stringResource(R.string.tab_cobros)).forEachIndexed { index, titulo ->
+                Tab(
+                    selected = tabSeleccionado == index,
+                    onClick = { tabSeleccionado = index },
+                    text = { Text(titulo) }
+                )
+            }
+        }
+
+        when (tabSeleccionado) {
+            0 -> TabClientes(navController = navController)
+            1 -> CobrosTab(clienteInicial = clienteACobrar, onClienteInicialUsado = onClienteACobrarUsado)
+        }
+    }
+}
+
+@Composable
+private fun TabClientes(navController: NavController) {
     val scrollState = rememberScrollState()
 
     Column(

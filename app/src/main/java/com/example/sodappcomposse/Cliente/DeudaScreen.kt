@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
@@ -23,13 +22,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,10 +39,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -53,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Deuda
+import com.example.sodappcomposse.Bienvenida
+import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
@@ -85,7 +82,6 @@ fun DeudaScreen(
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
-            deudaModel.cargarFormasPago()
             clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
@@ -115,9 +111,6 @@ fun DeudaScreen(
 
     val ventasDelCliente = ventaModel.ventasPorClienteId
 
-    var pagarMonto by remember { mutableStateOf("") }
-    // No default method: every payment is stored with the method the user picked
-    var formaPagoSeleccionada by remember { mutableStateOf<Int?>(null) }
 
     // 0 = Compras, 1 = Pagos
     var tabCliente by remember { mutableStateOf(0) }
@@ -160,93 +153,15 @@ fun DeudaScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(stringResource(R.string.pagar_deuda_titulo), style = MaterialTheme.typography.headlineSmall)
-                        Text(stringResource(R.string.forma_pago_label), style = MaterialTheme.typography.labelLarge)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            deudaModel.formasPago.value.forEach { forma ->
-                                FilterChip(
-                                    selected = formaPagoSeleccionada == forma.id,
-                                    onClick = { formaPagoSeleccionada = forma.id },
-                                    label = { Text(forma.nombre) }
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                                //.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OutlinedTextField(
-                                value = pagarMonto,
-                                onValueChange = { pagarMonto = it },
-                                label = { Text(stringResource(R.string.ingrese_monto_label)) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number
-                                )
+                        Button(
+                            onClick = { clienteId?.toIntOrNull()?.let { irACobrarCliente(navController, it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = GreenPrimario,
+                                contentColor = Color.White
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Card(
-                                modifier = Modifier
-                                    .width(90.dp)
-                                    .height(40.dp)
-                                    .clickable(enabled = !deudaModel.isPagoEnCurso) {
-                                        val monto = pagarMonto.toDoubleOrNull()
-                                        if (monto == null || monto <= 0) {
-                                            Toast.makeText(context, context.getString(R.string.monto_invalido_msg), Toast.LENGTH_SHORT).show()
-                                            return@clickable
-                                        }
-                                        val deudaActual = cliente.value?.deudaCl ?: 0.0
-                                        if (monto > deudaActual) {
-                                            Toast.makeText(context, context.getString(R.string.monto_supera_deuda_msg, formatearPrecio(monto), formatearPrecio(deudaActual)), Toast.LENGTH_SHORT).show()
-                                            return@clickable
-                                        }
-
-                                        val formaPago = formaPagoSeleccionada
-                                        if (formaPago == null) {
-                                            Toast.makeText(context, context.getString(R.string.forma_pago_requerida_msg), Toast.LENGTH_SHORT).show()
-                                            return@clickable
-                                        }
-
-                                        deudaModel.pagarDeudaCliente(
-                                            cliente.value?.idCl ?: 0,
-                                            monto,
-                                            formaPago
-                                        )
-                                        pagarMonto = ""
-                                        formaPagoSeleccionada = null
-                                    },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = GreenPrimario,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(8.dp),
-                                    contentAlignment = Alignment.Center // Centra el Text
-                                ) {
-                                    if (deudaModel.isPagoEnCurso) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(20.dp),
-                                            color = Color.White,
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text(
-                                            text = stringResource(R.string.saldar_label),
-                                            textAlign = TextAlign.Center,
-                                            fontSize = 14.sp, // Descomenta y ajusta si necesitas un tamaño específico
-                                            // fontWeight = FontWeight.Bold // Para que se destaque más
-                                        )
-                                    }
-                                }
-                            }
+                        ) {
+                            Text(stringResource(R.string.cobrar_label))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -425,6 +340,13 @@ private fun PagosCliente(pagos: List<Pago>) {
             }
         }
     }
+}
+
+// Back to the main screen on Clientes > Cobros with this client preselected
+private fun irACobrarCliente(navController: NavController, clienteId: Int) {
+    val principal = runCatching { navController.getBackStackEntry<Bienvenida>() }.getOrNull() ?: return
+    principal.savedStateHandle[CLAVE_COBRAR_CLIENTE] = clienteId
+    navController.popBackStack<Bienvenida>(inclusive = false)
 }
 
 fun openDialer(context: Context, phoneNumber: String) {
