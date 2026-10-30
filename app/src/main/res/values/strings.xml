@@ -183,6 +183,17 @@
     <string name="retornable_label">Retornable</string>
     <string name="envases_vacios_label">Envases vacíos</string>
     <string name="envases_vacios_format">Envases vacíos: %1$d</string>
+    <string name="historial_label">Historial</string>
+    <string name="historial_titulo">Historial de %1$s</string>
+    <string name="historial_vacio">Todavía no hay movimientos de stock.</string>
+    <string name="historial_item_format">%1$s · Stock: %2$d</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="movimiento_venta">Venta</string>
+    <string name="movimiento_venta_eliminada">Venta eliminada</string>
+    <string name="movimiento_llenado">Llenado de envases</string>
+    <string name="movimiento_ajuste">Ajuste manual</string>
+    <string name="movimiento_alta">Alta del producto</string>
+    <string name="movimiento_otro">Movimiento</string>
     <string name="llenar_label">Llenar</string>
     <string name="envases_llenados_success">Se llenaron %1$d envases de %2$s.</string>
     <string name="envases_devueltos_label">Envases devueltos</string>

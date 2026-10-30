@@ -13,6 +13,7 @@ import com.example.sodappcomposse.Envases.EnvaseResponse
 import com.example.sodappcomposse.Envases.EnvasesClienteResponse
 import com.example.sodappcomposse.Envases.LlenarEnvasesRequest
 import com.example.sodappcomposse.Envases.SaldoEnvasesRequest
+import com.example.sodappcomposse.Producto.MovimientosResponse
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
@@ -121,6 +122,9 @@ interface ApiServices {
 
     @POST("envases.php")
     suspend fun llenarEnvases(@Body request: LlenarEnvasesRequest): Response<EnvaseResponse>
+
+    @GET("movimientos.php")
+    suspend fun getMovimientos(@Query("productoId") productoId: Int): Response<MovimientosResponse>
 
     @GET("cajaMes.php")
     suspend fun getCajaPorMes(@Query("mes") mes: Int): Response<DataCajaResponse>
