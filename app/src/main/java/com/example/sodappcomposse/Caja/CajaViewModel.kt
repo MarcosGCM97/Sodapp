@@ -59,6 +59,15 @@ data class CajaTotales(
     val montoTotal: Double = 0.0
 )
 
+sealed class CobrosUiState {
+    object Idle : CobrosUiState()
+    object Loading : CobrosUiState()
+    data class Success(val totales: List<CobroForma>) : CobrosUiState() {
+        val total: Double get() = totales.sumOf { it.total }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : CobrosUiState()
+}
+
 @HiltViewModel
 class CajaViewModel @Inject constructor(
     private val cajaRepository: CajaRepository

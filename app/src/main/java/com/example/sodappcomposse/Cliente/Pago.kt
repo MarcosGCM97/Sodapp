@@ -33,3 +33,20 @@ data class PagosResponse(
     @SerializedName("pagos")
     val pagos: List<Pago> = emptyList()
 )
+
+// Client with a pending balance, as listed by GET deudaCliente.php
+data class Deudor(
+    @SerializedName("cl_ide")
+    val id: Int,
+    @SerializedName("cl_nom")
+    val nombre: String,
+    @SerializedName("cl_deb")
+    val saldo: Double
+)
+
+data class DeudoresResponse(
+    @SerializedName("success")
+    val success: Boolean,
+    @SerializedName("deudores")
+    val deudores: List<Deudor> = emptyList()
+)

@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Caja
 
+import androidx.annotation.StringRes
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.R
 import kotlinx.coroutines.CancellationException
@@ -23,6 +24,11 @@ sealed class CajaResult {
             return result
         }
     }
+}
+
+sealed class CobrosResult {
+    data class Success(val totales: List<CobroForma>) : CobrosResult()
+    data class Error(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : CobrosResult()
 }
 
 interface CajaRepository {

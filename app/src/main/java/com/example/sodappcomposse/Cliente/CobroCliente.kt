@@ -45,24 +45,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.GreenPrimario
-import com.google.gson.annotations.SerializedName
-
-// Client with a pending balance, as listed by GET deudaCliente.php
-data class Deudor(
-    @SerializedName("cl_ide")
-    val id: Int,
-    @SerializedName("cl_nom")
-    val nombre: String,
-    @SerializedName("cl_deb")
-    val saldo: Double
-)
-
-data class DeudoresResponse(
-    @SerializedName("success")
-    val success: Boolean,
-    @SerializedName("deudores")
-    val deudores: List<Deudor> = emptyList()
-)
 
 fun filtrarDeudores(deudores: List<Deudor>, busqueda: String): List<Deudor> {
     val texto = busqueda.trim()
