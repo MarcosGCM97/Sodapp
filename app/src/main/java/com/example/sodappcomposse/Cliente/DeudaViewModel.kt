@@ -66,6 +66,21 @@ class DeudaViewModel @Inject constructor(
         }
     }
 
+    private val _pagos = mutableStateOf<List<Pago>>(emptyList())
+    val pagos: State<List<Pago>> = _pagos
+
+    fun cargarPagos(clienteId: Int) {
+        viewModelScope.launch {
+            when (val result = clienteRepository.getPagosCliente(clienteId)) {
+                is ClienteResult.Success -> _pagos.value = result.data.pagos
+                is ClienteResult.Error -> {
+                    _pagos.value = emptyList()
+                    _uiState.value = DeudaUiState.Error(result.messageRes, result.args)
+                }
+            }
+        }
+    }
+
     val isPagoEnCurso: Boolean
         get() = _uiState.value is DeudaUiState.Loading || _uiState.value is DeudaUiState.Success
 

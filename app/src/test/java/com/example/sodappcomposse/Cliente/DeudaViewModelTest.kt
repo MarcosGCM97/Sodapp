@@ -113,4 +113,25 @@ class DeudaViewModelTest {
         assertEquals(emptyList<FormaPago>(), viewModel.formasPago.value)
         assertEquals(DeudaUiState.Error(R.string.error_red_verificar), viewModel.uiState.value)
     }
+    @Test
+    fun `cargarPagos exposes the client's payment history`() = runTest {
+        val pagos = listOf(Pago(9, 300.5, "Efectivo", "2026-10-30 10:00:00"))
+        coEvery { repository.getPagosCliente(7) } returns ClienteResult.Success(PagosResponse(true, pagos))
+
+        viewModel.cargarPagos(7)
+        advanceUntilIdle()
+
+        assertEquals(pagos, viewModel.pagos.value)
+    }
+
+    @Test
+    fun `cargarPagos failure leaves no payments and reports the error`() = runTest {
+        coEvery { repository.getPagosCliente(7) } returns ClienteResult.Error(R.string.error_red_verificar)
+
+        viewModel.cargarPagos(7)
+        advanceUntilIdle()
+
+        assertEquals(emptyList<Pago>(), viewModel.pagos.value)
+        assertEquals(DeudaUiState.Error(R.string.error_red_verificar), viewModel.uiState.value)
+    }
 }

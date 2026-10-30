@@ -31,6 +31,7 @@ class CajaViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mockk()
+        coEvery { repository.getCobrosPorMes(any()) } returns CobrosResult.Success(emptyList())
         viewModel = CajaViewModel(repository)
     }
 
@@ -174,5 +175,46 @@ class CajaViewModelTest {
         viewModel.seleccionarMes(Meses.MAYO)
         assertNull(viewModel.mesCargado.value)
         assertEquals(CajaUiState.Idle, viewModel.cajaUiState)
+    }
+    @Test
+    fun `getCajaPorMes also loads the month's collections per payment method`() = runTest {
+        val totales = listOf(CobroForma("Efectivo", 1500.0), CobroForma("Transferencia", 500.0))
+        viewModel.seleccionarMes(Meses.MARZO)
+        coEvery { repository.getCajaPorMes(Meses.MARZO.numero) } returns CajaResult.Success(DataCajaResponse(true, emptyList()))
+        coEvery { repository.getCobrosPorMes(Meses.MARZO.numero) } returns CobrosResult.Success(totales)
+
+        viewModel.getCajaPorMes()
+        assertEquals(CobrosUiState.Loading, viewModel.cobrosUiState)
+        advanceUntilIdle()
+
+        assertEquals(CobrosUiState.Success(totales), viewModel.cobrosUiState)
+        assertEquals(2000.0, (viewModel.cobrosUiState as CobrosUiState.Success).total, 0.0)
+    }
+
+    @Test
+    fun `a failed collections request does not hide the month's sales`() = runTest {
+        viewModel.seleccionarMes(Meses.MARZO)
+        coEvery { repository.getCajaPorMes(Meses.MARZO.numero) } returns CajaResult.Success(
+            DataCajaResponse(true, listOf(Venta(producto = "Bidon", precio = 100.0, cantidad = 1, monto = 100.0)))
+        )
+        coEvery { repository.getCobrosPorMes(Meses.MARZO.numero) } returns CobrosResult.Error(R.string.cuerpo_nulo_error)
+
+        viewModel.getCajaPorMes()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.cajaUiState is CajaUiState.Success)
+        assertEquals(CobrosUiState.Error(R.string.cuerpo_nulo_error), viewModel.cobrosUiState)
+    }
+
+    @Test
+    fun `selecting another month clears the loaded collections`() = runTest {
+        viewModel.seleccionarMes(Meses.MARZO)
+        coEvery { repository.getCajaPorMes(Meses.MARZO.numero) } returns CajaResult.Success(DataCajaResponse(true, emptyList()))
+        viewModel.getCajaPorMes()
+        advanceUntilIdle()
+
+        viewModel.seleccionarMes(Meses.ABRIL)
+
+        assertEquals(CobrosUiState.Idle, viewModel.cobrosUiState)
     }
 }

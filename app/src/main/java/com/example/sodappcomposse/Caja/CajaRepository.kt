@@ -27,11 +27,33 @@ sealed class CajaResult {
 
 interface CajaRepository {
     suspend fun getCajaPorMes(mes: Int): CajaResult
+    suspend fun getCobrosPorMes(mes: Int): CobrosResult
 }
 
 class CajaRepositoryImpl @Inject constructor(
     private val apiServices: ApiServices
 ) : CajaRepository {
+    override suspend fun getCobrosPorMes(mes: Int): CobrosResult {
+        return try {
+            val response = apiServices.getCobrosPorMes(mes)
+            val body = response.body()
+            when {
+                !response.isSuccessful -> CobrosResult.Error(R.string.error_api_format, listOf(response.code()))
+                body == null -> CobrosResult.Error(R.string.cuerpo_nulo_error)
+                // A month without payments is a valid result, not an error
+                else -> CobrosResult.Success(body.totales ?: emptyList())
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            CobrosResult.Error(R.string.error_red_format, listOf(e.message?.take(100) ?: ""))
+        } catch (e: HttpException) {
+            CobrosResult.Error(R.string.error_http_format, listOf(e.code()))
+        } catch (e: Exception) {
+            CobrosResult.Error(R.string.error_inesperado_format, listOf(e.message?.take(100) ?: ""))
+        }
+    }
+
     override suspend fun getCajaPorMes(mes: Int): CajaResult {
         return try {
             val response = apiServices.getCajaPorMes(mes)

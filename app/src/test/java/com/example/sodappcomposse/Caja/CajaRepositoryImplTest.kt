@@ -131,4 +131,18 @@ class CajaRepositoryImplTest {
         assertEquals(R.string.error_red_format, (result as CajaResult.Error).messageRes)
         assertEquals("Network error", result.args[0])
     }
+    @Test
+    fun `getCobrosPorMes returns the totals per payment method`() = runTest {
+        val totales = listOf(CobroForma("Efectivo", 300.5))
+        coEvery { apiServices.getCobrosPorMes(3) } returns Response.success(CobrosMesResponse(true, totales))
+
+        assertEquals(CobrosResult.Success(totales), repository.getCobrosPorMes(3))
+    }
+
+    @Test
+    fun `getCobrosPorMes returns an empty list when the month has no payments`() = runTest {
+        coEvery { apiServices.getCobrosPorMes(3) } returns Response.success(CobrosMesResponse(true, null))
+
+        assertEquals(CobrosResult.Success(emptyList()), repository.getCobrosPorMes(3))
+    }
 }

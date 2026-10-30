@@ -24,6 +24,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +86,7 @@ fun DeudaScreen(
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
             deudaModel.cargarFormasPago()
+            clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
             Log.e("DeudaScreen", "clienteId es nulo o inválido: $clienteId")
@@ -97,6 +100,7 @@ fun DeudaScreen(
             is DeudaUiState.Success -> {
                 // Keep the pay button locked until the refreshed debt is on screen
                 clienteModel.recargarClienteById(clienteId.toString())
+                clienteId?.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
                 deudaModel.resetState()
             }
             is DeudaUiState.Error -> {
@@ -115,7 +119,8 @@ fun DeudaScreen(
     // No default method: every payment is stored with the method the user picked
     var formaPagoSeleccionada by remember { mutableStateOf<Int?>(null) }
 
-    var ver by remember { mutableStateOf(false) }
+    // 0 = Compras, 1 = Pagos
+    var tabCliente by remember { mutableStateOf(0) }
 
     //var nuevaCantidad by remember { mutableStateOf(0) }
 
@@ -321,24 +326,19 @@ fun DeudaScreen(
             // Sección de Últimas Ventas
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    ver = !ver
-                    Log.d("DeudaScreen", "Ver ultimas compras del cliente: $ver, ${ventasDelCliente.value}")
-                          },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    //.padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = GreenPrimario,
-                    contentColor = Color.White
-                )
-            ){
-                Text(stringResource(R.string.ver_ultimas_compras))
+            TabRow(selectedTabIndex = tabCliente) {
+                listOf(stringResource(R.string.tab_compras), stringResource(R.string.tab_pagos)).forEachIndexed { index, titulo ->
+                    Tab(
+                        selected = tabCliente == index,
+                        onClick = { tabCliente = index },
+                        text = { Text(titulo) }
+                    )
+                }
             }
 
-            if (ventasDelCliente.value.isNotEmpty() && ver) {
+            if (tabCliente == 1) {
+                PagosCliente(deudaModel.pagos.value)
+            } else if (ventasDelCliente.value.isNotEmpty()) {
                 ventasDelCliente.value.forEach { venta ->
 
                     Card(
@@ -387,7 +387,6 @@ fun DeudaScreen(
                     }
                 }
             } else {
-                Log.d("DeudaScreen", "No hay ventas para este cliente $ventasDelCliente, $ver")
                 if (cliente.value != null) {
                     Text(
                         stringResource(R.string.cargar_ventas_previas),
@@ -395,6 +394,34 @@ fun DeudaScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PagosCliente(pagos: List<Pago>) {
+    if (pagos.isEmpty()) {
+        Text(
+            stringResource(R.string.sin_pagos_registrados),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            textAlign = TextAlign.Center
+        )
+        return
+    }
+    pagos.forEach { pago ->
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(stringResource(R.string.fecha_format, pago.fecha))
+                Text(stringResource(R.string.monto_pago_format, formatearPrecio(pago.monto)))
+                Text(stringResource(R.string.forma_pago_item_format, pago.formaPago))
             }
         }
     }

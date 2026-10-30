@@ -34,6 +34,7 @@ interface ClienteRepository {
     suspend fun eliminarCliente(id: Int): ClienteResult<PostResponse>
     suspend fun updateDeudaCliente(id: Int, deuda: Double?, formaPago: Int? = null): ClienteResult<PostResponse>
     suspend fun getFormasPago(): ClienteResult<FormasPagoResponse>
+    suspend fun getPagosCliente(clienteId: Int): ClienteResult<PagosResponse>
     fun clearCache()
 }
 
@@ -98,6 +99,10 @@ class ClienteRepositoryImpl @Inject constructor(
 
     override suspend fun getFormasPago(): ClienteResult<FormasPagoResponse> = handleApiCall {
         apiServices.getFormasPago()
+    }
+
+    override suspend fun getPagosCliente(clienteId: Int): ClienteResult<PagosResponse> = handleApiCall {
+        apiServices.getPagosCliente(clienteId)
     }
 
     override fun clearCache() {
