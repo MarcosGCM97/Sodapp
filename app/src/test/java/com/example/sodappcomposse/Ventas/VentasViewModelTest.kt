@@ -47,6 +47,7 @@ class VentasViewModelTest {
         productoRepository = mockk(relaxed = true)
         val userPreferences: UserPreferencesRepository = mockk()
         every { userPreferences.userId } returns flowOf("7")
+        every { userPreferences.userName } returns flowOf("Soderia Ariza")
         viewModel = VentasViewModel(
             ventaRepository,
             clienteRepository,
