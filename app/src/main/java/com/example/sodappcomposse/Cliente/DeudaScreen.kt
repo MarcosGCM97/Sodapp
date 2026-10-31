@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
@@ -23,10 +22,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,10 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -53,6 +51,8 @@ import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Funciones.textoSaldoCliente
 import com.example.sodappcomposse.Funciones.armarMensajeSaldo
 import com.example.sodappcomposse.Deuda
+import com.example.sodappcomposse.Bienvenida
+import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
@@ -85,6 +85,7 @@ fun DeudaScreen(
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
+            clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
             Log.e("DeudaScreen", "clienteId es nulo o inválido: $clienteId")
@@ -99,6 +100,7 @@ fun DeudaScreen(
             is DeudaUiState.Success -> {
                 // Keep the pay button locked until the refreshed debt is on screen
                 clienteModel.recargarClienteById(clienteId.toString())
+                clienteId?.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
                 deudaModel.resetState()
             }
             is DeudaUiState.Error -> {
@@ -113,9 +115,9 @@ fun DeudaScreen(
 
     val ventasDelCliente = ventaModel.ventasPorClienteId
 
-    var pagarMonto by remember { mutableStateOf("") }
 
-    var ver by remember { mutableStateOf(false) }
+    // 0 = Compras, 1 = Pagos
+    var tabCliente by remember { mutableStateOf(0) }
 
     //var nuevaCantidad by remember { mutableStateOf(0) }
 
@@ -155,75 +157,15 @@ fun DeudaScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(stringResource(R.string.pagar_deuda_titulo), style = MaterialTheme.typography.headlineSmall)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                                //.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            OutlinedTextField(
-                                value = pagarMonto,
-                                onValueChange = { pagarMonto = it },
-                                label = { Text(stringResource(R.string.ingrese_monto_label)) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number
-                                )
+                        Button(
+                            onClick = { clienteId?.toIntOrNull()?.let { irACobrarCliente(navController, it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = GreenPrimario,
+                                contentColor = Color.White
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Card(
-                                modifier = Modifier
-                                    .width(90.dp)
-                                    .height(40.dp)
-                                    .clickable(enabled = !deudaModel.isPagoEnCurso) {
-                                        val monto = pagarMonto.toDoubleOrNull()
-                                        if (monto == null || monto <= 0) {
-                                            Toast.makeText(context, context.getString(R.string.monto_invalido_msg), Toast.LENGTH_SHORT).show()
-                                            return@clickable
-                                        }
-                                        val deudaActual = cliente.value?.deudaCl ?: 0.0
-                                        if (monto > deudaActual) {
-                                            Toast.makeText(context, context.getString(R.string.monto_supera_deuda_msg, formatearPrecio(monto), formatearPrecio(deudaActual)), Toast.LENGTH_SHORT).show()
-                                            return@clickable
-                                        }
-
-                                        deudaModel.pagarDeudaCliente(
-                                            cliente.value?.idCl ?: 0,
-                                            monto
-                                        )
-                                        pagarMonto = ""
-                                    },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = GreenPrimario,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(8.dp),
-                                    contentAlignment = Alignment.Center // Centra el Text
-                                ) {
-                                    if (deudaModel.isPagoEnCurso) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(20.dp),
-                                            color = Color.White,
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text(
-                                            text = stringResource(R.string.saldar_label),
-                                            textAlign = TextAlign.Center,
-                                            fontSize = 14.sp, // Descomenta y ajusta si necesitas un tamaño específico
-                                            // fontWeight = FontWeight.Bold // Para que se destaque más
-                                        )
-                                    }
-                                }
-                            }
+                        ) {
+                            Text(stringResource(R.string.cobrar_label))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -303,24 +245,19 @@ fun DeudaScreen(
             // Sección de Últimas Ventas
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    ver = !ver
-                    Log.d("DeudaScreen", "Ver ultimas compras del cliente: $ver, ${ventasDelCliente.value}")
-                          },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    //.padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = GreenPrimario,
-                    contentColor = Color.White
-                )
-            ){
-                Text(stringResource(R.string.ver_ultimas_compras))
+            TabRow(selectedTabIndex = tabCliente) {
+                listOf(stringResource(R.string.tab_compras), stringResource(R.string.tab_pagos)).forEachIndexed { index, titulo ->
+                    Tab(
+                        selected = tabCliente == index,
+                        onClick = { tabCliente = index },
+                        text = { Text(titulo) }
+                    )
+                }
             }
 
-            if (ventasDelCliente.value.isNotEmpty() && ver) {
+            if (tabCliente == 1) {
+                PagosCliente(deudaModel.pagos.value)
+            } else if (ventasDelCliente.value.isNotEmpty()) {
                 ventasDelCliente.value.forEach { venta ->
 
                     Card(
@@ -366,7 +303,6 @@ fun DeudaScreen(
                     }
                 }
             } else {
-                Log.d("DeudaScreen", "No hay ventas para este cliente $ventasDelCliente, $ver")
                 if (cliente.value != null) {
                     Text(
                         stringResource(R.string.cargar_ventas_previas),
@@ -377,6 +313,41 @@ fun DeudaScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PagosCliente(pagos: List<Pago>) {
+    if (pagos.isEmpty()) {
+        Text(
+            stringResource(R.string.sin_pagos_registrados),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            textAlign = TextAlign.Center
+        )
+        return
+    }
+    pagos.forEach { pago ->
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(stringResource(R.string.fecha_format, pago.fecha))
+                Text(stringResource(R.string.monto_pago_format, formatearPrecio(pago.monto)))
+                Text(stringResource(R.string.forma_pago_item_format, pago.formaPago))
+            }
+        }
+    }
+}
+
+// Back to the main screen on Clientes > Cobros with this client preselected
+private fun irACobrarCliente(navController: NavController, clienteId: Int) {
+    val principal = runCatching { navController.getBackStackEntry<Bienvenida>() }.getOrNull() ?: return
+    principal.savedStateHandle[CLAVE_COBRAR_CLIENTE] = clienteId
+    navController.popBackStack<Bienvenida>(inclusive = false)
 }
 
 fun openDialer(context: Context, phoneNumber: String) {

@@ -32,7 +32,10 @@ interface ClienteRepository {
     suspend fun postCliente(clienteRequest: ClienteRequest): ClienteResult<PostResponse>
     suspend fun updateCliente(cliente: Cliente): ClienteResult<PostResponse>
     suspend fun eliminarCliente(id: Int): ClienteResult<PostResponse>
-    suspend fun updateDeudaCliente(id: Int, deuda: Double?): ClienteResult<PostResponse>
+    suspend fun updateDeudaCliente(id: Int, deuda: Double?, formaPago: Int? = null): ClienteResult<PostResponse>
+    suspend fun getFormasPago(): ClienteResult<FormasPagoResponse>
+    suspend fun getPagosCliente(clienteId: Int): ClienteResult<PagosResponse>
+    suspend fun getDeudores(): ClienteResult<DeudoresResponse>
     fun clearCache()
 }
 
@@ -89,10 +92,22 @@ class ClienteRepositoryImpl @Inject constructor(
         return result
     }
 
-    override suspend fun updateDeudaCliente(id: Int, deuda: Double?): ClienteResult<PostResponse> {
-        val result = handleApiCall { apiServices.updateDeudaCliente(id, deuda) }
+    override suspend fun updateDeudaCliente(id: Int, deuda: Double?, formaPago: Int?): ClienteResult<PostResponse> {
+        val result = handleApiCall { apiServices.updateDeudaCliente(id, deuda, formaPago) }
         if (result is ClienteResult.Success) clearCache()
         return result
+    }
+
+    override suspend fun getFormasPago(): ClienteResult<FormasPagoResponse> = handleApiCall {
+        apiServices.getFormasPago()
+    }
+
+    override suspend fun getPagosCliente(clienteId: Int): ClienteResult<PagosResponse> = handleApiCall {
+        apiServices.getPagosCliente(clienteId)
+    }
+
+    override suspend fun getDeudores(): ClienteResult<DeudoresResponse> = handleApiCall {
+        apiServices.getDeudores()
     }
 
     override fun clearCache() {
