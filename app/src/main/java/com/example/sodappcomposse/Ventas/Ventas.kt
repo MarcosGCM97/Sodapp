@@ -43,6 +43,8 @@ import com.example.sodappcomposse.Producto.conDevueltos
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.ProductoMensaje
+import com.example.sodappcomposse.Funciones.armarMensajeVenta
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -67,6 +69,7 @@ fun Ventas(
 
     val ventasUiState = ventaModel.ventasUiState
     val ventasAgrupadas by ventaModel.ventasAgrupadas.collectAsState()
+    val nombreEmpresa by ventaModel.nombreEmpresa.collectAsState(initial = null)
 
     LazyColumn(
         modifier = Modifier
@@ -110,7 +113,7 @@ fun Ventas(
             }
             ventasUiState is VentasUiState.Success -> {
                 items(ventasAgrupadas) { ventaAgrupada ->
-                    BoxVentas(venta = ventaAgrupada, context)
+                    BoxVentas(venta = ventaAgrupada, context, nombreEmpresa)
                 }
             }
             else -> {
@@ -408,6 +411,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
  fun BoxVentas(
     venta: VentaAgrupada,
     context: Context,
+    nombreEmpresa: String?,
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
@@ -477,7 +481,14 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 CardWpp(
                     context,
                     cliente,
-                    armarMensajeVentasWpp(context, venta, totales.sumOf{ it ?: 0.0  })
+                    armarMensajeVenta(
+                        context.resources,
+                        venta.cliente?.nombreCl,
+                        venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
+                        totales.sumOf { it ?: 0.0 },
+                        venta.cliente?.deudaCl,
+                        nombreEmpresa
+                    )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -490,17 +501,6 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
             }
         }
     }
-}
-
-@SuppressLint("StringFormatMatches")
-fun armarMensajeVentasWpp(context: Context, venta: VentaAgrupada, total : Double): String{
-    val productosString = venta.productos.joinToString(
-        separator = ", ",
-        transform = { 
-            context.getString(R.string.wpp_producto_format, it.cantidad, it.nombre, formatearPrecio(it.precio))
-        }
-    )
-    return context.getString(R.string.wpp_mensaje_ventas, productosString, formatearPrecio(total), formatearPrecio(venta.cliente?.deudaCl))
 }
 
 @Composable

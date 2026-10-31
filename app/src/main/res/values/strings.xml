@@ -118,8 +118,18 @@
     <string name="cantidad_total_items_format">Cantidad Total de Items: %1$d</string>
     <string name="disminuir_cantidad_desc">Disminuir cantidad</string>
     <string name="aumentar_cantidad_desc">Aumentar cantidad</string>
-    <string name="wpp_mensaje_ventas">Tu compra fue de %1$s, por un total de $%2$s. Acumulando una deuda de $%3$s. *Gracias por tu compra!*</string>
-    <string name="wpp_producto_format">%1$d %2$s por $%3$s c/u</string>
+    <string name="wpp_saludo">¡Hola! 👋</string>
+    <string name="wpp_saludo_nombre">¡Hola, %1$s! 👋</string>
+    <string name="wpp_gracias_compra">Muchas gracias por tu compra 🛒</string>
+    <string name="wpp_producto_format">• %1$d %2$s a $%3$s c/u</string>
+    <string name="wpp_total_format">💵 Total: $%1$s</string>
+    <string name="wpp_saldo_pendiente_format">📋 Saldo pendiente: $%1$s</string>
+    <string name="wpp_saldo_a_favor_format">🎉 Saldo a favor: $%1$s</string>
+    <string name="wpp_al_dia">✅ Tu cuenta está al día.</string>
+    <string name="wpp_despedida">¡Que tengas un lindo día! 😊</string>
+    <string name="wpp_estado_cuenta">Te compartimos el estado de tu cuenta:</string>
+    <string name="wpp_consultas">Cualquier consulta, estamos para ayudarte 🙌</string>
+    <string name="wpp_firma_format">%1$s 💧</string>
 
     <!-- Mensajes de UiState (ViewModels) -->
     <string name="error_red_verificar">Error de Red: Verifica tu conexión.</string>
