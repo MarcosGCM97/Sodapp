@@ -85,6 +85,10 @@
     <string name="disminuir_stock_desc">Disminuir stock</string>
     <string name="aumentar_stock_desc">Aumentar stock</string>
     <string name="actualizar_stock_label">Actualizar stock</string>
+    <string name="actualizar_vacios_label">Actualizar vacíos</string>
+    <string name="envases_llenos_format">Envases llenos: %1$d</string>
+    <string name="ajustar_llenos_label">Llenos</string>
+    <string name="ajustar_vacios_label">Vacíos</string>
 
     <!-- Agenda -->
     <string name="agenda_reparto_titulo">Agenda de Reparto</string>

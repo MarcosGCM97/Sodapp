@@ -164,6 +164,9 @@ fun TabInventario(
                                 },
                                 onLlenar = { cantidad ->
                                     productoModel.llenarEnvases(producto, cantidad)
+                                },
+                                onAjustarVacios = { nuevaCantidad ->
+                                    productoModel.ajustarVacios(producto, nuevaCantidad)
                                 }
                             )
                         }
@@ -178,7 +181,8 @@ fun TabInventario(
 fun CardProductoInventario(
     producto: Producto,
     onAjustarStock: (Int) -> Unit,
-    onLlenar: (Int) -> Unit = {}
+    onLlenar: (Int) -> Unit = {},
+    onAjustarVacios: (Int) -> Unit = {}
 ) {
     val stockActual = producto.stock
 
@@ -188,11 +192,15 @@ fun CardProductoInventario(
         else -> Color(0xFF4CAF50)
     }
 
-    var cantidadLocal by remember(producto.id, producto.stock) {
-        mutableIntStateOf(stockActual)
+    // Returnable products choose which count the stepper edits: full (stock) or empty containers
+    var ajustandoVacios by remember(producto.id) { mutableStateOf(false) }
+    val cantidadBase = if (ajustandoVacios) producto.vacios else stockActual
+
+    var cantidadLocal by remember(producto.id, producto.stock, producto.vacios, ajustandoVacios) {
+        mutableIntStateOf(cantidadBase)
     }
 
-    var hayCambiosPendientes by remember(producto.id, producto.stock) {
+    var hayCambiosPendientes by remember(producto.id, producto.stock, producto.vacios, ajustandoVacios) {
         mutableStateOf(false)
     }
 
@@ -221,7 +229,10 @@ fun CardProductoInventario(
 
             // Stock con color
             Text(
-                text = stringResource(R.string.stock_format, stockActual),
+                text = stringResource(
+                    if (producto.esRetornable) R.string.envases_llenos_format else R.string.stock_format,
+                    stockActual
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = colorStock
@@ -233,6 +244,24 @@ fun CardProductoInventario(
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            if (producto.esRetornable) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                ) {
+                    FilterChip(
+                        selected = !ajustandoVacios,
+                        onClick = { ajustandoVacios = false },
+                        label = { Text(stringResource(R.string.ajustar_llenos_label)) }
+                    )
+                    FilterChip(
+                        selected = ajustandoVacios,
+                        onClick = { ajustandoVacios = true },
+                        label = { Text(stringResource(R.string.ajustar_vacios_label)) }
+                    )
+                }
+            }
+
             // Controles de ajuste de stock
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -243,7 +272,7 @@ fun CardProductoInventario(
                     onClick = {
                         if (cantidadLocal > 0) {
                             cantidadLocal--
-                            hayCambiosPendientes = cantidadLocal != producto.stock
+                            hayCambiosPendientes = cantidadLocal != cantidadBase
                         }
                     },
                     enabled = cantidadLocal > 0
@@ -260,7 +289,7 @@ fun CardProductoInventario(
                         } else if (nuevaCantidad != null && nuevaCantidad >= 0) {
                             cantidadLocal = nuevaCantidad
                         }
-                        hayCambiosPendientes = cantidadLocal != producto.stock
+                        hayCambiosPendientes = cantidadLocal != cantidadBase
                     },
                     modifier = Modifier.width(80.dp),
                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
@@ -271,7 +300,7 @@ fun CardProductoInventario(
                 IconButton(
                     onClick = {
                         cantidadLocal++
-                        hayCambiosPendientes = cantidadLocal != producto.stock
+                        hayCambiosPendientes = cantidadLocal != cantidadBase
                     }
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_stock_desc))
@@ -281,12 +310,16 @@ fun CardProductoInventario(
             if (hayCambiosPendientes) {
                 Button(
                     onClick = {
-                        onAjustarStock(cantidadLocal)
+                        if (ajustandoVacios) onAjustarVacios(cantidadLocal) else onAjustarStock(cantidadLocal)
                         hayCambiosPendientes = false
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.actualizar_stock_label))
+                    Text(
+                        stringResource(
+                            if (ajustandoVacios) R.string.actualizar_vacios_label else R.string.actualizar_stock_label
+                        )
+                    )
                 }
             }
         }
