@@ -339,19 +339,7 @@ fun AddVentaForm(
                     return@Button
                 }
 
-                // Validación de Stock local
-                val productosSinStock = productosParaVenta.filter { prodVenta ->
-                    val stockDisponible = productos.find { it.nombrePr == prodVenta.nombre }?.stock ?: 0
-                    stockDisponible < prodVenta.cantidad
-                }
-                if (productosSinStock.isNotEmpty()) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.stock_insuficiente_format, productosSinStock.joinToString { it.nombre }),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return@Button
-                }
+                // No stock check: the delivery already happened, so a sale may leave stock negative
 
                 // Usamos el scope que ya declaraste arriba con rememberCoroutineScope()
                 scope.launch {

@@ -25,13 +25,13 @@ class VentaRepositoryImplTest {
     }
 
     @Test
-    fun `a 409 insufficient stock response surfaces the product name`() = runTest {
+    fun `a 409 reports the status code like any other server error`() = runTest {
         val body = """{"success":false,"error":"Stock insuficiente: Bidon 20L"}""".toResponseBody()
         coEvery { apiServices.postVenta(request) } returns Response.error<PostResponse>(409, body)
 
         val result = repository.postVenta(request)
 
-        assertEquals(VentaResult.Error(R.string.stock_insuficiente_format, arrayOf("Bidon 20L")), result)
+        assertEquals(VentaResult.Error(R.string.error_servidor_format, arrayOf(409)), result)
     }
 
     @Test
@@ -42,14 +42,5 @@ class VentaRepositoryImplTest {
         val result = repository.postVenta(request)
 
         assertEquals(VentaResult.Error(R.string.error_servidor_format, arrayOf(500)), result)
-    }
-
-    @Test
-    fun `a 409 with an unreadable body falls back to the status code`() = runTest {
-        coEvery { apiServices.postVenta(request) } returns Response.error<PostResponse>(409, "not json".toResponseBody())
-
-        val result = repository.postVenta(request)
-
-        assertEquals(VentaResult.Error(R.string.error_servidor_format, arrayOf(409)), result)
     }
 }
