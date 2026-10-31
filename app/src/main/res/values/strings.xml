@@ -85,6 +85,10 @@
     <string name="disminuir_stock_desc">Disminuir stock</string>
     <string name="aumentar_stock_desc">Aumentar stock</string>
     <string name="actualizar_stock_label">Actualizar stock</string>
+    <string name="actualizar_vacios_label">Actualizar vacíos</string>
+    <string name="envases_llenos_format">Envases llenos: %1$d</string>
+    <string name="ajustar_llenos_label">Llenos</string>
+    <string name="ajustar_vacios_label">Vacíos</string>
 
     <!-- Agenda -->
     <string name="agenda_reparto_titulo">Agenda de Reparto</string>
@@ -194,6 +198,8 @@
     <string name="retornable_label">Retornable</string>
     <string name="envases_vacios_label">Envases vacíos</string>
     <string name="envases_vacios_format">Envases vacíos: %1$d</string>
+    <string name="envases_en_clientes_format">Envases en clientes: %1$d</string>
+    <string name="envases_total_format">Total de envases: %1$d</string>
     <string name="llenar_label">Llenar</string>
     <string name="envases_llenados_success">Se llenaron %1$d envases de %2$s.</string>
     <string name="envases_devueltos_label">Envases devueltos</string>
