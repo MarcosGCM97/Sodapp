@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.textoSaldoCliente
 import com.example.sodappcomposse.Funciones.armarMensajeSaldo
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Componentes.CardWpp
@@ -150,7 +151,7 @@ fun DeudaScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(stringResource(R.string.saldo_ventas_label), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.deuda_format, formatearPrecio(cliente.value?.deudaCl ?: 0.0)))
+                        Text(textoSaldoCliente(context.resources, cliente.value?.deudaCl))
 
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -346,12 +347,9 @@ fun DeudaScreen(
                             }
                             IconButton(
                                 onClick = {
-                                    val valorVenta = venta.precio * venta.cantidad
-
                                     ventaModel.eliminarVenta(
                                         venta.idVenta,
-                                        clienteId!!.toInt(),
-                                        valorVenta
+                                        clienteId!!.toInt()
                                     )
                                     navController.navigate(Deuda(id = clienteId)) {
                                         popUpTo<Deuda> { inclusive = true }

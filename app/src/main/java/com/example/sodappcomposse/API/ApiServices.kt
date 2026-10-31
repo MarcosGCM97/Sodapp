@@ -105,7 +105,8 @@ interface ApiServices {
     @DELETE("ventas.php")
     suspend fun deleteVenta(
         @Query("id") id: Int?,
-        //@Query("cantidad") cantidad: Int
+        // 1 asks the backend to revert the client debt too; older app versions revert it themselves
+        @Query("revertir_deuda") revertirDeuda: Int = 1,
     ): Response<PostResponse>
 
     @PUT("deudaCliente.php")

@@ -46,6 +46,7 @@ import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.textoSaldoCliente
 
 @Composable
 fun Clientes(
@@ -250,7 +251,7 @@ fun BuscarCliente(
                 Text(stringResource(R.string.nombre_format, cliente.nombreCl))
                 Text(stringResource(R.string.direccion_format, cliente.direccionCl))
                 Text(stringResource(R.string.telefono_format, cliente.numTelCl))
-                Text(stringResource(R.string.deuda_format, formatearPrecio(cliente.deudaCl)))
+                Text(textoSaldoCliente(context.resources, cliente.deudaCl))
 
                 Spacer(modifier = Modifier.height(8.dp))
 

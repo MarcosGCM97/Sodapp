@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.Cliente.ClienteRepository
-import com.example.sodappcomposse.Cliente.ClienteResult
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoResult
@@ -192,20 +191,15 @@ class VentasViewModel @Inject constructor(
         }
     }
 
-    internal fun eliminarVenta(idVenta: Int, clienteId: Int, valorVenta: Double){
+    internal fun eliminarVenta(idVenta: Int, clienteId: Int){
         viewModelScope.launch {
             when (val result = ventaRepository.deleteVenta(idVenta)) {
                 is VentaResult.Success -> {
                     ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
                     // The backend may have reverted empty containers; drop the stale cached product list
                     productoRepository.clearCache()
-                    // actualizar deuda del cliente
-                    when (val updateResult = clienteRepository.updateDeudaCliente(clienteId, valorVenta)) {
-                        is ClienteResult.Success -> { /* Ok */ }
-                        is ClienteResult.Error -> {
-                            ventasUiState = VentasUiState.Error(updateResult.messageRes, updateResult.args)
-                        }
-                    }
+                    // The backend reverted the debt in the same transaction, even below zero (credit balance)
+                    clienteRepository.clearCache()
                     getVentasByClienteId(clienteId.toString())
                 }
                 is VentaResult.Error -> {
