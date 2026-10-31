@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -47,6 +48,8 @@ import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.textoSaldoCliente
+import com.example.sodappcomposse.Funciones.armarMensajeSaldo
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Bienvenida
 import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
@@ -90,6 +93,7 @@ fun DeudaScreen(
         }
     }
     // Refresh the client only after the debt update has finished on the backend
+    val nombreEmpresa by ventaModel.nombreEmpresa.collectAsState(initial = null)
     val deudaUiState = deudaModel.uiState.value
     LaunchedEffect(deudaUiState) {
         when (deudaUiState) {
@@ -149,7 +153,7 @@ fun DeudaScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(stringResource(R.string.saldo_ventas_label), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.deuda_format, formatearPrecio(cliente.value?.deudaCl ?: 0.0)))
+                        Text(textoSaldoCliente(context.resources, cliente.value?.deudaCl))
 
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -173,7 +177,7 @@ fun DeudaScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Botón de WhatsApp
-                            CardWpp(context, cliente.value, context.getString(R.string.deuda_format, formatearPrecio(cliente.value?.deudaCl ?: 0.0)))
+                            CardWpp(context, cliente.value, armarMensajeSaldo(context.resources, cliente.value?.nombreCl, cliente.value?.deudaCl, nombreEmpresa))
 
                             // Botón de Llamada
                             Card(
@@ -280,12 +284,9 @@ fun DeudaScreen(
                             }
                             IconButton(
                                 onClick = {
-                                    val valorVenta = venta.precio * venta.cantidad
-
                                     ventaModel.eliminarVenta(
                                         venta.idVenta,
-                                        clienteId!!.toInt(),
-                                        valorVenta
+                                        clienteId!!.toInt()
                                     )
                                     navController.navigate(Deuda(id = clienteId)) {
                                         popUpTo<Deuda> { inclusive = true }

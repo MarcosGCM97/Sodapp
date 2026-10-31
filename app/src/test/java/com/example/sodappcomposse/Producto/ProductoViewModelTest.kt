@@ -55,6 +55,14 @@ class ProductoViewModelTest {
     }
 
     @Test
+    fun `adjusting empty containers sends the new empties and keeps the full stock`() = runTest {
+        viewModel.ajustarVacios(bidon, 8)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { productoRepository.updateProducto("Bidon 20L", 4500.0, 3, null, 8) }
+    }
+
+    @Test
     fun `editing a product without container fields keeps the previous request`() = runTest {
         viewModel.editarProducto(Producto(nombrePr = "Soda", precioUni = 900.0, stock = 7))
         advanceUntilIdle()
@@ -118,5 +126,41 @@ class ProductoViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 0) { envaseRepository.llenarEnvases(any(), any()) }
+    }
+
+    @Test
+    fun `opening the history loads the movements of the product`() = runTest {
+        val movimientos = listOf(Movimiento(id = 2, tipo = "venta", cantidad = -1, stock = 2), Movimiento(id = 1, tipo = "alta", cantidad = 3, stock = 3))
+        coEvery { productoRepository.getMovimientos(1) } returns ProductoResult.Success(MovimientosResponse(true, movimientos))
+
+        viewModel.verHistorial(bidon)
+        advanceUntilIdle()
+
+        assertEquals(MovimientosUiState.Success("Bidon 20L", movimientos), viewModel.movimientosUiState)
+    }
+
+    @Test
+    fun `a failed history load keeps the product list untouched`() = runTest {
+        coEvery { productoRepository.getMovimientos(1) } returns ProductoResult.Error(R.string.error_red_verificar)
+        viewModel.getProductos()
+        advanceUntilIdle()
+        val estadoProductos = viewModel.productoUiState
+
+        viewModel.verHistorial(bidon)
+        advanceUntilIdle()
+
+        assertEquals(MovimientosUiState.Error("Bidon 20L", R.string.error_red_verificar), viewModel.movimientosUiState)
+        assertEquals(estadoProductos, viewModel.productoUiState)
+    }
+
+    @Test
+    fun `closing the history clears it`() = runTest {
+        coEvery { productoRepository.getMovimientos(1) } returns ProductoResult.Success(MovimientosResponse(true, emptyList()))
+        viewModel.verHistorial(bidon)
+        advanceUntilIdle()
+
+        viewModel.cerrarHistorial()
+
+        assertEquals(MovimientosUiState.Idle, viewModel.movimientosUiState)
     }
 }

@@ -164,6 +164,10 @@ fun TabInventario(
                                 },
                                 onLlenar = { cantidad ->
                                     productoModel.llenarEnvases(producto, cantidad)
+                                },
+                                onVerHistorial = { productoModel.verHistorial(producto) },
+                                onAjustarVacios = { nuevaCantidad ->
+                                    productoModel.ajustarVacios(producto, nuevaCantidad)
                                 }
                             )
                         }
@@ -172,13 +176,89 @@ fun TabInventario(
             }
         }
     }
+
+    HistorialStockDialog(
+        state = productoModel.movimientosUiState,
+        onDismiss = { productoModel.cerrarHistorial() }
+    )
+}
+
+/** Stock movements of one product, newest first; shown while [state] is not Idle. */
+@Composable
+private fun HistorialStockDialog(
+    state: MovimientosUiState,
+    onDismiss: () -> Unit
+) {
+    val nombreProducto = when (state) {
+        is MovimientosUiState.Idle -> return
+        is MovimientosUiState.Loading -> state.nombreProducto
+        is MovimientosUiState.Success -> state.nombreProducto
+        is MovimientosUiState.Error -> state.nombreProducto
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.historial_titulo, nombreProducto)) },
+        text = {
+            when (state) {
+                is MovimientosUiState.Loading -> CircularProgressIndicator()
+                is MovimientosUiState.Error -> Text(
+                    text = stringResource(state.messageRes, *state.args.toTypedArray()),
+                    color = MaterialTheme.colorScheme.error
+                )
+                is MovimientosUiState.Success -> {
+                    if (state.movimientos.isEmpty()) {
+                        Text(stringResource(R.string.historial_vacio))
+                    } else {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(state.movimientos, key = { it.id }) { movimiento ->
+                                MovimientoItem(movimiento)
+                            }
+                        }
+                    }
+                }
+                is MovimientosUiState.Idle -> {}
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cerrar)) }
+        }
+    )
+}
+
+@Composable
+private fun MovimientoItem(movimiento: Movimiento) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = stringResource(movimiento.tipoLabel),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = movimiento.cantidadConSigno,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (movimiento.cantidad < 0) MaterialTheme.colorScheme.error else Color(0xFF4CAF50)
+            )
+        }
+        Text(
+            text = stringResource(R.string.historial_item_format, movimiento.fecha, movimiento.stock),
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
 }
 
 @Composable
 fun CardProductoInventario(
     producto: Producto,
     onAjustarStock: (Int) -> Unit,
-    onLlenar: (Int) -> Unit = {}
+    onLlenar: (Int) -> Unit = {},
+    onVerHistorial: () -> Unit = {},
+    onAjustarVacios: (Int) -> Unit = {}
 ) {
     val stockActual = producto.stock
 
@@ -188,11 +268,15 @@ fun CardProductoInventario(
         else -> Color(0xFF4CAF50)
     }
 
-    var cantidadLocal by remember(producto.id, producto.stock) {
-        mutableIntStateOf(stockActual)
+    // Returnable products choose which count the stepper edits: full (stock) or empty containers
+    var ajustandoVacios by remember(producto.id) { mutableStateOf(false) }
+    val cantidadBase = if (ajustandoVacios) producto.vacios else stockActual
+
+    var cantidadLocal by remember(producto.id, producto.stock, producto.vacios, ajustandoVacios) {
+        mutableIntStateOf(cantidadBase)
     }
 
-    var hayCambiosPendientes by remember(producto.id, producto.stock) {
+    var hayCambiosPendientes by remember(producto.id, producto.stock, producto.vacios, ajustandoVacios) {
         mutableStateOf(false)
     }
 
@@ -221,7 +305,10 @@ fun CardProductoInventario(
 
             // Stock con color
             Text(
-                text = stringResource(R.string.stock_format, stockActual),
+                text = stringResource(
+                    if (producto.esRetornable) R.string.envases_llenos_format else R.string.stock_format,
+                    stockActual
+                ),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = colorStock
@@ -231,7 +318,29 @@ fun CardProductoInventario(
                 LlenarEnvasesRow(producto = producto, onLlenar = onLlenar)
             }
 
+            TextButton(onClick = onVerHistorial) {
+                Text(stringResource(R.string.historial_label))
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
+
+            if (producto.esRetornable) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                ) {
+                    FilterChip(
+                        selected = !ajustandoVacios,
+                        onClick = { ajustandoVacios = false },
+                        label = { Text(stringResource(R.string.ajustar_llenos_label)) }
+                    )
+                    FilterChip(
+                        selected = ajustandoVacios,
+                        onClick = { ajustandoVacios = true },
+                        label = { Text(stringResource(R.string.ajustar_vacios_label)) }
+                    )
+                }
+            }
 
             // Controles de ajuste de stock
             Row(
@@ -243,7 +352,7 @@ fun CardProductoInventario(
                     onClick = {
                         if (cantidadLocal > 0) {
                             cantidadLocal--
-                            hayCambiosPendientes = cantidadLocal != producto.stock
+                            hayCambiosPendientes = cantidadLocal != cantidadBase
                         }
                     },
                     enabled = cantidadLocal > 0
@@ -260,7 +369,7 @@ fun CardProductoInventario(
                         } else if (nuevaCantidad != null && nuevaCantidad >= 0) {
                             cantidadLocal = nuevaCantidad
                         }
-                        hayCambiosPendientes = cantidadLocal != producto.stock
+                        hayCambiosPendientes = cantidadLocal != cantidadBase
                     },
                     modifier = Modifier.width(80.dp),
                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
@@ -271,7 +380,7 @@ fun CardProductoInventario(
                 IconButton(
                     onClick = {
                         cantidadLocal++
-                        hayCambiosPendientes = cantidadLocal != producto.stock
+                        hayCambiosPendientes = cantidadLocal != cantidadBase
                     }
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_stock_desc))
@@ -281,12 +390,16 @@ fun CardProductoInventario(
             if (hayCambiosPendientes) {
                 Button(
                     onClick = {
-                        onAjustarStock(cantidadLocal)
+                        if (ajustandoVacios) onAjustarVacios(cantidadLocal) else onAjustarStock(cantidadLocal)
                         hayCambiosPendientes = false
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.actualizar_stock_label))
+                    Text(
+                        stringResource(
+                            if (ajustandoVacios) R.string.actualizar_vacios_label else R.string.actualizar_stock_label
+                        )
+                    )
                 }
             }
         }
@@ -304,6 +417,14 @@ private fun LlenarEnvasesRow(
 
     Text(
         text = stringResource(R.string.envases_vacios_format, producto.vacios),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Text(
+        text = stringResource(R.string.envases_en_clientes_format, producto.enClientes),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Text(
+        text = stringResource(R.string.envases_total_format, producto.totalEnvases),
         style = MaterialTheme.typography.bodyMedium
     )
     Row(

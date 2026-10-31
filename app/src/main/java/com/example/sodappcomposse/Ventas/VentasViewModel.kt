@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sodappcomposse.Cliente.ClienteRepository
-import com.example.sodappcomposse.Cliente.ClienteResult
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoResult
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -70,6 +70,9 @@ class VentasViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
+
+    // The logged-in user's name signs the WhatsApp messages as the business name
+    val nombreEmpresa: Flow<String?> = userPreferencesRepository.userName
 
     private val _ventas = MutableStateFlow<List<Venta>>(emptyList())
     val ventas: StateFlow<List<Venta>> = _ventas.asStateFlow()
@@ -188,20 +191,15 @@ class VentasViewModel @Inject constructor(
         }
     }
 
-    internal fun eliminarVenta(idVenta: Int, clienteId: Int, valorVenta: Double){
+    internal fun eliminarVenta(idVenta: Int, clienteId: Int){
         viewModelScope.launch {
             when (val result = ventaRepository.deleteVenta(idVenta)) {
                 is VentaResult.Success -> {
                     ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
                     // The backend may have reverted empty containers; drop the stale cached product list
                     productoRepository.clearCache()
-                    // actualizar deuda del cliente
-                    when (val updateResult = clienteRepository.updateDeudaCliente(clienteId, valorVenta)) {
-                        is ClienteResult.Success -> { /* Ok */ }
-                        is ClienteResult.Error -> {
-                            ventasUiState = VentasUiState.Error(updateResult.messageRes, updateResult.args)
-                        }
-                    }
+                    // The backend reverted the debt in the same transaction, even below zero (credit balance)
+                    clienteRepository.clearCache()
                     getVentasByClienteId(clienteId.toString())
                 }
                 is VentaResult.Error -> {
