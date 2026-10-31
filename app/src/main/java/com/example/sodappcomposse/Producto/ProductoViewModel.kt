@@ -50,6 +50,14 @@ sealed class ProductoUiState{
     }
 }
 
+/** Stock history dialog of one product; kept apart from [ProductoUiState] so a failure never hides the list. */
+sealed interface MovimientosUiState {
+    data object Idle : MovimientosUiState
+    data class Loading(val nombreProducto: String) : MovimientosUiState
+    data class Success(val nombreProducto: String, val movimientos: List<Movimiento>) : MovimientosUiState
+    data class Error(val nombreProducto: String, @StringRes val messageRes: Int, val args: List<Any> = emptyList()) : MovimientosUiState
+}
+
 sealed interface AddProductoUiState {
     object Idle : AddProductoUiState
     object Loading : AddProductoUiState
@@ -131,6 +139,24 @@ class ProductoViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    var movimientosUiState: MovimientosUiState by mutableStateOf(MovimientosUiState.Idle)
+        private set
+
+    /** Opens the stock history of [producto] and loads its movements. */
+    fun verHistorial(producto: Producto) {
+        movimientosUiState = MovimientosUiState.Loading(producto.nombrePr)
+        viewModelScope.launch {
+            movimientosUiState = when (val result = productoRepository.getMovimientos(producto.id)) {
+                is ProductoResult.Success -> MovimientosUiState.Success(producto.nombrePr, result.data.movimientos)
+                is ProductoResult.Error -> MovimientosUiState.Error(producto.nombrePr, result.messageRes, result.args.toList())
+            }
+        }
+    }
+
+    fun cerrarHistorial() {
+        movimientosUiState = MovimientosUiState.Idle
     }
 
     private val _addProductoUiState = mutableStateOf<AddProductoUiState>(AddProductoUiState.Idle)
