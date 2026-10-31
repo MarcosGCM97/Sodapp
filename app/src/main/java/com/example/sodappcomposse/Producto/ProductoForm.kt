@@ -26,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +60,8 @@ fun AddProductoForm(
     var nombreProducto by remember { mutableStateOf("") }
     var precioProducto by remember { mutableStateOf("") }
     var cantidadInputString by remember { mutableStateOf("1") }
+    var retornable by remember { mutableStateOf(false) }
+    var vaciosInputString by remember { mutableStateOf("0") }
 
     val cantidadProducto: Int = cantidadInputString.toIntOrNull() ?: 1
 
@@ -70,6 +73,8 @@ fun AddProductoForm(
                 nombreProducto = "" // Limpiar campos
                 precioProducto = ""
                 cantidadInputString = "1"
+                retornable = false
+                vaciosInputString = "0"
                 productosModel.resetAddProductoState() // Resetear el estado para futuros guardados
             }
             is AddProductoUiState.Error -> {
@@ -125,13 +130,22 @@ fun AddProductoForm(
             isError = cantidadInputString.toIntOrNull() == null && cantidadInputString.isNotEmpty() // Show error if not empty and not a valid number
         )
 
+        RetornableFields(
+            retornable = retornable,
+            onRetornableChange = { retornable = it },
+            vacios = vaciosInputString,
+            onVaciosChange = { vaciosInputString = it }
+        )
+
         //Botón para guardar el nuevo producto
         Button(
             onClick = {
                 productosModel.agregarNuevoProducto(
                     nombre = nombreProducto,
                     precio = precioProducto,
-                    cantidad = cantidadProducto
+                    cantidad = cantidadProducto,
+                    retornable = retornable,
+                    vacios = vaciosInputString.toIntOrNull() ?: 0
                 )
             },
             modifier = Modifier.fillMaxWidth(),
@@ -290,5 +304,42 @@ fun BuscarProducto(
                 }
             }
         )
+    }
+}
+
+
+/** "Retornable" toggle plus the "Envases vacíos" quantity, shown only when returnable. */
+@Composable
+fun RetornableFields(
+    retornable: Boolean,
+    onRetornableChange: (Boolean) -> Unit,
+    vacios: String,
+    onVaciosChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.retornable_label), modifier = Modifier.weight(1f))
+            Switch(checked = retornable, onCheckedChange = onRetornableChange)
+        }
+        if (retornable) {
+            OutlinedTextField(
+                value = vacios,
+                onValueChange = { newValue ->
+                    if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                        onVaciosChange(newValue)
+                    }
+                },
+                label = { Text(stringResource(R.string.envases_vacios_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
     }
 }

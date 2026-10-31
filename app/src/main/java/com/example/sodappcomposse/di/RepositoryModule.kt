@@ -6,6 +6,8 @@ import com.example.sodappcomposse.Cliente.AgendaRepository
 import com.example.sodappcomposse.Cliente.AgendaRepositoryImpl
 import com.example.sodappcomposse.Cliente.ClienteRepository
 import com.example.sodappcomposse.Cliente.ClienteRepositoryImpl
+import com.example.sodappcomposse.Envases.EnvaseRepository
+import com.example.sodappcomposse.Envases.EnvaseRepositoryImpl
 import com.example.sodappcomposse.IngresoUsuario.AuthRepository
 import com.example.sodappcomposse.IngresoUsuario.AuthRepositoryImpl
 import com.example.sodappcomposse.Producto.ProductoRepository
@@ -45,4 +47,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAgendaRepository(impl: AgendaRepositoryImpl): AgendaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEnvaseRepository(impl: EnvaseRepositoryImpl): EnvaseRepository
 }

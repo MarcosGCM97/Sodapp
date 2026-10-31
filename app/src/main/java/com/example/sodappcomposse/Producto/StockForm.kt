@@ -161,6 +161,9 @@ fun TabInventario(
                                 producto = producto,
                                 onAjustarStock = { nuevaCantidad ->
                                     productoModel.ajustarStock(producto, nuevaCantidad)
+                                },
+                                onLlenar = { cantidad ->
+                                    productoModel.llenarEnvases(producto, cantidad)
                                 }
                             )
                         }
@@ -174,7 +177,8 @@ fun TabInventario(
 @Composable
 fun CardProductoInventario(
     producto: Producto,
-    onAjustarStock: (Int) -> Unit
+    onAjustarStock: (Int) -> Unit,
+    onLlenar: (Int) -> Unit = {}
 ) {
     val stockActual = producto.stock
 
@@ -222,6 +226,10 @@ fun CardProductoInventario(
                 fontWeight = FontWeight.Bold,
                 color = colorStock
             )
+
+            if (producto.esRetornable) {
+                LlenarEnvasesRow(producto = producto, onLlenar = onLlenar)
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -281,6 +289,48 @@ fun CardProductoInventario(
                     Text(stringResource(R.string.actualizar_stock_label))
                 }
             }
+        }
+    }
+}
+
+/** Empty containers of a returnable product and the "Llenar" action (empties -> full stock). */
+@Composable
+private fun LlenarEnvasesRow(
+    producto: Producto,
+    onLlenar: (Int) -> Unit
+) {
+    var cantidadLlenar by remember(producto.id, producto.vacios) { mutableStateOf("") }
+    val cantidad = cantidadLlenar.toIntOrNull() ?: 0
+
+    Text(
+        text = stringResource(R.string.envases_vacios_format, producto.vacios),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OutlinedTextField(
+            value = cantidadLlenar,
+            onValueChange = { newValue ->
+                if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                    cantidadLlenar = newValue
+                }
+            },
+            label = { Text(stringResource(R.string.cantidad_label)) },
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Button(
+            onClick = {
+                onLlenar(cantidad)
+                cantidadLlenar = ""
+            },
+            enabled = cantidad > 0
+        ) {
+            Text(stringResource(R.string.llenar_label))
         }
     }
 }

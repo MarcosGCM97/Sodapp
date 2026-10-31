@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -37,9 +39,12 @@ import com.example.sodappcomposse.Cliente.ClientesDropDown
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
+import com.example.sodappcomposse.Producto.conDevueltos
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.ProductoMensaje
+import com.example.sodappcomposse.Funciones.armarMensajeVenta
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -64,6 +69,7 @@ fun Ventas(
 
     val ventasUiState = ventaModel.ventasUiState
     val ventasAgrupadas by ventaModel.ventasAgrupadas.collectAsState()
+    val nombreEmpresa by ventaModel.nombreEmpresa.collectAsState(initial = null)
 
     LazyColumn(
         modifier = Modifier
@@ -107,7 +113,7 @@ fun Ventas(
             }
             ventasUiState is VentasUiState.Success -> {
                 items(ventasAgrupadas) { ventaAgrupada ->
-                    BoxVentas(venta = ventaAgrupada, context)
+                    BoxVentas(venta = ventaAgrupada, context, nombreEmpresa)
                 }
             }
             else -> {
@@ -302,6 +308,17 @@ fun AddVentaForm(
                             },
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
+                        // Envases devueltos: solo para productos retornables; el resto envía 0
+                        val esRetornable = productos.find { it.nombrePr == productoVenta.nombre }?.esRetornable == true
+                        if (esRetornable) {
+                            EnvasesDevueltosItem(
+                                devueltos = productoVenta.devueltos,
+                                onDevueltosChange = { nuevos ->
+                                    productosParaVenta[index] = productoVenta.conDevueltos(nuevos)
+                                },
+                                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                            )
+                        }
                         // Optional: Add a Divider between items
                         // if (index < productosParaVenta.size - 1) {
                         //     Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
@@ -394,6 +411,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
  fun BoxVentas(
     venta: VentaAgrupada,
     context: Context,
+    nombreEmpresa: String?,
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
@@ -463,7 +481,14 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                 CardWpp(
                     context,
                     cliente,
-                    armarMensajeVentasWpp(context, venta, totales.sumOf{ it ?: 0.0  })
+                    armarMensajeVenta(
+                        context.resources,
+                        venta.cliente?.nombreCl,
+                        venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
+                        totales.sumOf { it ?: 0.0 },
+                        venta.cliente?.deudaCl,
+                        nombreEmpresa
+                    )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -476,17 +501,6 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
             }
         }
     }
-}
-
-@SuppressLint("StringFormatMatches")
-fun armarMensajeVentasWpp(context: Context, venta: VentaAgrupada, total : Double): String{
-    val productosString = venta.productos.joinToString(
-        separator = ", ",
-        transform = { 
-            context.getString(R.string.wpp_producto_format, it.cantidad, it.nombre, formatearPrecio(it.precio))
-        }
-    )
-    return context.getString(R.string.wpp_mensaje_ventas, productosString, formatearPrecio(total), formatearPrecio(venta.cliente?.deudaCl))
 }
 
 @Composable
@@ -549,6 +563,51 @@ fun ProductoCantidadItem(
             }) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_cantidad_desc))
             }
+        }
+    }
+}
+
+
+/** "Envases devueltos" stepper for a returnable product in the sale form (default 0, never negative). */
+@Composable
+fun EnvasesDevueltosItem(
+    devueltos: Int,
+    onDevueltosChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val disminuirDesc = stringResource(R.string.disminuir_devueltos_desc)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.envases_devueltos_label),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(
+            onClick = { onDevueltosChange(devueltos - 1) },
+            enabled = devueltos > 0,
+            modifier = Modifier.semantics { contentDescription = disminuirDesc }
+        ) {
+            Text(text = "−", style = MaterialTheme.typography.titleLarge)
+        }
+        OutlinedTextField(
+            value = devueltos.toString(),
+            onValueChange = { newValue ->
+                if (newValue.isEmpty()) {
+                    onDevueltosChange(0)
+                } else {
+                    newValue.toIntOrNull()?.let { onDevueltosChange(it) }
+                }
+            },
+            modifier = Modifier.width(75.dp),
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        IconButton(onClick = { onDevueltosChange(devueltos + 1) }) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_devueltos_desc))
         }
     }
 }

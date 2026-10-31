@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -70,6 +71,9 @@ class VentasViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
+
+    // The logged-in user's name signs the WhatsApp messages as the business name
+    val nombreEmpresa: Flow<String?> = userPreferencesRepository.userName
 
     private val _ventas = MutableStateFlow<List<Venta>>(emptyList())
     val ventas: StateFlow<List<Venta>> = _ventas.asStateFlow()
@@ -193,6 +197,8 @@ class VentasViewModel @Inject constructor(
             when (val result = ventaRepository.deleteVenta(idVenta)) {
                 is VentaResult.Success -> {
                     ventasUiState = VentasUiState.Success(R.string.venta_eliminada_success)
+                    // The backend may have reverted empty containers; drop the stale cached product list
+                    productoRepository.clearCache()
                     // actualizar deuda del cliente
                     when (val updateResult = clienteRepository.updateDeudaCliente(clienteId, valorVenta)) {
                         is ClienteResult.Success -> { /* Ok */ }

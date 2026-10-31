@@ -29,7 +29,14 @@ interface ProductoRepository {
     suspend fun getProductos(forceRefresh: Boolean = false): ProductoResult<ProductoResponse>
     suspend fun getProductoByName(nombre: String): ProductoResult<ProductoResponseByName>
     suspend fun postProducto(productoRequest: ProductoRequest): ProductoResult<PostResponse>
-    suspend fun updateProducto(nombre: String, precio: Double, cantidad: Int): ProductoResult<PostResponse>
+    /** [retornable] and [vacios] are only sent when not null; null leaves those columns untouched. */
+    suspend fun updateProducto(
+        nombre: String,
+        precio: Double,
+        cantidad: Int,
+        retornable: Boolean? = null,
+        vacios: Int? = null
+    ): ProductoResult<PostResponse>
     suspend fun deleteProducto(nombre: String): ProductoResult<PostResponse>
     fun clearCache()
 }
@@ -56,8 +63,15 @@ class ProductoRepositoryImpl @Inject constructor(
         return result
     }
 
-    override suspend fun updateProducto(nombre: String, precio: Double, cantidad: Int): ProductoResult<PostResponse> {
-        val result = handleApiCall { apiServices.updateProducto(nombre, precio, cantidad) }
+    override suspend fun updateProducto(
+        nombre: String,
+        precio: Double,
+        cantidad: Int,
+        retornable: Boolean?,
+        vacios: Int?
+    ): ProductoResult<PostResponse> {
+        val retornableParam = retornable?.let { if (it) 1 else 0 }
+        val result = handleApiCall { apiServices.updateProducto(nombre, precio, cantidad, retornableParam, vacios) }
         if (result is ProductoResult.Success) clearCache()
         return result
     }
