@@ -259,6 +259,16 @@ class ProductoViewModel @Inject constructor(
         editarProducto(productoParaEditar)
     }
 
+    /** Sets the empty containers of a returnable product to [nuevaCantidad]; full stock stays as it is. */
+    fun ajustarVacios(producto: Producto, nuevaCantidad: Int) {
+        val productoParaEditar = Producto(
+            nombrePr = producto.nombrePr,
+            precioUni = producto.precioUni,
+            stock = producto.stock
+        )
+        editarProducto(productoParaEditar, vacios = nuevaCantidad)
+    }
+
     /** Turns [cantidad] empty containers of a returnable product into full stock. */
     fun llenarEnvases(producto: Producto, cantidad: Int) {
         if (cantidad <= 0) return
