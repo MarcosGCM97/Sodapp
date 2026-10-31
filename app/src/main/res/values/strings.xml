@@ -109,7 +109,6 @@
     <string name="no_productos_elegidos">- No hay productos elegidos</string>
     <string name="seleccione_cliente_error">Por favor, seleccione un cliente</string>
     <string name="agregue_producto_error">Por favor, agregue al menos un producto</string>
-    <string name="stock_insuficiente_format">Stock insuficiente: %1$s</string>
     <string name="venta_cargada_success">Venta cargada correctamente</string>
     <string name="error_procesar_format">Error al procesar: %1$s</string>
     <string name="cargar_venta_label">Cargar venta</string>
