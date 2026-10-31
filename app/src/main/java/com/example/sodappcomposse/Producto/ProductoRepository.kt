@@ -38,6 +38,8 @@ interface ProductoRepository {
         vacios: Int? = null
     ): ProductoResult<PostResponse>
     suspend fun deleteProducto(nombre: String): ProductoResult<PostResponse>
+    /** Stock movements of a product, newest first (historial de stock). */
+    suspend fun getMovimientos(productoId: Int): ProductoResult<MovimientosResponse>
     fun clearCache()
 }
 
@@ -80,6 +82,10 @@ class ProductoRepositoryImpl @Inject constructor(
         val result = handleApiCall { apiServices.deleteProducto(nombre) }
         if (result is ProductoResult.Success) clearCache()
         return result
+    }
+
+    override suspend fun getMovimientos(productoId: Int): ProductoResult<MovimientosResponse> = handleApiCall {
+        apiServices.getMovimientos(productoId)
     }
 
     override fun clearCache() {

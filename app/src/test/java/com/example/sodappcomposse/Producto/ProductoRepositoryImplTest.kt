@@ -41,6 +41,16 @@ class ProductoRepositoryImplTest {
     }
 
     @Test
+    fun `the stock history is requested by product id`() = runTest {
+        val movimientos = MovimientosResponse(true, listOf(Movimiento(id = 1, tipo = "alta", cantidad = 10, stock = 10)))
+        coEvery { apiServices.getMovimientos(5) } returns Response.success(movimientos)
+
+        val result = repository.getMovimientos(5)
+
+        assertEquals(ProductoResult.Success(movimientos), result)
+    }
+
+    @Test
     fun `a new product request carries retornable and vacios`() {
         val json = Gson().toJson(ProductoRequest(nombrePr = "Bidon 20L", precioUni = 4500.0, stock = 3, retornable = true, vacios = 2))
 
