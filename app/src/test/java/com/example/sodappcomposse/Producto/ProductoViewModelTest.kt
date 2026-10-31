@@ -55,6 +55,14 @@ class ProductoViewModelTest {
     }
 
     @Test
+    fun `adjusting empty containers sends the new empties and keeps the full stock`() = runTest {
+        viewModel.ajustarVacios(bidon, 8)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { productoRepository.updateProducto("Bidon 20L", 4500.0, 3, null, 8) }
+    }
+
+    @Test
     fun `editing a product without container fields keeps the previous request`() = runTest {
         viewModel.editarProducto(Producto(nombrePr = "Soda", precioUni = 900.0, stock = 7))
         advanceUntilIdle()
