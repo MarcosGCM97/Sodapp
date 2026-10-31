@@ -34,6 +34,9 @@ data class Bienvenida(val nombre: String)
 @Serializable
 data class Deuda(val id: String)
 
+// Set on the Bienvenida entry to open Clientes > Cobros with that client preselected
+const val CLAVE_COBRAR_CLIENTE = "cobrarClienteId"
+
 @Serializable
 data class ProductoEditar(val nombre: String)
 

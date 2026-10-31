@@ -21,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +46,9 @@ fun CajaScreen(
     val mesSeleccionadoViewModel by cajaModel.mesSeleccionadoUi.collectAsState()
     val mesCargado by cajaModel.mesCargado.collectAsState()
     val cajaTotales by cajaModel.cajaTotales.collectAsState()
+    val cobrosUiState = cajaModel.cobrosUiState
+    // 0 = Ventas, 1 = Cobros
+    var tabCaja by remember { mutableStateOf(0) }
 
     val listaDeMeses = remember { Meses.entries.toList() }
     var expandedMeses by remember { mutableStateOf(false)}
@@ -106,7 +111,46 @@ fun CajaScreen(
             }
         }
 
-        when {
+        item {
+            TabRow(selectedTabIndex = tabCaja) {
+                listOf(stringResource(R.string.tab_ventas), stringResource(R.string.tab_cobros)).forEachIndexed { index, titulo ->
+                    Tab(
+                        selected = tabCaja == index,
+                        onClick = { tabCaja = index },
+                        text = { Text(titulo) }
+                    )
+                }
+            }
+        }
+
+        if (tabCaja == 1) when (cobrosUiState) {
+            is CobrosUiState.Loading -> item { CircularProgressIndicator() }
+            is CobrosUiState.Error -> item { Text(stringResource(cobrosUiState.messageRes, *cobrosUiState.args.toTypedArray())) }
+            is CobrosUiState.Success -> {
+                if (cobrosUiState.totales.isEmpty()) {
+                    item { Text(stringResource(R.string.no_cobros_mes)) }
+                } else {
+                    items(cobrosUiState.totales) { cobro ->
+                        Text(
+                            text = stringResource(R.string.cobro_forma_format, cobro.formaPago, formatearPrecio(cobro.total)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.primary)
+                                .padding(12.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    item {
+                        Text(
+                            text = stringResource(R.string.total_cobrado_format, formatearPrecio(cobrosUiState.total)),
+                            modifier = Modifier.padding(16.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            is CobrosUiState.Idle -> item { Text(stringResource(R.string.esperando_datos)) }
+        } else when {
             cajaUiState is CajaUiState.Loading -> {
                 item {
                     Column(

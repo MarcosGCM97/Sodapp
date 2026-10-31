@@ -59,6 +59,15 @@ data class CajaTotales(
     val montoTotal: Double = 0.0
 )
 
+sealed class CobrosUiState {
+    object Idle : CobrosUiState()
+    object Loading : CobrosUiState()
+    data class Success(val totales: List<CobroForma>) : CobrosUiState() {
+        val total: Double get() = totales.sumOf { it.total }
+    }
+    data class Error(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : CobrosUiState()
+}
+
 @HiltViewModel
 class CajaViewModel @Inject constructor(
     private val cajaRepository: CajaRepository
@@ -94,6 +103,10 @@ class CajaViewModel @Inject constructor(
     var cajaUiState: CajaUiState by mutableStateOf(CajaUiState.Idle)
         private set
 
+    // Money collected in the loaded month per payment method (Cobros tab)
+    var cobrosUiState: CobrosUiState by mutableStateOf(CobrosUiState.Idle)
+        private set
+
     private var cargaJob: Job? = null
 
     fun seleccionarMes(mes: Meses) {
@@ -107,6 +120,7 @@ class CajaViewModel @Inject constructor(
         _caja.value = emptyCaja()
         _mesCargado.value = null
         cajaUiState = CajaUiState.Idle
+        cobrosUiState = CobrosUiState.Idle
     }
 
     fun getCajaPorMes() {
@@ -114,6 +128,7 @@ class CajaViewModel @Inject constructor(
 
         cargaJob?.cancel()
         cajaUiState = CajaUiState.Loading
+        cobrosUiState = CobrosUiState.Loading
         _caja.value = emptyCaja()
         _mesCargado.value = null
 
@@ -135,6 +150,15 @@ class CajaViewModel @Inject constructor(
                 is CajaResult.Error -> {
                     cajaUiState = CajaUiState.Error(result.messageRes, result.args)
                 }
+            }
+
+            // Sales and payments are independent: a failure in one never hides the other
+            val cobros = cajaRepository.getCobrosPorMes(mes.numero)
+            ensureActive()
+            if (_mesSeleccionadoUi.value != mes) return@launch
+            cobrosUiState = when (cobros) {
+                is CobrosResult.Success -> CobrosUiState.Success(cobros.totales)
+                is CobrosResult.Error -> CobrosUiState.Error(cobros.messageRes, cobros.args)
             }
         }
     }
