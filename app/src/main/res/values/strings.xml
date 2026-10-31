@@ -24,6 +24,7 @@
     <string name="direccion_format">Dirección: %1$s</string>
     <string name="telefono_format">Teléfono: %1$s</string>
     <string name="deuda_format">Deuda: $%1$s</string>
+    <string name="saldo_a_favor_format">Saldo a favor: $%1$s</string>
     <string name="editar_desc">Editar</string>
     <string name="deuda_desc">Deuda</string>
     <string name="agendar_desc">Agendar</string>

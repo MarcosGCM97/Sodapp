@@ -128,15 +128,16 @@ class VentasViewModelTest {
     }
 
     @Test
-    fun `a deleted sale still updates the debt and drops the cached product list`() = runTest {
+    fun `a deleted sale leaves the debt to the backend and drops the cached clients and products`() = runTest {
         coEvery { ventaRepository.deleteVenta(10) } returns VentaResult.Success(PostResponse(true, "ok"))
-        coEvery { clienteRepository.updateDeudaCliente(1, 4500.0) } returns ClienteResult.Success(PostResponse(true, "ok"))
         coEvery { ventaRepository.getVentasByClienteId(1, "7") } returns VentaResult.Success(VentaApiResponseById(true, emptyList()))
 
-        viewModel.eliminarVenta(idVenta = 10, clienteId = 1, valorVenta = 4500.0)
+        viewModel.eliminarVenta(idVenta = 10, clienteId = 1)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { clienteRepository.updateDeudaCliente(1, 4500.0) }
+        // The backend reverts the debt in the same transaction, so a second revert here would subtract it twice
+        coVerify(exactly = 0) { clienteRepository.updateDeudaCliente(any(), any()) }
+        verify(exactly = 1) { clienteRepository.clearCache() }
         verify(exactly = 1) { productoRepository.clearCache() }
     }
 
