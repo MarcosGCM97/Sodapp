@@ -23,6 +23,7 @@ import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.Producto.ProductoEditarScreen
+import com.example.sodappcomposse.Reparto.RepartoScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -45,6 +46,9 @@ data class ClienteEditar(val id: Int)
 
 @Serializable
 object Agenda
+
+@Serializable
+object Repartos
 
 @Composable
 fun Navigator(
@@ -115,6 +119,10 @@ fun Navigator(
 
         composable<Agenda> {
             AgendaScreen(navController = navController)
+        }
+
+        composable<Repartos> {
+            RepartoScreen(navController = navController)
         }
     }
 }

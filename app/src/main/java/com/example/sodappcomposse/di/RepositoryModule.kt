@@ -12,6 +12,8 @@ import com.example.sodappcomposse.IngresoUsuario.AuthRepository
 import com.example.sodappcomposse.IngresoUsuario.AuthRepositoryImpl
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoRepositoryImpl
+import com.example.sodappcomposse.Reparto.RepartoRepository
+import com.example.sodappcomposse.Reparto.RepartoRepositoryImpl
 import com.example.sodappcomposse.Ventas.VentaRepository
 import com.example.sodappcomposse.Ventas.VentaRepositoryImpl
 import dagger.Binds
@@ -51,4 +53,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEnvaseRepository(impl: EnvaseRepositoryImpl): EnvaseRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRepartoRepository(impl: RepartoRepositoryImpl): RepartoRepository
 }

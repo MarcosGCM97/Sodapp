@@ -239,4 +239,35 @@
     <string name="envases_cliente_item_format">%1$s: %2$d</string>
     <string name="editar_saldo_envases_titulo">Envases de %1$s</string>
     <string name="saldo_envases_guardado">Saldo de envases guardado.</string>
+
+    <!-- Repartos -->
+    <string name="repartos_titulo">Repartos</string>
+    <string name="repartos_desc">Armar reparto</string>
+    <string name="dia_anterior_desc">Día anterior</string>
+    <string name="dia_siguiente_desc">Día siguiente</string>
+    <string name="reparto_fecha_format">%1$s %2$s</string>
+    <string name="sin_reparto">No hay reparto para este día. Crearlo desde:</string>
+    <string name="origen_vacio">Vacío</string>
+    <string name="origen_dias">Clientes con entrega ese día</string>
+    <string name="origen_plantilla">Plantilla del día</string>
+    <string name="origen_anterior">Reparto anterior del mismo día</string>
+    <string name="reparto_sin_paradas">El reparto no tiene paradas.</string>
+    <string name="parada_titulo_format">%1$d. %2$s</string>
+    <string name="sin_direccion">Sin dirección</string>
+    <string name="sin_productos">Sin productos</string>
+    <string name="linea_reparto_format">%1$d x %2$s ($%3$s)</string>
+    <string name="estado_pendiente">Pendiente</string>
+    <string name="estado_entregada">Entregada</string>
+    <string name="estado_no_entregada">No entregada</string>
+    <string name="subir_desc">Subir</string>
+    <string name="bajar_desc">Bajar</string>
+    <string name="productos_parada_desc">Productos de la parada</string>
+    <string name="agregar_parada">Agregar parada</string>
+    <string name="guardar_plantilla_format">Guardar como plantilla de los %1$s</string>
+    <string name="lineas_parada_titulo_format">Productos para %1$s</string>
+    <string name="reparto_creado">Reparto creado.</string>
+    <string name="parada_agregada">Parada agregada.</string>
+    <string name="parada_quitada">Parada quitada.</string>
+    <string name="lineas_reparto_guardadas">Productos de la parada guardados.</string>
+    <string name="plantilla_reparto_guardada">Plantilla guardada.</string>
 </resources>
