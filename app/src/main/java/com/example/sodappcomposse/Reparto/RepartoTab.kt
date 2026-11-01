@@ -25,10 +25,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,13 +46,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.DeudaUiState
 import com.example.sodappcomposse.Cliente.DeudaViewModel
 import com.example.sodappcomposse.Cliente.FormularioCobro
 import com.example.sodappcomposse.Cliente.montoCobrarTodo
-import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
+import com.example.sodappcomposse.Componentes.SelectBuscable
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoUiState
@@ -67,10 +62,9 @@ import java.time.format.DateTimeFormatter
 
 private val FORMATO_FECHA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-/** Builds the reparto of a date: stops in route order with the client address, editable while pendiente. */
+/** Ventas > Reparto: the reparto of a date, stops in route order with the client address, editable while pendiente. */
 @Composable
-fun RepartoScreen(
-    navController: NavController,
+fun RepartoTab(
     viewModel: RepartoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -100,33 +94,31 @@ fun RepartoScreen(
         }
     }
 
-    ScreenWithBackButtonWrapper(navController, stringResource(R.string.repartos_titulo)) {
-        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            SelectorFecha(fecha = fecha, onCambiar = viewModel::cambiarDia)
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        SelectorFecha(fecha = fecha, onCambiar = viewModel::cambiarDia)
 
-            val actual = reparto
-            when {
-                cargando -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-                actual == null -> CrearReparto(
-                    enCurso = uiState is ProductoUiState.Loading,
-                    onCrear = viewModel::crear
-                )
-                else -> ParadasReparto(
-                    reparto = actual,
-                    nombreDia = nombreDia(fecha.dayOfWeek),
-                    clientes = viewModel.clientes.value,
-                    onMover = viewModel::mover,
-                    onQuitar = viewModel::quitarParada,
-                    onEditar = { paradaEditando = it },
-                    onEntregar = { paradaEntregando = it },
-                    onNoEntregar = viewModel::noEntregar,
-                    onReabrir = viewModel::reabrir,
-                    onAgregar = viewModel::agregarParada,
-                    onGuardarPlantilla = viewModel::guardarPlantilla
-                )
+        val actual = reparto
+        when {
+            cargando -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
+            actual == null -> CrearReparto(
+                enCurso = uiState is ProductoUiState.Loading,
+                onCrear = viewModel::crear
+            )
+            else -> ParadasReparto(
+                reparto = actual,
+                nombreDia = nombreDia(fecha.dayOfWeek),
+                clientes = viewModel.clientes.value,
+                onMover = viewModel::mover,
+                onQuitar = viewModel::quitarParada,
+                onEditar = { paradaEditando = it },
+                onEntregar = { paradaEntregando = it },
+                onNoEntregar = viewModel::noEntregar,
+                onReabrir = viewModel::reabrir,
+                onAgregar = viewModel::agregarParada,
+                onGuardarPlantilla = viewModel::guardarPlantilla
+            )
         }
     }
 
@@ -244,9 +236,12 @@ private fun ParadasReparto(
         }
         item {
             val enReparto = reparto.paradas.map { it.clienteId }.toSet()
-            AgregarParada(
-                clientes = clientes.filter { it.idCl !in enReparto }.sortedBy { it.nombreCl.lowercase() },
-                onAgregar = onAgregar
+            SelectBuscable(
+                opciones = clientes.filter { it.idCl !in enReparto }.sortedBy { it.nombreCl.lowercase() },
+                etiqueta = { it.nombreCl },
+                onSeleccionar = { onAgregar(it.idCl) },
+                label = stringResource(R.string.agregar_parada),
+                limpiarAlSeleccionar = true
             )
         }
         item {
@@ -352,36 +347,6 @@ private fun ParadaCard(
                         OutlinedButton(onClick = onReabrir) { Text(stringResource(R.string.reabrir_label)) }
                     }
                 }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AgregarParada(clientes: List<Cliente>, onAgregar: (Int) -> Unit) {
-    var expandido by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expandido,
-        onExpandedChange = { expandido = !expandido },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = stringResource(R.string.agregar_parada),
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-        ExposedDropdownMenu(expanded = expandido, onDismissRequest = { expandido = false }) {
-            clientes.forEach { cliente ->
-                DropdownMenuItem(
-                    text = { Text(cliente.nombreCl) },
-                    onClick = {
-                        expandido = false
-                        onAgregar(cliente.idCl)
-                    }
-                )
             }
         }
     }

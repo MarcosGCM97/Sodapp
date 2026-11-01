@@ -241,8 +241,7 @@
     <string name="saldo_envases_guardado">Saldo de envases guardado.</string>
 
     <!-- Repartos -->
-    <string name="repartos_titulo">Repartos</string>
-    <string name="repartos_desc">Armar reparto</string>
+    <string name="tab_reparto">Reparto</string>
     <string name="dia_anterior_desc">Día anterior</string>
     <string name="dia_siguiente_desc">Día siguiente</string>
     <string name="reparto_fecha_format">%1$s %2$s</string>
