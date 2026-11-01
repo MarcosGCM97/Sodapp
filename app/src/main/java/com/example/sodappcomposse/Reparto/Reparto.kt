@@ -75,17 +75,27 @@ data class RepartoResponse(
     @SerializedName("message")
     val message: String? = null,
     @SerializedName("paradaId")
-    val paradaId: Int? = null
+    val paradaId: Int? = null,
+    // entregar: amount of the sales it registered
+    @SerializedName("monto")
+    val monto: Double? = null,
+    @SerializedName("ventas")
+    val ventas: List<Int>? = null
 )
 
-/** Planned line of a stop; a null [precio] makes the backend take the product price. */
+/**
+ * Line of a stop: planned (guardar_lineas) or delivered (entregar, with [devueltos] for returnables).
+ * A null [precio] makes the backend take the planned price, or the product price.
+ */
 data class LineaRepartoRequest(
     @SerializedName("productoId")
     val productoId: Int,
     @SerializedName("cantidad")
     val cantidad: Int,
     @SerializedName("precio")
-    val precio: Double? = null
+    val precio: Double? = null,
+    @SerializedName("devueltos")
+    val devueltos: Int? = null
 )
 
 /** Body of `repartos.php` POST; null fields are not sent. */
@@ -114,6 +124,9 @@ data class RepartoAccionRequest(
         const val QUITAR_PARADA = "quitar_parada"
         const val GUARDAR_LINEAS = "guardar_lineas"
         const val ORDENAR = "ordenar"
+        const val ENTREGAR = "entregar"
+        const val NO_ENTREGAR = "no_entregar"
+        const val REABRIR = "reabrir"
     }
 }
 

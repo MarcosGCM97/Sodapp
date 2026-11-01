@@ -81,6 +81,21 @@ class RepartoRepositoryImplTest {
     }
 
     @Test
+    fun `delivery actions send the stop and the delivered lines`() = runTest {
+        coEvery { apiServices.accionReparto(any()) } returns Response.success(RepartoResponse(success = true, monto = 900.0, ventas = listOf(81)))
+        val lineas = listOf(LineaRepartoRequest(productoId = 3, cantidad = 2, devueltos = 1))
+
+        val entrega = repository.entregarParada(40, lineas)
+        repository.noEntregarParada(41)
+        repository.reabrirParada(41)
+
+        assertEquals(900.0, (entrega as ProductoResult.Success).data.monto)
+        coVerify { apiServices.accionReparto(RepartoAccionRequest(accion = "entregar", paradaId = 40, lineas = lineas)) }
+        coVerify { apiServices.accionReparto(RepartoAccionRequest(accion = "no_entregar", paradaId = 41)) }
+        coVerify { apiServices.accionReparto(RepartoAccionRequest(accion = "reabrir", paradaId = 41)) }
+    }
+
+    @Test
     fun `request omits the fields of other actions`() {
         val json = Gson().toJson(RepartoAccionRequest(accion = "quitar_parada", paradaId = 40))
 

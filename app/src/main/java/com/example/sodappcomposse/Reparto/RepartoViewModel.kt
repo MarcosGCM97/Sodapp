@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+/** Offer to collect right after a delivery: [monto] is what the delivered stop added to the debt. */
+data class CobroEntrega(val clienteId: Int, val nombreCliente: String, val monto: Double)
+
 /** Builds the reparto of one date: create it, add/remove stops, plan their lines and order them. */
 @HiltViewModel
 class RepartoViewModel @Inject constructor(
@@ -40,6 +43,9 @@ class RepartoViewModel @Inject constructor(
 
     private val _productos = mutableStateOf<List<Producto>>(emptyList())
     val productos: State<List<Producto>> = _productos
+
+    private val _cobroPendiente = mutableStateOf<CobroEntrega?>(null)
+    val cobroPendiente: State<CobroEntrega?> = _cobroPendiente
 
     private val _uiState = mutableStateOf<ProductoUiState>(ProductoUiState.Idle)
     val uiState: State<ProductoUiState> = _uiState
@@ -143,6 +149,55 @@ class RepartoViewModel @Inject constructor(
                 is ProductoResult.Error -> _uiState.value = ProductoUiState.Error(result.messageRes, result.args)
             }
         }
+    }
+
+    /**
+     * Delivers a pendiente stop with the delivered [lineas] (adjusted quantities, added products,
+     * returned containers). Lines with nothing delivered are dropped; then it offers to collect.
+     */
+    fun entregar(parada: ParadaReparto, lineas: List<LineaRepartoRequest>) {
+        if (lineas.any { it.cantidad < 0 || (it.devueltos ?: 0) < 0 }) {
+            _uiState.value = ProductoUiState.Error(R.string.error_cantidad_negativa)
+            return
+        }
+        if (lineas.any { it.cantidad == 0 && (it.devueltos ?: 0) > 0 }) {
+            _uiState.value = ProductoUiState.Error(R.string.error_devueltos_sin_entrega)
+            return
+        }
+        val entregadas = lineas.filter { it.cantidad > 0 }
+        if (entregadas.isEmpty()) {
+            _uiState.value = ProductoUiState.Error(R.string.error_entrega_vacia)
+            return
+        }
+        if (entregadas.any { it.precio != null && it.precio <= 0 }) {
+            _uiState.value = ProductoUiState.Error(R.string.error_precio_invalido)
+            return
+        }
+        _uiState.value = ProductoUiState.Loading
+        viewModelScope.launch {
+            when (val result = repartoRepository.entregarParada(parada.id, entregadas)) {
+                is ProductoResult.Success -> {
+                    _cobroPendiente.value = CobroEntrega(parada.clienteId, parada.nombreCliente, result.data.monto ?: 0.0)
+                    _uiState.value = ProductoUiState.Success(R.string.parada_entregada)
+                    cargar()
+                }
+                is ProductoResult.Error -> _uiState.value = ProductoUiState.Error(result.messageRes, result.args)
+            }
+        }
+    }
+
+    fun cerrarCobro() {
+        _cobroPendiente.value = null
+    }
+
+    /** Pendiente -> no entregada: stays in the reparto and moves neither stock nor debt. */
+    fun noEntregar(paradaId: Int) {
+        ejecutar(R.string.parada_no_entregada) { repartoRepository.noEntregarParada(paradaId) }
+    }
+
+    /** No entregada -> pendiente, when the repartidor goes back the same day. */
+    fun reabrir(paradaId: Int) {
+        ejecutar(R.string.parada_reabierta) { repartoRepository.reabrirParada(paradaId) }
     }
 
     fun resetState() {

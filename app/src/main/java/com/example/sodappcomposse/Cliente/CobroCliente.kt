@@ -176,18 +176,20 @@ fun CobrosTab(
     }
 }
 
-// Payment form: method (no default), amount, "Cobrar todo" and Saldar
+// Payment form: method (no default), amount, "Cobrar todo" and Saldar.
+// [montoInicial] prefills the amount (a reparto delivery offers what was just delivered).
 @Composable
-private fun FormularioCobro(
+fun FormularioCobro(
     clienteId: Int,
     saldo: Double,
     formas: List<FormaPago>,
     enCurso: Boolean,
+    montoInicial: String = "",
     onCobrar: (monto: Double, formaPago: Int) -> Unit
 ) {
     val context = LocalContext.current
-    // Changing client starts an empty form
-    var monto by remember(clienteId) { mutableStateOf("") }
+    // Changing client starts a new form
+    var monto by remember(clienteId) { mutableStateOf(montoInicial) }
     var formaPago by remember(clienteId) { mutableStateOf<Int?>(null) }
 
     Text(stringResource(R.string.forma_pago_label), style = MaterialTheme.typography.labelLarge)

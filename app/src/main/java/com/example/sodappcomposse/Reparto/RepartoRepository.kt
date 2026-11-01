@@ -19,6 +19,10 @@ interface RepartoRepository {
     suspend fun guardarLineas(paradaId: Int, lineas: List<LineaRepartoRequest>): ProductoResult<RepartoResponse>
     /** [paradaIds] holds every stop of the reparto, in the new order. */
     suspend fun ordenarParadas(repartoId: Int, paradaIds: List<Int>): ProductoResult<RepartoResponse>
+    /** Registers [lineas] as the client's sales; a planned product not sent counts as not delivered. */
+    suspend fun entregarParada(paradaId: Int, lineas: List<LineaRepartoRequest>): ProductoResult<RepartoResponse>
+    suspend fun noEntregarParada(paradaId: Int): ProductoResult<RepartoResponse>
+    suspend fun reabrirParada(paradaId: Int): ProductoResult<RepartoResponse>
 }
 
 class RepartoRepositoryImpl @Inject constructor(
@@ -63,6 +67,18 @@ class RepartoRepositoryImpl @Inject constructor(
 
     override suspend fun ordenarParadas(repartoId: Int, paradaIds: List<Int>) = accion(
         RepartoAccionRequest(accion = RepartoAccionRequest.ORDENAR, repartoId = repartoId, paradas = paradaIds)
+    )
+
+    override suspend fun entregarParada(paradaId: Int, lineas: List<LineaRepartoRequest>) = accion(
+        RepartoAccionRequest(accion = RepartoAccionRequest.ENTREGAR, paradaId = paradaId, lineas = lineas)
+    )
+
+    override suspend fun noEntregarParada(paradaId: Int) = accion(
+        RepartoAccionRequest(accion = RepartoAccionRequest.NO_ENTREGAR, paradaId = paradaId)
+    )
+
+    override suspend fun reabrirParada(paradaId: Int) = accion(
+        RepartoAccionRequest(accion = RepartoAccionRequest.REABRIR, paradaId = paradaId)
     )
 
     private suspend fun accion(request: RepartoAccionRequest): ProductoResult<RepartoResponse> {

@@ -270,4 +270,18 @@
     <string name="parada_quitada">Parada quitada.</string>
     <string name="lineas_reparto_guardadas">Productos de la parada guardados.</string>
     <string name="plantilla_reparto_guardada">Plantilla guardada.</string>
+    <string name="entregar_label">Entregar</string>
+    <string name="no_entregada_label">No entregada</string>
+    <string name="reabrir_label">Reabrir</string>
+    <string name="entrega_parada_titulo_format">Entrega a %1$s</string>
+    <string name="devueltos_label">Devueltos</string>
+    <string name="confirmar_entrega">Confirmar entrega</string>
+    <string name="parada_entregada">Parada entregada.</string>
+    <string name="parada_no_entregada">Parada marcada como no entregada.</string>
+    <string name="parada_reabierta">Parada reabierta.</string>
+    <string name="error_entrega_vacia">No hay productos entregados. Si no se entregó, marcala como no entregada.</string>
+    <string name="error_devueltos_sin_entrega">Los envases devueltos necesitan una cantidad entregada de ese producto.</string>
+    <string name="cobro_entrega_titulo_format">Cobrar a %1$s</string>
+    <string name="entregado_monto_format">Entregado: $%1$s</string>
+    <string name="linea_entregada_format">%1$d de %2$d x %3$s ($%4$s)</string>
 </resources>

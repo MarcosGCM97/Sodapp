@@ -225,6 +225,96 @@ class RepartoViewModelTest {
     }
 
     @Test
+    fun `entregar sends only delivered lines and offers to collect the delivered amount`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+        val entregada = LineaRepartoRequest(productoId = 3, cantidad = 2, devueltos = 1)
+        coEvery { repartoRepository.entregarParada(40, listOf(entregada)) } returns
+            ProductoResult.Success(RepartoResponse(success = true, monto = 900.0, ventas = listOf(81)))
+
+        viewModel.entregar(reparto.paradas[0], listOf(entregada, LineaRepartoRequest(productoId = 4, cantidad = 0, devueltos = 0)))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repartoRepository.entregarParada(40, listOf(entregada)) }
+        coVerify(exactly = 2) { repartoRepository.getReparto("2026-11-02") }
+        assertEquals(CobroEntrega(clienteId = 140, nombreCliente = "Cliente 40", monto = 900.0), viewModel.cobroPendiente.value)
+        assertEquals(ProductoUiState.Success(R.string.parada_entregada), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `entregar with nothing delivered is rejected without calling the server`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+
+        viewModel.entregar(reparto.paradas[0], listOf(LineaRepartoRequest(productoId = 3, cantidad = 0, devueltos = 0)))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repartoRepository.entregarParada(any(), any()) }
+        assertEquals(ProductoUiState.Error(R.string.error_entrega_vacia), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `entregar rejects returned containers without a delivered quantity`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+
+        viewModel.entregar(reparto.paradas[0], listOf(
+            LineaRepartoRequest(productoId = 3, cantidad = 1),
+            LineaRepartoRequest(productoId = 4, cantidad = 0, devueltos = 2)
+        ))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repartoRepository.entregarParada(any(), any()) }
+        assertEquals(ProductoUiState.Error(R.string.error_devueltos_sin_entrega), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `failed delivery shows the error and offers no collection`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+        coEvery { repartoRepository.entregarParada(any(), any()) } returns
+            ProductoResult.Error(R.string.error_format, arrayOf("La parada no está pendiente"))
+
+        viewModel.entregar(reparto.paradas[0], listOf(LineaRepartoRequest(productoId = 3, cantidad = 1)))
+        advanceUntilIdle()
+
+        assertNull(viewModel.cobroPendiente.value)
+        assertEquals(ProductoUiState.Error(R.string.error_format, arrayOf("La parada no está pendiente")), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `cerrarCobro hides the collection offer`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+        coEvery { repartoRepository.entregarParada(any(), any()) } returns ProductoResult.Success(RepartoResponse(success = true, monto = 900.0))
+        viewModel.entregar(reparto.paradas[0], listOf(LineaRepartoRequest(productoId = 3, cantidad = 1)))
+        advanceUntilIdle()
+
+        viewModel.cerrarCobro()
+
+        assertNull(viewModel.cobroPendiente.value)
+    }
+
+    @Test
+    fun `noEntregar and reabrir change the stop status and reload`() = runTest {
+        cargarReparto()
+        advanceUntilIdle()
+        coEvery { repartoRepository.noEntregarParada(41) } returns ok
+        coEvery { repartoRepository.reabrirParada(41) } returns ok
+
+        viewModel.noEntregar(41)
+        advanceUntilIdle()
+        assertEquals(ProductoUiState.Success(R.string.parada_no_entregada), viewModel.uiState.value)
+        viewModel.reabrir(41)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repartoRepository.noEntregarParada(41) }
+        coVerify(exactly = 1) { repartoRepository.reabrirParada(41) }
+        coVerify(exactly = 3) { repartoRepository.getReparto("2026-11-02") }
+        assertEquals(ProductoUiState.Success(R.string.parada_reabierta), viewModel.uiState.value)
+    }
+
+    @Test
     fun `guardarPlantilla saves the shown reparto`() = runTest {
         cargarReparto()
         advanceUntilIdle()
