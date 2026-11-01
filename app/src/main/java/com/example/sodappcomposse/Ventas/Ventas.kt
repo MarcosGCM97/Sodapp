@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Agenda
+import com.example.sodappcomposse.Repartos
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
@@ -91,13 +92,20 @@ fun Ventas(
         }
 
         item {
-            Button(
-                onClick = {
-                    navController.navigate(Agenda)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        navController.navigate(Agenda)
+                    }
+                ) {
+                    Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
+                    Spacer(modifier = Modifier.width(4.dp))
                 }
-            ) {
-                Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
-                Spacer(modifier = Modifier.width(4.dp))
+                Button(onClick = { navController.navigate(Repartos) }) {
+                    Icon(Icons.Filled.List, contentDescription = stringResource(R.string.repartos_desc))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.repartos_titulo))
+                }
             }
         }
 
