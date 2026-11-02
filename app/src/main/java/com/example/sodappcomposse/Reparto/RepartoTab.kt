@@ -388,21 +388,19 @@ private fun LineasParadaDialog(
                 productos.forEach { producto ->
                     Text(producto.nombrePr, style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
+                        CampoLinea(
+                            etiqueta = stringResource(R.string.cantidad_label),
                             value = cantidades[producto.id].orEmpty(),
                             onValueChange = { cantidades[producto.id] = it.filter(Char::isDigit) },
-                            label = { Text(stringResource(R.string.cantidad_label)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
+                            keyboardType = KeyboardType.Number,
                             modifier = Modifier.weight(1f)
                         )
-                        OutlinedTextField(
+                        CampoLinea(
+                            etiqueta = stringResource(R.string.precio_label),
                             value = precios[producto.id].orEmpty(),
                             onValueChange = { precios[producto.id] = it },
-                            label = { Text(stringResource(R.string.precio_label)) },
-                            placeholder = { Text(formatearPrecioEditable(producto.precioUni)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            singleLine = true,
+                            keyboardType = KeyboardType.Decimal,
+                            placeholder = formatearPrecioEditable(producto.precioUni),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -427,6 +425,32 @@ private fun LineasParadaDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancelar)) }
         }
     )
+}
+
+/**
+ * Line field with its label always shown small above it: a floating label would fill the
+ * narrow empty field (material3 1.3 has no option to keep it minimized).
+ */
+@Composable
+private fun CampoLinea(
+    etiqueta: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null
+) {
+    Column(modifier = modifier) {
+        Text(etiqueta, style = MaterialTheme.typography.labelSmall)
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = placeholder?.let { { Text(it) } },
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 /**
@@ -468,33 +492,28 @@ private fun EntregaParadaDialog(
                 ordenados.forEach { producto ->
                     Text(producto.nombrePr, style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
+                        CampoLinea(
+                            etiqueta = stringResource(R.string.cantidad_label),
                             value = cantidades[producto.id].orEmpty(),
                             onValueChange = { cantidades[producto.id] = it.filter(Char::isDigit) },
-                            label = { Text(stringResource(R.string.cantidad_label)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
+                            keyboardType = KeyboardType.Number,
                             modifier = Modifier.weight(1f)
                         )
                         if (producto.esRetornable) {
-                            OutlinedTextField(
+                            CampoLinea(
+                                etiqueta = stringResource(R.string.devueltos_label),
                                 value = devueltos[producto.id].orEmpty(),
                                 onValueChange = { devueltos[producto.id] = it.filter(Char::isDigit) },
-                                label = { Text(stringResource(R.string.devueltos_label)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
+                                keyboardType = KeyboardType.Number,
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        OutlinedTextField(
+                        CampoLinea(
+                            etiqueta = stringResource(R.string.precio_label),
                             value = precios[producto.id].orEmpty(),
                             onValueChange = { precios[producto.id] = it },
-                            label = { Text(stringResource(R.string.precio_label)) },
-                            placeholder = {
-                                Text(formatearPrecioEditable(planificados[producto.id]?.precio ?: producto.precioUni))
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            singleLine = true,
+                            keyboardType = KeyboardType.Decimal,
+                            placeholder = formatearPrecioEditable(planificados[producto.id]?.precio ?: producto.precioUni),
                             modifier = Modifier.weight(1f)
                         )
                     }
