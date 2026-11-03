@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -476,7 +477,9 @@ private fun EntregaParadaDialog(
     }
     val devueltos = remember(parada.id) { mutableStateMapOf<Int, String>() }
     val precios = remember(parada.id) { mutableStateMapOf<Int, String>() }
-    val validos = ordenados.all { producto ->
+    // The price only matters (and is only shown) for products actually delivered
+    val conEntrega: (Producto) -> Boolean = { (cantidades[it.id]?.toIntOrNull() ?: 0) > 0 }
+    val validos = ordenados.filter(conEntrega).all { producto ->
         val precio = precios[producto.id].orEmpty()
         precio.isBlank() || (precio.toDoubleOrNull() ?: 0.0) > 0
     }
@@ -508,14 +511,19 @@ private fun EntregaParadaDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        CampoLinea(
-                            etiqueta = stringResource(R.string.precio_label),
-                            value = precios[producto.id].orEmpty(),
-                            onValueChange = { precios[producto.id] = it },
-                            keyboardType = KeyboardType.Decimal,
-                            placeholder = formatearPrecioEditable(planificados[producto.id]?.precio ?: producto.precioUni),
-                            modifier = Modifier.weight(1f)
-                        )
+                        if (conEntrega(producto)) {
+                            CampoLinea(
+                                etiqueta = stringResource(R.string.precio_label),
+                                value = precios[producto.id].orEmpty(),
+                                onValueChange = { precios[producto.id] = it },
+                                keyboardType = KeyboardType.Decimal,
+                                placeholder = formatearPrecioEditable(planificados[producto.id]?.precio ?: producto.precioUni),
+                                modifier = Modifier.weight(1f)
+                            )
+                        } else {
+                            // Keeps the other fields the same width when the price is hidden
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
