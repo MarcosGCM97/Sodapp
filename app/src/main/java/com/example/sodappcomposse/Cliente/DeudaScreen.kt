@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +57,7 @@ import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
 import com.example.sodappcomposse.Componentes.CardWpp
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.Producto.ProductoViewModel
+import com.example.sodappcomposse.Ventas.Venta
 import com.example.sodappcomposse.Ventas.VentasViewModel
 import com.example.sodappcomposse.Ventas.VentasUiState
 import com.example.sodappcomposse.Envases.EnvasesClienteSection
@@ -114,6 +116,8 @@ fun DeudaScreen(
     val cliente = clienteModel.clienteById // Manteniendo tu estructura actual por ahora
 
     val ventasDelCliente = ventaModel.ventasPorClienteId
+    // Sale waiting for the user to confirm its deletion
+    var ventaAEliminar by remember { mutableStateOf<Venta?>(null) }
 
 
     // 0 = Compras, 1 = Pagos
@@ -283,16 +287,8 @@ fun DeudaScreen(
                                 Text(stringResource(R.string.precio_format, formatearPrecio(venta.precio)))
                             }
                             IconButton(
-                                onClick = {
-                                    ventaModel.eliminarVenta(
-                                        venta.idVenta,
-                                        clienteId!!.toInt()
-                                    )
-                                    navController.navigate(Deuda(id = clienteId)) {
-                                        popUpTo<Deuda> { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                },
+                                // Ask first, like deleting a product: the sale is gone for good
+                                onClick = { ventaAEliminar = venta },
                                 modifier = Modifier
                                     .weight(0.5f)
                                     .background(Color.Red)
@@ -312,6 +308,31 @@ fun DeudaScreen(
                 }
             }
         }
+    }
+
+    ventaAEliminar?.let { venta ->
+        AlertDialog(
+            onDismissRequest = { ventaAEliminar = null },
+            title = { Text(stringResource(R.string.confirmar_eliminacion_titulo)) },
+            text = {
+                Text(stringResource(R.string.confirmar_eliminar_venta_msg, venta.cantidad, venta.producto, venta.fecha))
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        ventaAEliminar = null
+                        ventaModel.eliminarVenta(venta.idVenta, clienteId!!.toInt())
+                        navController.navigate(Deuda(id = clienteId)) {
+                            popUpTo<Deuda> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                ) { Text(stringResource(R.string.eliminar_label)) }
+            },
+            dismissButton = {
+                Button(onClick = { ventaAEliminar = null }) { Text(stringResource(R.string.cancelar)) }
+            }
+        )
     }
 }
 

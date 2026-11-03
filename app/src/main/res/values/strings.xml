@@ -95,6 +95,7 @@
     <string name="guardar_producto">Guardar Producto</string>
     <string name="editar_label">Editar</string>
     <string name="confirmar_eliminar_producto_msg">¿Estás seguro de que deseas eliminar el producto \"%1$s\"? Esta acción no se puede deshacer.</string>
+    <string name="confirmar_eliminar_venta_msg">¿Estás seguro de que deseas eliminar la venta de %1$d × %2$s del %3$s? Se devuelve el stock y se descuenta de la deuda del cliente. Esta acción no se puede deshacer.</string>
     <string name="tab_productos">Productos</string>
     <string name="tab_inventario">Inventario</string>
     <string name="editar_producto_titulo">Editar Producto</string>
