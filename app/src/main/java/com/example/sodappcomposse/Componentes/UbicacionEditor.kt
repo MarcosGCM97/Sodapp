@@ -43,7 +43,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.coroutines.resume
 
-private const val ESPERA_GPS_MS = 20_000L
+private const val ESPERA_GPS_MS = 15_000L
+private const val ESPERA_RED_MS = 10_000L
 
 /** Address found by the on-device Geocoder, waiting for the user to accept it. */
 private data class UbicacionPropuesta(val descripcion: String, val lat: Double, val lng: Double)
@@ -143,31 +144,53 @@ private fun tienePermisoUbicacion(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 
-/** One fresh fix from GPS (or the network provider without GPS); null when none arrives in time. */
-@SuppressLint("MissingPermission") // checked by the caller
+/**
+ * One fresh fix. GPS is used only with precise permission (approximate-only would throw), then
+ * the network provider as fallback (indoors GPS often gets no fix); null when none answers in time.
+ */
+@SuppressLint("MissingPermission") // checked by the caller and per provider below
 private suspend fun ubicacionActual(context: Context): Location? {
     val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    val proveedor = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-        .firstOrNull { runCatching { manager.isProviderEnabled(it) }.getOrDefault(false) } ?: return null
-    return withTimeoutOrNull(ESPERA_GPS_MS) {
-        suspendCancellableCoroutine<Location?> { cont ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val cancelacion = android.os.CancellationSignal()
-                cont.invokeOnCancellation { cancelacion.cancel() }
-                manager.getCurrentLocation(proveedor, cancelacion, ContextCompat.getMainExecutor(context)) { cont.resume(it) }
-            } else {
-                val listener = object : LocationListener {
-                    override fun onLocationChanged(location: Location) {
-                        if (cont.isActive) cont.resume(location)
-                    }
-                }
-                cont.invokeOnCancellation { manager.removeUpdates(listener) }
-                @Suppress("DEPRECATION")
-                manager.requestSingleUpdate(proveedor, listener, Looper.getMainLooper())
+    val preciso = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED
+    val proveedores = buildList {
+        if (preciso) add(LocationManager.GPS_PROVIDER to ESPERA_GPS_MS)
+        add(LocationManager.NETWORK_PROVIDER to ESPERA_RED_MS)
+    }.filter { (p, _) -> runCatching { manager.isProviderEnabled(p) }.getOrDefault(false) }
+
+    for ((proveedor, espera) in proveedores) {
+        val fix = try {
+            withTimeoutOrNull(espera) { unaUbicacion(context, manager, proveedor) }
+        } catch (e: SecurityException) {
+            null
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+        if (fix != null) return fix
+    }
+    return null
+}
+
+@SuppressLint("MissingPermission")
+private suspend fun unaUbicacion(context: Context, manager: LocationManager, proveedor: String): Location? =
+    suspendCancellableCoroutine { cont ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val cancelacion = android.os.CancellationSignal()
+            cont.invokeOnCancellation { cancelacion.cancel() }
+            manager.getCurrentLocation(proveedor, cancelacion, ContextCompat.getMainExecutor(context)) {
+                if (cont.isActive) cont.resume(it)
             }
+        } else {
+            val listener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    if (cont.isActive) cont.resume(location)
+                }
+            }
+            cont.invokeOnCancellation { manager.removeUpdates(listener) }
+            @Suppress("DEPRECATION")
+            manager.requestSingleUpdate(proveedor, listener, Looper.getMainLooper())
         }
     }
-}
 
 /** "address, locality" through the on-device Geocoder; null when it finds nothing or is unavailable. */
 private suspend fun buscarDireccion(context: Context, direccion: String, localidad: String): UbicacionPropuesta? {

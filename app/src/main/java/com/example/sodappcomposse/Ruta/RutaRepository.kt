@@ -67,6 +67,11 @@ class RutaRepositoryImpl @Inject constructor(
         }
         if (response.isSuccessful) {
             val body = response.body() ?: return ProductoResult.Error(R.string.cuerpo_nulo_error)
+            // A 200 that still says success=false is a rejection, not a success
+            if (!body.success) {
+                return body.error?.takeIf { it.isNotBlank() }?.let { ProductoResult.Error(R.string.error_format, arrayOf(it)) }
+                    ?: ProductoResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+            }
             return ProductoResult.Success(map(body))
         }
         return serverMessageError(response) ?: ProductoResult.Error(R.string.error_servidor_format, arrayOf(response.code()))

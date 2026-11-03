@@ -9,7 +9,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -122,5 +124,33 @@ class RutaViewModelTest {
         coVerify { repository.guardarPlanta(planta) }
         assertEquals(ProductoUiState.Success(R.string.planta_guardada), viewModel.uiState.value)
         assertEquals(planta, viewModel.planta.value)
+    }
+
+    @Test
+    fun `a newer load wins over a slower older one`() = runTest {
+        val vieja = Ruta(repartoId = 7, paradas = listOf(parada(1, "pendiente")))
+        val nueva = Ruta(repartoId = 7, paradas = listOf(parada(1, "entregada")))
+        var llamadas = 0
+        coEvery { repository.getRuta(7) } coAnswers {
+            llamadas++
+            if (llamadas == 1) { delay(5_000); ProductoResult.Success(vieja) } else ProductoResult.Success(nueva)
+        }
+
+        viewModel.cargar(7)
+        runCurrent()
+        viewModel.cargar(7)
+        advanceUntilIdle()
+
+        assertEquals(nueva, viewModel.ruta.value)
+    }
+
+    @Test
+    fun `a failed load is not shown as an error toast`() = runTest {
+        coEvery { repository.getRuta(7) } returns ProductoResult.Error(R.string.error_red_verificar)
+
+        viewModel.cargar(7)
+        advanceUntilIdle()
+
+        assertEquals(ProductoUiState.Idle, viewModel.uiState.value)
     }
 }

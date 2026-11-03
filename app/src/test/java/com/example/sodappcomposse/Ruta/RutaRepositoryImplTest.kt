@@ -72,4 +72,15 @@ class RutaRepositoryImplTest {
             apiServices.accionRuta(RutaAccionRequest(accion = "guardar_planta", direccion = "Ruta 20 km 6", localidad = "La Calera"))
         }
     }
+
+    @Test
+    fun `a 200 answer with success false is an error`() = runTest {
+        coEvery { apiServices.accionRuta(any()) } returns
+            Response.success(RutaResponse(success = false, error = "Datos incompletos: direccion y localidad"))
+
+        assertEquals(
+            ProductoResult.Error(R.string.error_format, arrayOf("Datos incompletos: direccion y localidad")),
+            repository.guardarPlanta(Planta("", ""))
+        )
+    }
 }

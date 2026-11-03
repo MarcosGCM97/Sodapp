@@ -8,6 +8,7 @@ import com.example.sodappcomposse.Producto.ProductoResult
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,14 +35,19 @@ class RutaViewModel @Inject constructor(
     private val _uiState = mutableStateOf<ProductoUiState>(ProductoUiState.Idle)
     val uiState: State<ProductoUiState> = _uiState
 
+    private var carga: Job? = null
+
+    /**
+     * Only the latest load counts: a slower earlier response can not overwrite it. A failed load
+     * keeps the last route and stays quiet, so the optional route card never interrupts deliveries.
+     */
     fun cargar(repartoId: Int) {
-        viewModelScope.launch {
-            when (val result = repository.getRuta(repartoId)) {
-                is ProductoResult.Success -> {
-                    _ruta.value = result.data
-                    _tramos.value = result.data?.let { armarTramos(it) } ?: emptyList()
-                }
-                is ProductoResult.Error -> _uiState.value = ProductoUiState.Error(result.messageRes, result.args)
+        carga?.cancel()
+        carga = viewModelScope.launch {
+            val result = repository.getRuta(repartoId)
+            if (result is ProductoResult.Success) {
+                _ruta.value = result.data
+                _tramos.value = result.data?.let { armarTramos(it) } ?: emptyList()
             }
         }
     }
