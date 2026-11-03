@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.example.sodappcomposse.Componentes.UbicacionEditor
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 
@@ -51,6 +54,8 @@ fun ClienteEditarScreen(
     var nombreCliente by remember { mutableStateOf("") }
     var dirCliente by remember { mutableStateOf("") }
     var telCliente by remember { mutableStateOf("") }
+    var locCliente by remember { mutableStateOf("") }
+    var coordCliente by remember { mutableStateOf<Pair<Double, Double>?>(null) }
 
     val clienteElegido = clienteModel.clientes.find { it.idCl == idCliente }
 
@@ -59,6 +64,10 @@ fun ClienteEditarScreen(
             nombreCliente = it.nombreCl
             telCliente = it.numTelCl
             dirCliente = it.direccionCl
+            locCliente = it.localidadCl.orEmpty()
+            val lat = it.latitudCl
+            val lng = it.longitudCl
+            coordCliente = if (lat != null && lng != null) lat to lng else null
         }
     }
 
@@ -86,6 +95,7 @@ fun ClienteEditarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -127,6 +137,28 @@ fun ClienteEditarScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Required on save: clients created before the field existed get it here
+            OutlinedTextField(
+                value = locCliente,
+                onValueChange = { locCliente = it },
+                label = { Text(stringResource(R.string.localidad_label)) },
+                isError = locCliente.isBlank(),
+                supportingText = if (locCliente.isBlank()) {
+                    { Text(stringResource(R.string.localidad_requerida)) }
+                } else null,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            UbicacionEditor(
+                direccion = dirCliente,
+                localidad = locCliente,
+                coordenadas = coordCliente,
+                onCambiar = { coordCliente = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             val guardando = editarUiState is AddClienteUiState.Loading
             Button(
                 modifier = Modifier
@@ -138,7 +170,10 @@ fun ClienteEditarScreen(
                         nombreCl = nombreCliente,
                         numTelCl = telCliente,
                         direccionCl = dirCliente,
-                        deudaCl = clienteElegido?.deudaCl ?: 0.0
+                        deudaCl = clienteElegido?.deudaCl ?: 0.0,
+                        localidadCl = locCliente.trim(),
+                        latitudCl = coordCliente?.first,
+                        longitudCl = coordCliente?.second
                     )
                     // Navigation happens in the LaunchedEffect once the update succeeds
                     clienteModel.editarCliente(clienteEditado)

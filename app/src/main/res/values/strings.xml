@@ -285,4 +285,32 @@
     <string name="cobro_entrega_titulo_format">Cobrar a %1$s</string>
     <string name="entregado_monto_format">Entregado: $%1$s</string>
     <string name="linea_entregada_format">%1$d de %2$d x %3$s ($%4$s)</string>
+    <!-- Ruta (Google Maps) -->
+    <string name="ruta_titulo">Ruta en Google Maps</string>
+    <string name="ruta_tramo_format">Tramo %1$d (paradas %2$d-%3$d)</string>
+    <string name="ruta_tramo_planta_format">Tramo %1$d (paradas %2$d-%3$d y planta)</string>
+    <string name="ruta_tramo_solo_planta_format">Tramo %1$d (volver a planta)</string>
+    <string name="ruta_sin_tramos">No quedan paradas pendientes en la ruta.</string>
+    <string name="ruta_sin_planta">Sin planta configurada: la ruta termina en la última parada.</string>
+    <string name="maps_no_disponible">No se pudo abrir Google Maps.</string>
+    <string name="llegue_a_planta">Llegué a planta</string>
+    <string name="recorrido_inicio_format">Recorrido iniciado a las %1$s</string>
+    <string name="recorrido_duracion_format">Recorrido: %1$d h %2$d min</string>
+    <string name="recorrido_finalizado">Recorrido finalizado.</string>
+    <string name="planta_titulo">Planta</string>
+    <string name="planta_descripcion">Desde aquí sale y aquí vuelve cada ruta.</string>
+    <string name="planta_direccion_label">Dirección de la planta</string>
+    <string name="planta_guardada">Planta guardada.</string>
+    <string name="configurar_planta">Configurar planta</string>
+    <string name="localidad_label">Localidad</string>
+    <string name="localidad_requerida">Indique la localidad del cliente.</string>
+    <string name="ubicacion_guardada_format">Ubicación: %1$s, %2$s</string>
+    <string name="sin_ubicacion">Sin ubicación guardada (se usa la dirección)</string>
+    <string name="guardar_ubicacion_aqui">Guardar ubicación aquí</string>
+    <string name="ubicar_por_direccion">Ubicar por dirección</string>
+    <string name="quitar_ubicacion">Quitar ubicación</string>
+    <string name="ubicacion_encontrada_titulo">¿Es esta la dirección?</string>
+    <string name="ubicacion_no_encontrada">No se encontró esa dirección. Revise la calle, el número y la localidad.</string>
+    <string name="ubicacion_no_disponible">No se pudo obtener la ubicación del teléfono. Active el GPS e intente de nuevo.</string>
+    <string name="permiso_ubicacion_denegado">Sin permiso de ubicación no se puede guardar la ubicación actual.</string>
 </resources>

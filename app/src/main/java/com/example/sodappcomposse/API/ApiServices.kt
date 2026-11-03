@@ -27,6 +27,7 @@ import com.example.sodappcomposse.Producto.ProductoResponseByName
 import com.example.sodappcomposse.Ventas.VentaApiResponse
 import com.example.sodappcomposse.Ventas.VentaApiResponseById
 import com.example.sodappcomposse.Ventas.VentaRequest
+import okhttp3.RequestBody
 import retrofit2.Response // Para manejar la respuesta completa, incluyendo el código de estado
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -61,9 +62,10 @@ interface ApiServices {
         @Body clienteRequest: ClienteRequest
     ): Response<PostResponse>
 
+    // Body from Cliente.toUpdateBody(): it keeps null fields so a removed location is cleared
     @PUT("clientes.php")
     suspend fun updateCliente(
-        @Body cliente: Cliente
+        @Body cliente: RequestBody
     ): Response<PostResponse>
 
     /*"pr_ide":"1","pr_nom":"vidon de agua","pr_val":"4500.00","pr_stk":"1","pr_emp":"Ariza","created_at":null,"updated_at":null*/

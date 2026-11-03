@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import com.example.sodappcomposse.ClienteEditar
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Agenda
+import com.example.sodappcomposse.Componentes.UbicacionEditor
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Componentes.AccionDetalle
@@ -126,6 +127,8 @@ fun AddClienteForm(
     var nombreCliente by remember { mutableStateOf("") }
     var direccionCliente by remember { mutableStateOf("") }
     var telefonoCliente by remember { mutableStateOf("") }
+    var localidadCliente by remember { mutableStateOf("") }
+    var coordenadasCliente by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     var deudaCliente by remember { mutableStateOf(0) }
 
 
@@ -138,6 +141,8 @@ fun AddClienteForm(
                 nombreCliente = "" // Limpiar campos
                 direccionCliente = ""
                 telefonoCliente = ""
+                localidadCliente = ""
+                coordenadasCliente = null
                 //clienteModel.resetAddClienteState() // Resetear el estado para futuros guardados
             }
             is AddClienteUiState.Error -> {
@@ -178,6 +183,21 @@ fun AddClienteForm(
             singleLine = true
         )
 
+        OutlinedTextField(
+            value = localidadCliente,
+            onValueChange = { localidadCliente = it },
+            label = { Text(stringResource(R.string.localidad_label)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        UbicacionEditor(
+            direccion = direccionCliente,
+            localidad = localidadCliente,
+            coordenadas = coordenadasCliente,
+            onCambiar = { coordenadasCliente = it }
+        )
+
         // Campo para el Teléfono del Cliente
         OutlinedTextField(
             value = telefonoCliente,
@@ -194,11 +214,13 @@ fun AddClienteForm(
                 clienteModel.agregarNuevoCliente(
                     nombre = nombreCliente,
                     direccion = direccionCliente,
-                    telefono = telefonoCliente
+                    telefono = telefonoCliente,
+                    localidad = localidadCliente,
+                    coordenadas = coordenadasCliente
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = nombreCliente.isNotBlank() && direccionCliente.isNotBlank() && telefonoCliente.isNotBlank() && addState !is AddClienteUiState.Loading
+            enabled = nombreCliente.isNotBlank() && direccionCliente.isNotBlank() && localidadCliente.isNotBlank() && telefonoCliente.isNotBlank() && addState !is AddClienteUiState.Loading
         ) {
             if (addState is AddClienteUiState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
