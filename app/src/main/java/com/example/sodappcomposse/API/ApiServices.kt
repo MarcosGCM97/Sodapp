@@ -18,6 +18,8 @@ import com.example.sodappcomposse.Envases.EnvasesClienteResponse
 import com.example.sodappcomposse.Envases.LlenarEnvasesRequest
 import com.example.sodappcomposse.Envases.SaldoEnvasesRequest
 import com.example.sodappcomposse.Producto.MovimientosResponse
+import com.example.sodappcomposse.Reparto.RepartoAccionRequest
+import com.example.sodappcomposse.Reparto.RepartoResponse
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
@@ -158,6 +160,12 @@ interface ApiServices {
     suspend fun updateDiasEntrega(
         @Body diasEntrega: DiasEntregaUpdateRequest
     ): Response<PostResponse>
+
+    @GET("repartos.php")
+    suspend fun getReparto(@Query("fecha") fecha: String): Response<RepartoResponse>
+
+    @POST("repartos.php")
+    suspend fun accionReparto(@Body request: RepartoAccionRequest): Response<RepartoResponse>
 }
 
 

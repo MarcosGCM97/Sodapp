@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.conDevueltos
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Reparto.RepartoTab
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Funciones.ProductoMensaje
 import com.example.sodappcomposse.Funciones.armarMensajeVenta
@@ -53,7 +55,30 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 @Composable
-fun Ventas(
+fun Ventas(navController: NavController) {
+    // 0 = Ventas, 1 = Reparto
+    var tabSeleccionado by rememberSaveable { mutableIntStateOf(0) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = tabSeleccionado) {
+            listOf(stringResource(R.string.tab_ventas), stringResource(R.string.tab_reparto)).forEachIndexed { index, titulo ->
+                Tab(
+                    selected = tabSeleccionado == index,
+                    onClick = { tabSeleccionado = index },
+                    text = { Text(titulo) }
+                )
+            }
+        }
+
+        when (tabSeleccionado) {
+            0 -> TabVentas(navController = navController)
+            1 -> RepartoTab()
+        }
+    }
+}
+
+@Composable
+private fun TabVentas(
     ventaModel: VentasViewModel = hiltViewModel(),
     productoModel: ProductoViewModel = hiltViewModel(),
     clienteModel: ClientesViewModel = hiltViewModel(),
