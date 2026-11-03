@@ -46,7 +46,6 @@ import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
-import com.example.sodappcomposse.Componentes.AccionDetalle
 import com.example.sodappcomposse.Componentes.DatoDetalle
 import com.example.sodappcomposse.Componentes.EtiquetaDetalle
 import com.example.sodappcomposse.Componentes.TarjetaDetalle
@@ -233,11 +232,7 @@ fun BuscarProducto(
             etiquetas = listOf(
                 EtiquetaDetalle(stringResource(R.string.stock_format, producto.stock), tonoStock(producto.stock))
             ),
-            acciones = listOf(
-                AccionDetalle(stringResource(R.string.editar_label), Icons.Filled.Edit, principal = true) {
-                    navController.navigate(ProductoEditar(nombre = producto.nombrePr))
-                }
-            ),
+            onEditar = { navController.navigate(ProductoEditar(nombre = producto.nombrePr)) },
             onEliminar = {
                 productoAEliminar = producto
                 mostrarDialogoConfirmacion = true

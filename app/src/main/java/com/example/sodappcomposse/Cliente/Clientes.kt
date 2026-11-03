@@ -297,15 +297,15 @@ fun BuscarCliente(
                     navController.navigate(Deuda(id = cliente.idCl.toString()))
                     clienteModel.clienteParaDropDown.value = null
                 },
-                AccionDetalle(stringResource(R.string.editar_label), Icons.Filled.Edit) {
-                    navController.navigate(ClienteEditar(id = cliente.idCl))
-                    clienteModel.clienteParaDropDown.value = null
-                },
                 AccionDetalle(stringResource(R.string.dias_reparto_label), Icons.Filled.DateRange) {
                     diasSeleccionadosAgenda = agendaModel.diasEntregaById.value
                     mostrarDialogoAgenda = true
                 }
             ),
+            onEditar = {
+                navController.navigate(ClienteEditar(id = cliente.idCl))
+                clienteModel.clienteParaDropDown.value = null
+            },
             onEliminar = {
                 clienteAEliminar = cliente
                 mostrarDialogoConfirmacion = true

@@ -4,18 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.GreenPrimario
@@ -55,8 +60,9 @@ data class AccionDetalle(
 
 /**
  * Detail card of a selected item (client, product): title with an optional highlighted value,
- * icon + text rows, colored status labels and labeled actions. Delete stays apart, as red text,
- * so it is not tapped by mistake. It knows nothing about the entity: each section maps its data.
+ * icon + text rows, colored status labels and labeled actions on one line. Edit and delete share
+ * the last line at opposite ends, delete as red text so it is not tapped by mistake.
+ * It knows nothing about the entity: each section maps its data.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -67,6 +73,7 @@ fun TarjetaDetalle(
     datos: List<DatoDetalle> = emptyList(),
     etiquetas: List<EtiquetaDetalle> = emptyList(),
     acciones: List<AccionDetalle> = emptyList(),
+    onEditar: (() -> Unit)? = null,
     onEliminar: (() -> Unit)? = null
 ) {
     Card(
@@ -110,25 +117,41 @@ fun TarjetaDetalle(
                     etiquetas.forEach { Etiqueta(it) }
                 }
             }
+            // Main actions share one line, each taking an equal part of the width
             if (acciones.isNotEmpty()) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     acciones.forEach { accion ->
+                        val boton = Modifier.weight(1f)
+                        val relleno = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                         val contenido: @Composable () -> Unit = {
                             Icon(accion.icono, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text(accion.texto)
+                            Text(accion.texto, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         if (accion.principal) {
-                            Button(onClick = accion.onClick) { contenido() }
+                            Button(onClick = accion.onClick, modifier = boton, contentPadding = relleno) { contenido() }
                         } else {
-                            FilledTonalButton(onClick = accion.onClick) { contenido() }
+                            FilledTonalButton(onClick = accion.onClick, modifier = boton, contentPadding = relleno) { contenido() }
                         }
                     }
                 }
             }
-            onEliminar?.let {
-                TextButton(onClick = it, modifier = Modifier.align(Alignment.End)) {
-                    Text(stringResource(R.string.eliminar_label), color = MaterialTheme.colorScheme.error)
+            // Edit on the left and delete on the right, far from each other
+            if (onEditar != null || onEliminar != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    onEditar?.let {
+                        OutlinedButton(onClick = it) {
+                            Icon(Icons.Filled.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.editar_label))
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    onEliminar?.let {
+                        TextButton(onClick = it) {
+                            Text(stringResource(R.string.eliminar_label), color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                 }
             }
         }
