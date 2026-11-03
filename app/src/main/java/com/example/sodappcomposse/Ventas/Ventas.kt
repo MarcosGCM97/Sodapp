@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -37,7 +38,7 @@ import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
-import com.example.sodappcomposse.Componentes.CardWpp
+import com.example.sodappcomposse.Componentes.BotonWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.conDevueltos
@@ -71,8 +72,8 @@ fun Ventas(navController: NavController) {
         }
 
         when (tabSeleccionado) {
-            0 -> TabVentas(navController = navController)
-            1 -> RepartoTab()
+            0 -> TabVentas()
+            1 -> RepartoTab(onVerDias = { navController.navigate(Agenda) })
         }
     }
 }
@@ -81,8 +82,7 @@ fun Ventas(navController: NavController) {
 private fun TabVentas(
     ventaModel: VentasViewModel = hiltViewModel(),
     productoModel: ProductoViewModel = hiltViewModel(),
-    clienteModel: ClientesViewModel = hiltViewModel(),
-    navController: NavController
+    clienteModel: ClientesViewModel = hiltViewModel()
 ){
     val TAG = "Ventas screen"
     val context = LocalContext.current
@@ -112,17 +112,6 @@ private fun TabVentas(
                     productoModel = productoModel,
                     clienteModel = clienteModel
                 )
-            }
-        }
-
-        item {
-            Button(
-                onClick = {
-                    navController.navigate(Agenda)
-                }
-            ) {
-                Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
-                Spacer(modifier = Modifier.width(4.dp))
             }
         }
 
@@ -428,8 +417,8 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
-    var cliente = clienteModel.clientes.find { it.idCl == venta.cliente?.idCl }
-    var totales : MutableList<Double?> = mutableListOf(0.0)
+    val cliente = clienteModel.clientes.find { it.idCl == venta.cliente?.idCl }
+    val total = venta.productos.sumOf { (it.precio ?: 0.0) * it.cantidad }
 
     Card(
         modifier = Modifier
@@ -440,78 +429,74 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = stringResource(R.string.cliente_format, venta.cliente?.nombreCl ?: stringResource(R.string.desconocido_label)),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.fecha_format, venta.fecha),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.productos_titulo),
-                style = MaterialTheme.typography.titleSmall
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = venta.cliente?.nombreCl ?: stringResource(R.string.desconocido_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = venta.fecha,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            HorizontalDivider()
+            // One line per product: name, quantity x unit price, subtotal
             venta.productos.forEach { producto ->
-                totales.add(producto.precio?.times(producto.cantidad))
-
-                Row (
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .fillMaxWidth()
-                        .borderBottom(1.dp, Color.LightGray),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
+                val precio = producto.precio ?: 0.0
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.producto_item_format, producto.nombre),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = producto.nombre,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = stringResource(R.string.cantidad_item_format, producto.cantidad),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = stringResource(R.string.linea_venta_format, producto.cantidad, formatearPrecio(precio)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = stringResource(R.string.precio_item_format, formatearPrecio(producto.precio ?: 0.0)),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "$" + formatearPrecio(precio * producto.cantidad),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.widthIn(min = 80.dp)
                     )
-                    Spacer(modifier = Modifier.height(3.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.total_format, formatearPrecio(totales.sumOf{ it ?: 0.0  })),
-                style = MaterialTheme
-                    .typography.bodyMedium
-                    .copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row {
-                CardWpp(
-                    context,
-                    cliente,
-                    armarMensajeVenta(
-                        context.resources,
-                        venta.cliente?.nombreCl,
-                        venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
-                        totales.sumOf { it ?: 0.0 },
-                        venta.cliente?.deudaCl,
-                        nombreEmpresa
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = stringResource(R.string.cantidad_total_items_format, venta.cantidadTotalVenta),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
+                    text = stringResource(R.string.items_format, venta.cantidadTotalVenta),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = stringResource(R.string.total_format, formatearPrecio(total)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
+            BotonWpp(
+                context = context,
+                cliente = cliente,
+                mensaje = armarMensajeVenta(
+                    context.resources,
+                    venta.cliente?.nombreCl,
+                    venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
+                    total,
+                    venta.cliente?.deudaCl,
+                    nombreEmpresa
+                ),
+                modifier = Modifier.align(Alignment.End)
+            )
         }
     }
 }

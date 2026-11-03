@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -66,6 +67,8 @@ private val FORMATO_FECHA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M
 /** Ventas > Reparto: the reparto of a date, stops in route order with the client address, editable while pendiente. */
 @Composable
 fun RepartoTab(
+    // Opens the clients by delivery day (Agenda)
+    onVerDias: () -> Unit,
     viewModel: RepartoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -96,7 +99,12 @@ fun RepartoTab(
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        SelectorFecha(fecha = fecha, onCambiar = viewModel::cambiarDia)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SelectorFecha(fecha = fecha, onCambiar = viewModel::cambiarDia, modifier = Modifier.weight(1f))
+            IconButton(onClick = onVerDias) {
+                Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.dias_reparto_label))
+            }
+        }
 
         val actual = reparto
         when {
@@ -166,9 +174,9 @@ private fun nombreDia(dia: DayOfWeek): String = stringResource(
 )
 
 @Composable
-private fun SelectorFecha(fecha: LocalDate, onCambiar: (Long) -> Unit) {
+private fun SelectorFecha(fecha: LocalDate, onCambiar: (Long) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

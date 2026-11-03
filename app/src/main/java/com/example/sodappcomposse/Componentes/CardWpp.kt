@@ -11,9 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +29,31 @@ import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Funciones.openWhatsApp
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.ui.theme.GreenPrimario
+
+/** Compact WhatsApp button (icon + "Enviar") for cards with little room, like a sale. */
+@Composable
+fun BotonWpp(
+    context: Context,
+    cliente: Cliente?,
+    mensaje: String,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = { openWhatsApp(context, cliente?.numTelCl.toString(), mensaje) },
+        colors = ButtonDefaults.buttonColors(containerColor = GreenPrimario, contentColor = Color.White),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        modifier = modifier.height(36.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.whatsapp_icono),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(stringResource(R.string.enviar_wpp_label))
+    }
+}
 
 @Composable
 fun CardWpp(
