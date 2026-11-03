@@ -55,6 +55,7 @@ import com.example.sodappcomposse.Cliente.FormularioCobro
 import com.example.sodappcomposse.Cliente.montoCobrarTodo
 import com.example.sodappcomposse.Componentes.SelectBuscable
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Funciones.formatearPrecioEditable
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.R
@@ -612,7 +613,3 @@ private fun CobroEntregaDialog(
         }
     )
 }
-
-// "450" instead of "450.0" so the field shows what the user would type
-private fun formatearPrecioEditable(precio: Double): String =
-    if (precio % 1.0 == 0.0) precio.toLong().toString() else precio.toString()
