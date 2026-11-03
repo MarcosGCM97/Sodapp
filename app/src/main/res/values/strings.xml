@@ -25,9 +25,13 @@
     <string name="telefono_format">Teléfono: %1$s</string>
     <string name="deuda_format">Deuda: $%1$s</string>
     <string name="saldo_a_favor_format">Saldo a favor: $%1$s</string>
+    <string name="debe_format">Debe $%1$s</string>
+    <string name="a_favor_format">A favor $%1$s</string>
+    <string name="al_dia_label">Al día</string>
+    <string name="ver_cuenta_label">Ver cuenta</string>
+    <string name="vacios_planta_format">Envases vacíos en planta: %1$d</string>
+    <string name="envases_clientes_format">Envases en clientes: %1$d</string>
     <string name="editar_desc">Editar</string>
-    <string name="deuda_desc">Deuda</string>
-    <string name="agendar_desc">Agendar</string>
     <string name="eliminar_desc">Eliminar</string>
     <string name="elegir_dia_titulo">Elegir día de visita</string>
     <string name="selecciona_dia_label">Selecciona un día para agendar la visita:</string>
@@ -89,7 +93,6 @@
     <string name="precio_label">Precio</string>
     <string name="cantidad_label">Cantidad</string>
     <string name="guardar_producto">Guardar Producto</string>
-    <string name="detalles_producto_titulo">Detalles del Producto:</string>
     <string name="editar_label">Editar</string>
     <string name="confirmar_eliminar_producto_msg">¿Estás seguro de que deseas eliminar el producto \"%1$s\"? Esta acción no se puede deshacer.</string>
     <string name="tab_productos">Productos</string>

@@ -15,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,6 +46,11 @@ import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Componentes.AccionDetalle
+import com.example.sodappcomposse.Componentes.DatoDetalle
+import com.example.sodappcomposse.Componentes.EtiquetaDetalle
+import com.example.sodappcomposse.Componentes.TarjetaDetalle
+import com.example.sodappcomposse.Componentes.tonoStock
 import com.example.sodappcomposse.ProductoEditar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,51 +222,27 @@ fun BuscarProducto(
     }
     productoSeleccionado?.let { producto -> // Se muestra solo si hay un producto seleccionado
         Spacer(modifier = Modifier.height(16.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(stringResource(R.string.detalles_producto_titulo), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.nombre_format, producto.nombrePr))
-                Text(stringResource(R.string.precio_format, formatearPrecio(producto.precioUni)))
-                Text(stringResource(R.string.cantidad_format, producto.stock))
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start // Alinea el botón a la derecha
-                ) {
-                    Button(
-                        onClick = {
-                            navController.navigate(ProductoEditar(nombre = producto.nombrePr))
-                        }
-                    ) {
-                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.editar_label))
-                    }
-                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre los botones
-                    Button(
-                        onClick = {
-                            // Guardar el producto que se intenta eliminar y mostrar el diálogo
-                            productoAEliminar = producto
-                            mostrarDialogoConfirmacion = true
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) // Color rojo para eliminar
-                    ) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.eliminar_desc))
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
+        TarjetaDetalle(
+            titulo = producto.nombrePr,
+            destacado = "$" + formatearPrecio(producto.precioUni),
+            // Returnable products also show where their containers are
+            datos = if (producto.esRetornable) listOf(
+                DatoDetalle(Icons.Filled.Home, stringResource(R.string.vacios_planta_format, producto.vacios)),
+                DatoDetalle(Icons.Filled.Person, stringResource(R.string.envases_clientes_format, producto.enClientes))
+            ) else emptyList(),
+            etiquetas = listOf(
+                EtiquetaDetalle(stringResource(R.string.stock_format, producto.stock), tonoStock(producto.stock))
+            ),
+            acciones = listOf(
+                AccionDetalle(stringResource(R.string.editar_label), Icons.Filled.Edit, principal = true) {
+                    navController.navigate(ProductoEditar(nombre = producto.nombrePr))
                 }
+            ),
+            onEliminar = {
+                productoAEliminar = producto
+                mostrarDialogoConfirmacion = true
             }
-        }
+        )
     }
     // Diálogo de confirmación
     if (mostrarDialogoConfirmacion && productoAEliminar != null) {
