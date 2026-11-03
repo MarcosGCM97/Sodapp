@@ -5,7 +5,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.ui.theme.ThemeViewModel
-import com.example.sodappcomposse.Componentes.ThemeToggleFAB
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -113,12 +112,11 @@ fun BienvenidaScreen(
 
     Scaffold(
         topBar = {
-            Encabezado(nombre = nombreUser, navLogin = navLogin)
-        },
-        floatingActionButton = {
-            ThemeToggleFAB(
+            Encabezado(
+                nombre = nombreUser,
                 isDark = isDark,
-                onToggle = { themeViewModel.toggleTheme(isDark) }
+                onToggleTheme = { themeViewModel.toggleTheme(isDark) },
+                navLogin = navLogin
             )
         },
         bottomBar = {

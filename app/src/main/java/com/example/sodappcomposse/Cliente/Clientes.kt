@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -50,6 +52,11 @@ import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
+import com.example.sodappcomposse.Componentes.AccionDetalle
+import com.example.sodappcomposse.Componentes.DatoDetalle
+import com.example.sodappcomposse.Componentes.EtiquetaDetalle
+import com.example.sodappcomposse.Componentes.TarjetaDetalle
+import com.example.sodappcomposse.Componentes.tonoSaldo
 import com.example.sodappcomposse.Funciones.textoSaldoCliente
 
 @Composable
@@ -268,80 +275,42 @@ fun BuscarCliente(
     }
     clienteSeleccionado?.let { cliente -> // Se muestra solo si hay un cliente seleccionado
         Spacer(modifier = Modifier.height(16.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(stringResource(R.string.detalles_cliente_titulo), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.nombre_format, cliente.nombreCl))
-                Text(stringResource(R.string.direccion_format, cliente.direccionCl))
-                Text(stringResource(R.string.telefono_format, cliente.numTelCl))
-                Text(textoSaldoCliente(context.resources, cliente.deudaCl))
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start // Alinea el botón a la derecha
-                ) {
-                    Button(
-                        onClick = {
-                            navController.navigate(ClienteEditar(id = cliente.idCl))
-                            clienteModel.clienteParaDropDown.value = null
-                        }
-                    ) {
-                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        //Text("Editar")
-                    }
-                    //Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            navController.navigate(Deuda(id = cliente.idCl.toString()))
-                            clienteModel.clienteParaDropDown.value = null
-                        }
-                    ) {
-                        Icon(Icons.Filled.ShoppingCart, contentDescription = stringResource(R.string.deuda_desc))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        //Text("Ver deuda")//Text("Ver deuda")
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f)) // Espacio entre los botones
-
-                    Button(
-                        onClick = {
-                            diasSeleccionadosAgenda = agendaModel.diasEntregaById.value
-                            mostrarDialogoAgenda = true
-                        }
-                    ) {
-                        Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    IconButton(
-                        onClick = {
-                            clienteAEliminar = cliente
-                            mostrarDialogoConfirmacion = true
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.eliminar_desc),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
+        val saldo = cliente.deudaCl
+        TarjetaDetalle(
+            titulo = cliente.nombreCl,
+            datos = listOf(
+                DatoDetalle(Icons.Filled.LocationOn, cliente.direccionCl),
+                DatoDetalle(Icons.Filled.Phone, cliente.numTelCl)
+            ),
+            etiquetas = listOf(
+                EtiquetaDetalle(
+                    texto = when {
+                        saldo > 0 -> stringResource(R.string.debe_format, formatearPrecio(saldo))
+                        saldo < 0 -> stringResource(R.string.a_favor_format, formatearPrecio(-saldo))
+                        else -> stringResource(R.string.al_dia_label)
+                    },
+                    tono = tonoSaldo(saldo)
+                )
+            ),
+            acciones = listOf(
+                AccionDetalle(stringResource(R.string.ver_cuenta_label), Icons.Filled.ShoppingCart, principal = true) {
+                    navController.navigate(Deuda(id = cliente.idCl.toString()))
+                    clienteModel.clienteParaDropDown.value = null
+                },
+                AccionDetalle(stringResource(R.string.dias_reparto_label), Icons.Filled.DateRange) {
+                    diasSeleccionadosAgenda = agendaModel.diasEntregaById.value
+                    mostrarDialogoAgenda = true
                 }
+            ),
+            onEditar = {
+                navController.navigate(ClienteEditar(id = cliente.idCl))
+                clienteModel.clienteParaDropDown.value = null
+            },
+            onEliminar = {
+                clienteAEliminar = cliente
+                mostrarDialogoConfirmacion = true
             }
-        }
+        )
     }
     if (mostrarDialogoAgenda) {
         AlertDialog(
