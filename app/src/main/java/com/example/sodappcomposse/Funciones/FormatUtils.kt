@@ -16,6 +16,10 @@ fun formatearPrecio(precio: Double?): String {
     return df.format(precio)
 }
 
+// "450" instead of "450.0" so the field shows what the user would type
+fun formatearPrecioEditable(precio: Double): String =
+    if (precio % 1.0 == 0.0) precio.toLong().toString() else precio.toString()
+
 // A negative debt is money the client paid for a sale that was later deleted
 fun textoSaldoCliente(resources: Resources, deuda: Double?): String {
     val saldo = deuda ?: 0.0

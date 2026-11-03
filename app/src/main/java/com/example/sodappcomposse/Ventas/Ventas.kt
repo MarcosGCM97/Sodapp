@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -37,10 +38,17 @@ import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
-import com.example.sodappcomposse.Componentes.CardWpp
+import com.example.sodappcomposse.Componentes.BotonWpp
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.Producto.ProductoVenta
 import com.example.sodappcomposse.Producto.conDevueltos
+import com.example.sodappcomposse.Producto.parsearPrecio
+import com.example.sodappcomposse.Producto.productosDisponibles
+import com.example.sodappcomposse.Producto.subtotal
+import com.example.sodappcomposse.Producto.totalVenta
+import com.example.sodappcomposse.Producto.ventaCompleta
+import com.example.sodappcomposse.Componentes.SelectBuscable
+import com.example.sodappcomposse.Funciones.formatearPrecioEditable
 import com.example.sodappcomposse.Producto.ProductoViewModel
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Reparto.RepartoTab
@@ -71,8 +79,8 @@ fun Ventas(navController: NavController) {
         }
 
         when (tabSeleccionado) {
-            0 -> TabVentas(navController = navController)
-            1 -> RepartoTab()
+            0 -> TabVentas()
+            1 -> RepartoTab(onVerDias = { navController.navigate(Agenda) })
         }
     }
 }
@@ -81,8 +89,7 @@ fun Ventas(navController: NavController) {
 private fun TabVentas(
     ventaModel: VentasViewModel = hiltViewModel(),
     productoModel: ProductoViewModel = hiltViewModel(),
-    clienteModel: ClientesViewModel = hiltViewModel(),
-    navController: NavController
+    clienteModel: ClientesViewModel = hiltViewModel()
 ){
     val TAG = "Ventas screen"
     val context = LocalContext.current
@@ -112,17 +119,6 @@ private fun TabVentas(
                     productoModel = productoModel,
                     clienteModel = clienteModel
                 )
-            }
-        }
-
-        item {
-            Button(
-                onClick = {
-                    navController.navigate(Agenda)
-                }
-            ) {
-                Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.agendar_desc))
-                Spacer(modifier = Modifier.width(4.dp))
             }
         }
 
@@ -205,24 +201,6 @@ fun AddVentaForm(
         }
     }
 
-    val optionsProds: List<String> = when (productoUiState) {
-        is ProductoUiState.Success -> productos.map { it.nombrePr }
-        is ProductoUiState.Loading -> listOf("Cargando productos...")
-        else -> listOf("No hay productos disponibles")
-    }
-
-    var expandedProds by remember { mutableStateOf(false) }
-
-    var currentSelectedProductInDropdown by remember(optionsProds) {
-        mutableStateOf(
-            if (optionsProds.isNotEmpty() && optionsProds.first() != "Cargando productos..." && optionsProds.first() != "No hay productos disponibles") {
-                optionsProds[0]
-            } else {
-                ""
-            }
-        )
-    }
-
     val clienteParaVenta = clienteModel.clienteParaDropDown
 
     // State to hold the list of chosen products with their quantities for the sale
@@ -240,116 +218,56 @@ fun AddVentaForm(
 
         ClientesDropDown()
 
-        ExposedDropdownMenuBox(
-            expanded = expandedProds,
-            onExpandedChange = { expandedProds = !expandedProds },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = currentSelectedProductInDropdown,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.producto_label)) },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedProds)
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            )
+        // Empty after each choice; products already in the sale are not offered again
+        SelectBuscable(
+            opciones = productosDisponibles(productos, productosParaVenta),
+            etiqueta = { it.nombrePr },
+            onSeleccionar = { producto ->
+                productosParaVenta.add(ProductoVenta(nombre = producto.nombrePr, cantidad = 1, precio = producto.precioUni))
+            },
+            label = stringResource(R.string.agregar_producto_label),
+            limpiarAlSeleccionar = true
+        )
 
-            ExposedDropdownMenu(
-                expanded = expandedProds,
-                onDismissRequest = { expandedProds = false },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Asegúrate de que optionsProds no contenga los placeholders si no quieres que sean clickeables
-                val displayableProds = optionsProds.filter { it != "Cargando productos..." && it != "No hay productos disponibles" }
-                displayableProds.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption) },
-                        onClick = {
-                            currentSelectedProductInDropdown = selectionOption
-                            expandedProds = false
-
-                            if (productosParaVenta.none { it.nombre == selectionOption }) {
-                                val productoCompleto = productos.find { it.nombrePr == selectionOption }
-
-                                productosParaVenta.add(
-                                    ProductoVenta(
-                                        nombre = selectionOption,
-                                        cantidad = 1,      // Cantidad inicial
-                                        precio = productoCompleto?.precioUni ?: 0.0
-                                    )
-                                )
-                                Toast.makeText(context, context.getString(R.string.producto_agregado_msg, selectionOption), Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, context.getString(R.string.producto_ya_en_lista_msg, selectionOption), Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (productosParaVenta.isEmpty()) {
+                Text(
+                    stringResource(R.string.no_productos_elegidos),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            productosParaVenta.forEachIndexed { index, productoVenta ->
+                // Keyed by product so each line keeps its own text fields after a removal
+                key(productoVenta.nombre) {
+                    ProductoCantidadItem(
+                        producto = productoVenta,
+                        onCantidadChange = { productosParaVenta[index] = productosParaVenta[index].copy(cantidad = it) },
+                        onPrecioChange = { productosParaVenta[index] = productosParaVenta[index].copy(precio = it) },
+                        onQuitar = { productosParaVenta.removeAt(index) }
                     )
+                    // Envases devueltos: solo para productos retornables; el resto envía 0
+                    val esRetornable = productos.find { it.nombrePr == productoVenta.nombre }?.esRetornable == true
+                    if (esRetornable) {
+                        EnvasesDevueltosItem(
+                            devueltos = productoVenta.devueltos,
+                            onDevueltosChange = { nuevos ->
+                                productosParaVenta[index] = productosParaVenta[index].conDevueltos(nuevos)
+                            },
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                    HorizontalDivider()
                 }
             }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp) // Add some padding
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            if (productosParaVenta.isNotEmpty()) {
                 Text(
-                    stringResource(R.string.cliente_format, clienteParaVenta.value?.nombreCl ?: stringResource(R.string.no_seleccionado)),
-                    style = MaterialTheme.typography.bodyMedium, // Adjusted style
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    text = stringResource(R.string.total_format, formatearPrecio(totalVenta(productosParaVenta))),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Text(
-                    stringResource(R.string.productos_elegidos_titulo),
-                    style = MaterialTheme.typography.bodyMedium, // Adjusted style
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-
-                if (productosParaVenta.isEmpty()) {
-                    Text(
-                        stringResource(R.string.no_productos_elegidos),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                } else {
-                    productosParaVenta.forEachIndexed { index, productoVenta ->
-                        ProductoCantidadItem(
-                            nombreProducto = productoVenta.nombre,
-                            cantidad = productoVenta.cantidad,
-                            onCantidadChange = { nuevaCantidad ->
-                                if (nuevaCantidad <= 0) {
-                                    // Remove the item if quantity becomes 0 or less
-                                    productosParaVenta.removeAt(index)
-                                } else {
-                                    // Update the item by creating a new instance
-                                    productosParaVenta[index] = productoVenta.copy(cantidad = nuevaCantidad)
-                                }
-                            },
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-                        // Envases devueltos: solo para productos retornables; el resto envía 0
-                        val esRetornable = productos.find { it.nombrePr == productoVenta.nombre }?.esRetornable == true
-                        if (esRetornable) {
-                            EnvasesDevueltosItem(
-                                devueltos = productoVenta.devueltos,
-                                onDevueltosChange = { nuevos ->
-                                    productosParaVenta[index] = productoVenta.conDevueltos(nuevos)
-                                },
-                                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
-                            )
-                        }
-                        // Optional: Add a Divider between items
-                        // if (index < productosParaVenta.size - 1) {
-                        //     Divider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                        // }
-                    }
-                }
             }
         }
 
@@ -359,7 +277,7 @@ fun AddVentaForm(
                     Toast.makeText(context, context.getString(R.string.seleccione_cliente_error), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
-                if (productosParaVenta.isEmpty()) {
+                if (!ventaCompleta(productosParaVenta)) {
                     Toast.makeText(context, context.getString(R.string.agregue_producto_error), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
@@ -399,7 +317,7 @@ fun AddVentaForm(
                 }
             },
             // Habilitar botón solo si hay cliente y productos
-            enabled = clienteParaVenta.value != null && productosParaVenta.isNotEmpty()
+            enabled = clienteParaVenta.value != null && ventaCompleta(productosParaVenta)
         ) {
             Text(stringResource(R.string.cargar_venta_label))
         }
@@ -428,8 +346,8 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
-    var cliente = clienteModel.clientes.find { it.idCl == venta.cliente?.idCl }
-    var totales : MutableList<Double?> = mutableListOf(0.0)
+    val cliente = clienteModel.clientes.find { it.idCl == venta.cliente?.idCl }
+    val total = venta.productos.sumOf { (it.precio ?: 0.0) * it.cantidad }
 
     Card(
         modifier = Modifier
@@ -440,142 +358,149 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = stringResource(R.string.cliente_format, venta.cliente?.nombreCl ?: stringResource(R.string.desconocido_label)),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.fecha_format, venta.fecha),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.productos_titulo),
-                style = MaterialTheme.typography.titleSmall
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = venta.cliente?.nombreCl ?: stringResource(R.string.desconocido_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = venta.fecha,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            HorizontalDivider()
+            // One line per product: name, quantity x unit price, subtotal
             venta.productos.forEach { producto ->
-                totales.add(producto.precio?.times(producto.cantidad))
-
-                Row (
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .fillMaxWidth()
-                        .borderBottom(1.dp, Color.LightGray),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
+                val precio = producto.precio ?: 0.0
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.producto_item_format, producto.nombre),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = producto.nombre,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = stringResource(R.string.cantidad_item_format, producto.cantidad),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = stringResource(R.string.linea_venta_format, producto.cantidad, formatearPrecio(precio)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = stringResource(R.string.precio_item_format, formatearPrecio(producto.precio ?: 0.0)),
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "$" + formatearPrecio(precio * producto.cantidad),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.widthIn(min = 80.dp)
                     )
-                    Spacer(modifier = Modifier.height(3.dp))
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.total_format, formatearPrecio(totales.sumOf{ it ?: 0.0  })),
-                style = MaterialTheme
-                    .typography.bodyMedium
-                    .copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row {
-                CardWpp(
-                    context,
-                    cliente,
-                    armarMensajeVenta(
-                        context.resources,
-                        venta.cliente?.nombreCl,
-                        venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
-                        totales.sumOf { it ?: 0.0 },
-                        venta.cliente?.deudaCl,
-                        nombreEmpresa
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = stringResource(R.string.cantidad_total_items_format, venta.cantidadTotalVenta),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
+                    text = stringResource(R.string.items_format, venta.cantidadTotalVenta),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = stringResource(R.string.total_format, formatearPrecio(total)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
+            BotonWpp(
+                context = context,
+                cliente = cliente,
+                mensaje = armarMensajeVenta(
+                    context.resources,
+                    venta.cliente?.nombreCl,
+                    venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
+                    total,
+                    venta.cliente?.deudaCl,
+                    nombreEmpresa
+                ),
+                modifier = Modifier.align(Alignment.End)
+            )
         }
     }
 }
 
+/**
+ * One product of the sale: name, subtotal and remove on top; quantity (− field +) and editable
+ * unit price below. A blank quantity is 0 and keeps the line: only the trash button removes it.
+ */
 @Composable
 fun ProductoCantidadItem(
-    nombreProducto: String,
-    cantidad: Int,
+    producto: ProductoVenta,
     onCantidadChange: (Int) -> Unit,
+    onPrecioChange: (Double?) -> Unit,
+    onQuitar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = nombreProducto,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.weight(1f) // Text takes available space
-        )
+    val disminuirDesc = stringResource(R.string.disminuir_cantidad_desc)
+    var cantidadTexto by remember { mutableStateOf(producto.cantidad.toString()) }
+    var precioTexto by remember { mutableStateOf(formatearPrecioEditable(producto.precio ?: 0.0)) }
+    // Follow the − / + buttons without overwriting a field the user left blank (0)
+    LaunchedEffect(producto.cantidad) {
+        if ((cantidadTexto.toIntOrNull() ?: 0) != producto.cantidad) cantidadTexto = producto.cantidad.toString()
+    }
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    if (cantidad > 1) {
-                        onCantidadChange(cantidad - 1)
-                    } else if (cantidad == 1) {
-                        onCantidadChange(0)
-                    }
-                },
-                enabled = cantidad > 0
-            ) {
-                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.disminuir_cantidad_desc))
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = producto.nombre,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "$" + formatearPrecio(producto.subtotal),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            IconButton(onClick = onQuitar) {
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.quitar_producto_desc))
             }
-
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = { onCantidadChange(producto.cantidad - 1) },
+                enabled = producto.cantidad > 1,
+                modifier = Modifier.semantics { contentDescription = disminuirDesc }
+            ) {
+                Text(text = "−", style = MaterialTheme.typography.titleLarge)
+            }
             OutlinedTextField(
-                value = if (cantidad == 0) "" else cantidad.toString(),
-                onValueChange = { newValue ->
-                    val newQuantity = newValue.toIntOrNull()
-                    if (newValue.isEmpty()) {
-                        onCantidadChange(0)
-                    } else if (newQuantity != null) {
-                        if (newQuantity >= 0) {
-                            onCantidadChange(newQuantity)
-                        } else {
-                            onCantidadChange(0)
-                        }
-                    }
+                value = cantidadTexto,
+                onValueChange = { nuevo ->
+                    cantidadTexto = nuevo.filter(Char::isDigit)
+                    onCantidadChange(cantidadTexto.toIntOrNull() ?: 0)
                 },
-                modifier = Modifier.width(75.dp), // Adjusted width
+                modifier = Modifier.width(64.dp),
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-
-            IconButton(onClick = {
-                onCantidadChange(cantidad + 1)
-            }) {
+            IconButton(onClick = { onCantidadChange(producto.cantidad + 1) }) {
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_cantidad_desc))
             }
+            Text("×", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 4.dp))
+            OutlinedTextField(
+                value = precioTexto,
+                onValueChange = { nuevo ->
+                    precioTexto = nuevo
+                    onPrecioChange(parsearPrecio(nuevo))
+                },
+                prefix = { Text("$") },
+                isError = parsearPrecio(precioTexto)?.let { it < 0 } ?: true,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            )
         }
     }
 }

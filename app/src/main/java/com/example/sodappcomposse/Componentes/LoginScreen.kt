@@ -63,27 +63,20 @@ fun LoginScreen(
     val isSystemDark = isSystemInDarkTheme()
     val isDark = themeMode ?: isSystemDark
 
-    Scaffold(
-        floatingActionButton = {
-            ThemeToggleFAB(
-                isDark = isDark,
-                onToggle = { themeViewModel.toggleTheme(isDark) }
-            )
-        }
-    ) { padding ->
+    Scaffold { padding ->
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .background(MaterialTheme.colorScheme.background)) { 
-            EncabezadoLogin() 
-            CuerpoLogin(navBienvenida)  
+            .background(MaterialTheme.colorScheme.background)) {
+            EncabezadoLogin(isDark = isDark, onToggleTheme = { themeViewModel.toggleTheme(isDark) })
+            CuerpoLogin(navBienvenida)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EncabezadoLogin() {
+fun EncabezadoLogin(isDark: Boolean, onToggleTheme: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,6 +110,8 @@ fun EncabezadoLogin() {
                 .height(50.dp)
                 .width(50.dp)
         )
+
+        ThemeToggleButton(isDark = isDark, onToggle = onToggleTheme)
     }
 }
 
@@ -189,7 +184,7 @@ fun CuerpoLogin(
                 Icon(
                     painter = painterResource(R.drawable.baseline_email_24),
                     contentDescription = "email",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = Color.DarkGray
                 ) },
             placeholder = {Text(text="Nombre de usuario")},
             modifier = Modifier
@@ -200,7 +195,14 @@ fun CuerpoLogin(
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
-                cursorColor = Color.Black
+                cursorColor = Color.Black,
+                // The container is always white, so the text stays dark in dark mode too
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                focusedPlaceholderColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedTrailingIconColor = Color.DarkGray,
+                unfocusedTrailingIconColor = Color.DarkGray
             ),
             maxLines = 1
         )
@@ -214,7 +216,7 @@ fun CuerpoLogin(
                 Icon(
                     painter = painterResource(R.drawable.baseline_key_24),
                     contentDescription = "Icono Contraseña",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = Color.DarkGray
                 )
             },
             placeholder = {Text(text="Contraseña")},
@@ -226,7 +228,14 @@ fun CuerpoLogin(
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
-                cursorColor = Color.Black
+                cursorColor = Color.Black,
+                // The container is always white, so the text stays dark in dark mode too
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                focusedPlaceholderColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedTrailingIconColor = Color.DarkGray,
+                unfocusedTrailingIconColor = Color.DarkGray
             ),
             maxLines = 1,
             visualTransformation = if(passShow) VisualTransformation.None else PasswordVisualTransformation(),
