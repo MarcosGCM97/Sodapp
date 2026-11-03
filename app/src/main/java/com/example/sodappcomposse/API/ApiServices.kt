@@ -20,6 +20,8 @@ import com.example.sodappcomposse.Envases.SaldoEnvasesRequest
 import com.example.sodappcomposse.Producto.MovimientosResponse
 import com.example.sodappcomposse.Reparto.RepartoAccionRequest
 import com.example.sodappcomposse.Reparto.RepartoResponse
+import com.example.sodappcomposse.Ruta.RutaAccionRequest
+import com.example.sodappcomposse.Ruta.RutaResponse
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
@@ -168,6 +170,15 @@ interface ApiServices {
 
     @POST("repartos.php")
     suspend fun accionReparto(@Body request: RepartoAccionRequest): Response<RepartoResponse>
+
+    @GET("ruta.php")
+    suspend fun getPlanta(): Response<RutaResponse>
+
+    @GET("ruta.php")
+    suspend fun getRuta(@Query("repartoId") repartoId: Int): Response<RutaResponse>
+
+    @POST("ruta.php")
+    suspend fun accionRuta(@Body request: RutaAccionRequest): Response<RutaResponse>
 }
 
 
