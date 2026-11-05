@@ -89,6 +89,17 @@ fun RutaReparto(
                 if (actual.planta == null) {
                     Text(stringResource(R.string.ruta_sin_planta), style = MaterialTheme.typography.bodySmall)
                 }
+                val sinUbicacion = paradasSinUbicacion(actual)
+                if (sinUbicacion.isNotEmpty()) {
+                    Text(
+                        stringResource(
+                            R.string.ruta_sin_ubicacion_format,
+                            sinUbicacion.joinToString("\n") { "${it.orden}. ${it.nombre}" }
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
                 if (tramos.isEmpty()) {
                     Text(stringResource(R.string.ruta_sin_tramos))
                 }

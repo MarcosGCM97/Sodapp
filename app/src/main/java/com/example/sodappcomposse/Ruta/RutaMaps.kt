@@ -38,6 +38,14 @@ fun ubicacionMaps(direccion: String?, localidad: String?, lat: Double?, lng: Dou
 }
 
 /**
+ * Pendiente stops with no saved coordinates. Maps resolves them from the address text, and when
+ * it can not find one address the Maps app drops every waypoint of that leg and only shows the
+ * destination, so the route card warns about them.
+ */
+fun paradasSinUbicacion(ruta: Ruta): List<RutaParada> =
+    ruta.paradas.filter { it.estado == ESTADO_PENDIENTE && (it.lat == null || it.lng == null) }
+
+/**
  * Legs of the route: only the pendiente stops, in reparto order, then the plant when it is
  * configured. Stops without any location are skipped.
  */

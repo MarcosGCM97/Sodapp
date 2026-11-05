@@ -17,6 +17,22 @@ class RutaMapsTest {
     private val planta = Planta(direccion = "Ruta 20 km 6", localidad = "La Calera")
 
     @Test
+    fun `stops without location are the pendiente ones missing coordinates, in reparto order`() {
+        val ruta = Ruta(
+            repartoId = 1,
+            paradas = listOf(
+                parada(3),
+                parada(1, lat = -31.3, lng = -64.3),
+                parada(2, estado = "entregado"),
+                parada(4, lat = -31.3),
+                parada(5).copy(direccion = null, localidad = null)
+            )
+        )
+        assertEquals(listOf(3, 4, 5), paradasSinUbicacion(ruta).map { it.orden })
+        assertTrue(paradasSinUbicacion(Ruta(repartoId = 1)).isEmpty())
+    }
+
+    @Test
     fun `location uses coordinates when present`() {
         assertEquals("-31.343512,-64.335871", ubicacionMaps("San Martin 120", "La Calera", -31.343512, -64.335871))
     }

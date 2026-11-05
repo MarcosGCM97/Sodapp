@@ -291,6 +291,7 @@
     <string name="ruta_tramo_planta_format">Tramo %1$d (paradas %2$d-%3$d y planta)</string>
     <string name="ruta_tramo_solo_planta_format">Tramo %1$d (volver a planta)</string>
     <string name="ruta_sin_tramos">No quedan paradas pendientes en la ruta.</string>
+    <string name="ruta_sin_ubicacion_format">Estos clientes no tienen ubicación guardada. Si Google Maps no encuentra una de sus direcciones, el tramo muestra solo el destino. Guardales la ubicación desde el cliente:\n%1$s</string>
     <string name="ruta_sin_planta">Sin planta configurada: la ruta termina en la última parada.</string>
     <string name="maps_no_disponible">No se pudo abrir Google Maps.</string>
     <string name="llegue_a_planta">Llegué a planta</string>
