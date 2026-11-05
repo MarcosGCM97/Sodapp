@@ -81,7 +81,7 @@ class ClienteRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCliente(cliente: Cliente): ClienteResult<PostResponse> {
-        val result = handleApiCall { apiServices.updateCliente(cliente) }
+        val result = handleApiCall { apiServices.updateCliente(cliente.toUpdateBody()) }
         if (result is ClienteResult.Success) clearCache()
         return result
     }

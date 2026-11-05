@@ -1,6 +1,11 @@
 package com.example.sodappcomposse.Cliente
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class Cliente(
     @SerializedName("cl_ide")
@@ -16,8 +21,30 @@ data class Cliente(
     var direccionCl: String = "",
 
     @SerializedName("cl_deb")
-    val deudaCl: Double = 0.0
-)
+    val deudaCl: Double = 0.0,
+
+    // Locality (required by the form; null on clients not edited since it was added)
+    @SerializedName("cl_loc")
+    val localidadCl: String? = null,
+
+    // Optional WGS84 coordinates; the route uses them instead of the address
+    @SerializedName("cl_lat")
+    val latitudCl: Double? = null,
+
+    @SerializedName("cl_lng")
+    val longitudCl: Double? = null
+) {
+    /**
+     * PUT body for clientes.php. Nulls are written on purpose: the backend leaves a missing key
+     * unchanged, so a removed location must travel as "cl_lat": null to be cleared.
+     */
+    fun toUpdateBody(): RequestBody =
+        GSON_CON_NULOS.toJson(this).toRequestBody("application/json; charset=utf-8".toMediaType())
+
+    private companion object {
+        val GSON_CON_NULOS: Gson = GsonBuilder().serializeNulls().create()
+    }
+}
 
 data class ClienteRequest(
     @SerializedName("nombreCl")
@@ -25,7 +52,13 @@ data class ClienteRequest(
     @SerializedName("numTelCl")
     var numTelCl: String = "",
     @SerializedName("direccionCl")
-    var direccionCl: String = ""
+    var direccionCl: String = "",
+    @SerializedName("localidadCl")
+    val localidadCl: String? = null,
+    @SerializedName("latitudCl")
+    val latitudCl: Double? = null,
+    @SerializedName("longitudCl")
+    val longitudCl: Double? = null
 )
 
 data class ClienteResponse(
