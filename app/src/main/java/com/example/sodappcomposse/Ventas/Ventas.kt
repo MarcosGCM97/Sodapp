@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Agenda
+import com.example.sodappcomposse.PlantaConfig
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
@@ -80,7 +81,10 @@ fun Ventas(navController: NavController) {
 
         when (tabSeleccionado) {
             0 -> TabVentas()
-            1 -> RepartoTab(onVerDias = { navController.navigate(Agenda) })
+            1 -> RepartoTab(
+                onVerDias = { navController.navigate(Agenda) },
+                onConfigurarPlanta = { navController.navigate(PlantaConfig) }
+            )
         }
     }
 }

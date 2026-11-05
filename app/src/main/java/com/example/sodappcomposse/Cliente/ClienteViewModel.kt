@@ -139,9 +139,19 @@ class ClientesViewModel @Inject constructor(
     private val _addClienteUiState = mutableStateOf<AddClienteUiState>(AddClienteUiState.Idle)
     val addClienteUiState: State<AddClienteUiState> = _addClienteUiState
 
-    internal fun agregarNuevoCliente(nombre: String, direccion: String, telefono: String) {
+    internal fun agregarNuevoCliente(
+        nombre: String,
+        direccion: String,
+        telefono: String,
+        localidad: String,
+        coordenadas: Pair<Double, Double>?
+    ) {
         if (nombre.isBlank() || direccion.isBlank() || telefono.isBlank()) {
             _addClienteUiState.value = AddClienteUiState.Error(R.string.campos_requeridos_error)
+            return
+        }
+        if (localidad.isBlank()) {
+            _addClienteUiState.value = AddClienteUiState.Error(R.string.localidad_requerida)
             return
         }
 
@@ -150,7 +160,10 @@ class ClientesViewModel @Inject constructor(
             val objCliente = ClienteRequest(
                 nombreCl = nombre,
                 direccionCl = direccion,
-                numTelCl = telefono
+                numTelCl = telefono,
+                localidadCl = localidad.trim(),
+                latitudCl = coordenadas?.first,
+                longitudCl = coordenadas?.second
             )
             when (val result = clienteRepository.postCliente(objCliente)) {
                 is ClienteResult.Success -> {
@@ -173,6 +186,11 @@ class ClientesViewModel @Inject constructor(
     fun editarCliente(cliente: Cliente) {
         // Ignore repeated taps while an update is already in flight
         if (_addClienteUiState.value is AddClienteUiState.Loading) return
+        // Clients created before the locality existed get it on their next edit
+        if (cliente.localidadCl.isNullOrBlank()) {
+            _addClienteUiState.value = AddClienteUiState.Error(R.string.localidad_requerida)
+            return
+        }
         _addClienteUiState.value = AddClienteUiState.Loading
         viewModelScope.launch {
             when (val result = clienteRepository.updateCliente(

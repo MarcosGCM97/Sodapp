@@ -20,6 +20,8 @@ import com.example.sodappcomposse.Envases.SaldoEnvasesRequest
 import com.example.sodappcomposse.Producto.MovimientosResponse
 import com.example.sodappcomposse.Reparto.RepartoAccionRequest
 import com.example.sodappcomposse.Reparto.RepartoResponse
+import com.example.sodappcomposse.Ruta.RutaAccionRequest
+import com.example.sodappcomposse.Ruta.RutaResponse
 import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
@@ -27,6 +29,7 @@ import com.example.sodappcomposse.Producto.ProductoResponseByName
 import com.example.sodappcomposse.Ventas.VentaApiResponse
 import com.example.sodappcomposse.Ventas.VentaApiResponseById
 import com.example.sodappcomposse.Ventas.VentaRequest
+import okhttp3.RequestBody
 import retrofit2.Response // Para manejar la respuesta completa, incluyendo el código de estado
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -61,9 +64,10 @@ interface ApiServices {
         @Body clienteRequest: ClienteRequest
     ): Response<PostResponse>
 
+    // Body from Cliente.toUpdateBody(): it keeps null fields so a removed location is cleared
     @PUT("clientes.php")
     suspend fun updateCliente(
-        @Body cliente: Cliente
+        @Body cliente: RequestBody
     ): Response<PostResponse>
 
     /*"pr_ide":"1","pr_nom":"vidon de agua","pr_val":"4500.00","pr_stk":"1","pr_emp":"Ariza","created_at":null,"updated_at":null*/
@@ -166,6 +170,15 @@ interface ApiServices {
 
     @POST("repartos.php")
     suspend fun accionReparto(@Body request: RepartoAccionRequest): Response<RepartoResponse>
+
+    @GET("ruta.php")
+    suspend fun getPlanta(): Response<RutaResponse>
+
+    @GET("ruta.php")
+    suspend fun getRuta(@Query("repartoId") repartoId: Int): Response<RutaResponse>
+
+    @POST("ruta.php")
+    suspend fun accionRuta(@Body request: RutaAccionRequest): Response<RutaResponse>
 }
 
 

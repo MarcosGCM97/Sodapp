@@ -59,6 +59,7 @@ import com.example.sodappcomposse.Funciones.formatearPrecioEditable
 import com.example.sodappcomposse.Producto.Producto
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Ruta.RutaReparto
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -70,6 +71,8 @@ private val FORMATO_FECHA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M
 fun RepartoTab(
     // Opens the clients by delivery day (Agenda)
     onVerDias: () -> Unit,
+    // Opens the plant setting (start and end of the route)
+    onConfigurarPlanta: () -> Unit = {},
     viewModel: RepartoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -127,7 +130,12 @@ fun RepartoTab(
                 onNoEntregar = viewModel::noEntregar,
                 onReabrir = viewModel::reabrir,
                 onAgregar = viewModel::agregarParada,
-                onGuardarPlantilla = viewModel::guardarPlantilla
+                onGuardarPlantilla = viewModel::guardarPlantilla,
+                encabezado = {
+                    if (actual.paradas.isNotEmpty()) {
+                        RutaReparto(repartoId = actual.id, recarga = actual, onConfigurarPlanta = onConfigurarPlanta)
+                    }
+                }
             )
         }
     }
@@ -223,9 +231,11 @@ private fun ParadasReparto(
     onNoEntregar: (Int) -> Unit,
     onReabrir: (Int) -> Unit,
     onAgregar: (Int) -> Unit,
-    onGuardarPlantilla: () -> Unit
+    onGuardarPlantilla: () -> Unit,
+    encabezado: @Composable () -> Unit = {}
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        item { encabezado() }
         if (reparto.paradas.isEmpty()) {
             item { Text(stringResource(R.string.reparto_sin_paradas)) }
         }
