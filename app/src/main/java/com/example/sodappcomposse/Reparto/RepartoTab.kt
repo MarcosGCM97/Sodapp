@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.DeudaUiState
@@ -389,6 +390,10 @@ private fun ParadaCard(
     }
 }
 
+// A tap outside a form would drop what was typed (quantities, a payment): only the
+// buttons and the system back close these dialogs
+private val FORMULARIO_SIN_CIERRE_AFUERA = DialogProperties(dismissOnClickOutside = false)
+
 /** One row per product: planned quantity and price (blank price = current product price). */
 @Composable
 private fun LineasParadaDialog(
@@ -416,6 +421,7 @@ private fun LineasParadaDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = FORMULARIO_SIN_CIERRE_AFUERA,
         title = { Text(stringResource(R.string.lineas_parada_titulo_format, parada.nombreCliente)) },
         text = {
             Column(
@@ -522,6 +528,7 @@ private fun EntregaParadaDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = FORMULARIO_SIN_CIERRE_AFUERA,
         title = { Text(stringResource(R.string.entrega_parada_titulo_format, parada.nombreCliente)) },
         text = {
             Column(
@@ -620,6 +627,7 @@ private fun CobroEntregaDialog(
 
     AlertDialog(
         onDismissRequest = onCerrar,
+        properties = FORMULARIO_SIN_CIERRE_AFUERA,
         title = { Text(stringResource(R.string.cobro_entrega_titulo_format, cobro.nombreCliente)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
