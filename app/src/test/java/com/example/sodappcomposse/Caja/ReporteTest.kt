@@ -54,6 +54,17 @@ class ReporteTest {
     }
 
     @Test
+    fun `cobrado comparison is incomplete when payments started inside the previous period`() {
+        val noviembre = Periodo.de(TipoPeriodo.MES, LocalDate.of(2026, 11, 1))
+        fun r(primer: LocalDateTime?) = Reporte(noviembre, ResumenReporte(), ResumenAnterior(desde = "2026-10-01", hasta = "2026-10-31"),
+            emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), primer)
+        assertTrue(r(LocalDateTime.of(2026, 10, 31, 9, 0)).comparacionCobradoIncompleta)
+        assertFalse(r(LocalDateTime.of(2026, 10, 31, 9, 0)).cobrosParciales)
+        assertFalse(r(LocalDateTime.of(2026, 10, 1, 0, 0)).comparacionCobradoIncompleta)
+        assertFalse(r(null).comparacionCobradoIncompleta)
+    }
+
+    @Test
     fun `porcentaje and variacion are null when the base is zero`() {
         assertEquals(25.0, porcentaje(50.0, 200.0)!!, 0.0)
         assertNull(porcentaje(1.0, 0.0))

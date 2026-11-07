@@ -89,6 +89,13 @@ class ReportePdfTest {
     }
 
     @Test
+    fun `cobrado comparison says it is incomplete instead of a percentage`() {
+        val filas = pdf(reporte(primerCobro = LocalDateTime.of(2026, 2, 26, 8, 0))).filterIsInstance<BloquePdf.Fila>()
+        assertTrue(filas.contains(BloquePdf.Fila(t(R.string.reporte_cobrado),
+            "\$450,00  (${t(R.string.reporte_comparacion_incompleta)})", negrita = true)))
+    }
+
+    @Test
     fun `file name carries the period`() {
         assertEquals("reporte_2026-03-02_2026-03-08.pdf", nombreArchivoPdf(semana))
     }

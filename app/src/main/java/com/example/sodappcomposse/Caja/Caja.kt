@@ -203,7 +203,11 @@ private fun Resumen(reporte: Reporte) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TarjetaKpi(stringResource(R.string.reporte_vendido), precio(r.vendido), Modifier.weight(1f), textoComparacion(r.vendido, a.vendido))
-            TarjetaKpi(stringResource(R.string.reporte_cobrado), precio(r.cobrado), Modifier.weight(1f), textoComparacion(r.cobrado, a.cobrado))
+            TarjetaKpi(
+                stringResource(R.string.reporte_cobrado), precio(r.cobrado), Modifier.weight(1f),
+                if (reporte.comparacionCobradoIncompleta) stringResource(R.string.reporte_comparacion_incompleta)
+                else textoComparacion(r.cobrado, a.cobrado)
+            )
         }
         TarjetaKpi(
             stringResource(R.string.reporte_diferencia), precio(r.diferencia), Modifier.fillMaxWidth(),

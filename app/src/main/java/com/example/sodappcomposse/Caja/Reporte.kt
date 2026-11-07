@@ -100,6 +100,13 @@ data class Reporte(
     val cobrosParciales: Boolean
         get() = primerCobro != null && primerCobro.toLocalDate().isAfter(periodo.desde)
 
+    // Same for the comparison period: its cobrado misses payments, so no percentage is honest
+    val comparacionCobradoIncompleta: Boolean
+        get() {
+            val desdeAnterior = runCatching { LocalDate.parse(anterior.desde) }.getOrNull() ?: return primerCobro != null
+            return primerCobro != null && primerCobro.toLocalDate().isAfter(desdeAnterior)
+        }
+
     val ventasDetalle: List<VentaDetalle>
         get() = agruparVentas(detalle)
 }

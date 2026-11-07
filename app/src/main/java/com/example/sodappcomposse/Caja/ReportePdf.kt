@@ -47,7 +47,7 @@ fun contenidoPdf(reporte: Reporte, empresa: String?, generado: LocalDateTime, te
 
     bloques += BloquePdf.Subtitulo(t(R.string.pdf_resumen))
     bloques += BloquePdf.Fila(t(R.string.reporte_vendido), "${precio(r.vendido)}  (${comparacion(r.vendido, a.vendido)})", negrita = true)
-    bloques += BloquePdf.Fila(t(R.string.reporte_cobrado), "${precio(r.cobrado)}  (${comparacion(r.cobrado, a.cobrado)})", negrita = true)
+    bloques += BloquePdf.Fila(t(R.string.reporte_cobrado), "${precio(r.cobrado)}  (${if (reporte.comparacionCobradoIncompleta) t(R.string.reporte_comparacion_incompleta) else comparacion(r.cobrado, a.cobrado)})", negrita = true)
     bloques += BloquePdf.Fila(t(R.string.reporte_diferencia), precio(r.diferencia), negrita = true)
     bloques += BloquePdf.Fila(t(R.string.reporte_ventas), "${r.ventas}  (${comparacion(r.ventas.toDouble(), a.ventas.toDouble())})")
     bloques += BloquePdf.Fila(t(R.string.reporte_clientes), r.clientes.toString())

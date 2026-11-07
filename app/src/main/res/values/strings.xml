@@ -25,6 +25,7 @@
     <string name="reporte_ticket">Ticket prom.</string>
     <string name="reporte_vs_anterior">%1$s vs. período anterior</string>
     <string name="reporte_sin_comparacion">Sin datos del período anterior</string>
+    <string name="reporte_comparacion_incompleta">Sin comparación: el período anterior tiene cobros sin registrar</string>
     <string name="reporte_cobros_titulo">Cobros por forma de pago</string>
     <string name="reporte_sin_cobros">No hubo cobros en este período.</string>
     <string name="reporte_por_dia_titulo">Ventas por día</string>
