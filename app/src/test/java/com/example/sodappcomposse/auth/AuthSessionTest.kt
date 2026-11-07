@@ -99,7 +99,7 @@ class AuthSessionTest {
     fun `updating permissions persists and exposes them`() = runTest {
         session.currentToken()
 
-        session.updatePermissions(dueno)
+        session.updatePermissions(dueno, "stored-token")
 
         coVerify { preferences.savePermissions(dueno) }
         assertEquals(dueno, session.permissions.value)
@@ -109,10 +109,20 @@ class AuthSessionTest {
     fun `updating permissions without a session is ignored`() = runTest {
         session.endSession()
 
-        session.updatePermissions(dueno)
+        session.updatePermissions(dueno, "stored-token")
 
         coVerify(exactly = 0) { preferences.savePermissions(any()) }
         assertEquals(SessionPermissions(), session.permissions.value)
+    }
+
+    @Test
+    fun `a refresh requested by a previous session is ignored`() = runTest {
+        session.currentToken()
+
+        session.updatePermissions(dueno, "old-token")
+
+        coVerify(exactly = 0) { preferences.savePermissions(any()) }
+        assertEquals(null, session.permissions.value)
     }
 
     @Test

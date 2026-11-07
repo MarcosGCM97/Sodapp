@@ -120,8 +120,9 @@ class LoginViewModel @Inject constructor(
     fun restoreSession() {
         viewModelScope.launch {
             authSession.loadStoredPermissions()
+            val token = authSession.currentToken()
             when (val result = authRepository.getSesion()) {
-                is SesionResult.Success -> authSession.updatePermissions(result.permissions)
+                is SesionResult.Success -> authSession.updatePermissions(result.permissions, token)
                 SesionResult.Unauthorized -> authSession.markExpired()
                 is SesionResult.Error -> Unit
             }

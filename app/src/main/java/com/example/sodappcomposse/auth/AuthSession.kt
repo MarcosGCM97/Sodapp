@@ -87,9 +87,12 @@ class AuthSession @Inject constructor(
         _permissions.compareAndSet(null, stored)
     }
 
-    /** Replaces the permissions of the current session; ignored once the session ended. */
-    suspend fun updatePermissions(permissions: SessionPermissions) {
-        if (currentToken() == null) return
+    /**
+     * Replaces the permissions of the session that owns [forToken]. Ignored once that session
+     * ended or another user logged in meanwhile (a late answer for a previous session).
+     */
+    suspend fun updatePermissions(permissions: SessionPermissions, forToken: String?) {
+        if (forToken == null || currentToken() != forToken) return
         preferences.savePermissions(permissions)
         _permissions.value = permissions
     }

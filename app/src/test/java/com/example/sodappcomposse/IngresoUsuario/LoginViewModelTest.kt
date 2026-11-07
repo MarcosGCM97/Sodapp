@@ -44,6 +44,7 @@ class LoginViewModelTest {
         authSession = mockk(relaxUnitFun = true)
         every { authSession.sessionExpired } returns MutableStateFlow(false)
         every { authSession.permissions } returns MutableStateFlow(null)
+        every { authSession.currentToken() } returns "saved-token"
         clienteRepository = mockk(relaxUnitFun = true)
         productoRepository = mockk(relaxUnitFun = true)
         val preferences = mockk<UserPreferencesRepository>()
@@ -133,7 +134,7 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         coVerify { authSession.loadStoredPermissions() }
-        coVerify { authSession.updatePermissions(actuales) }
+        coVerify { authSession.updatePermissions(actuales, "saved-token") }
     }
 
     @Test
@@ -144,7 +145,7 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         verify { authSession.markExpired() }
-        coVerify(exactly = 0) { authSession.updatePermissions(any()) }
+        coVerify(exactly = 0) { authSession.updatePermissions(any(), any()) }
     }
 
     @Test
@@ -155,7 +156,7 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         coVerify { authSession.loadStoredPermissions() }
-        coVerify(exactly = 0) { authSession.updatePermissions(any()) }
+        coVerify(exactly = 0) { authSession.updatePermissions(any(), any()) }
         verify(exactly = 0) { authSession.markExpired() }
     }
 }
