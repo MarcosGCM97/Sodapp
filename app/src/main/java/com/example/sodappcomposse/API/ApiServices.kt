@@ -1,5 +1,11 @@
 package com.example.sodappcomposse.API
 
+import com.example.sodappcomposse.Administracion.ActualizarUsuarioRequest
+import com.example.sodappcomposse.Administracion.AdminResponse
+import com.example.sodappcomposse.Administracion.CrearUsuarioRequest
+import com.example.sodappcomposse.Administracion.RolRequest
+import com.example.sodappcomposse.Administracion.RolesResponse
+import com.example.sodappcomposse.Administracion.UsuariosResponse
 import com.example.sodappcomposse.Caja.DataCajaResponse
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
@@ -183,7 +189,26 @@ interface ApiServices {
 
     @POST("ruta.php")
     suspend fun accionRuta(@Body request: RutaAccionRequest): Response<RutaResponse>
+
+    // User and role administration (owner only; anyone else gets 403)
+    @GET("usuarios.php")
+    suspend fun getUsuarios(): Response<UsuariosResponse>
+
+    @POST("usuarios.php")
+    suspend fun crearUsuario(@Body request: CrearUsuarioRequest): Response<AdminResponse>
+
+    @PUT("usuarios.php")
+    suspend fun actualizarUsuario(@Body request: ActualizarUsuarioRequest): Response<AdminResponse>
+
+    @GET("roles.php")
+    suspend fun getRoles(): Response<RolesResponse>
+
+    @POST("roles.php")
+    suspend fun crearRol(@Body request: RolRequest): Response<AdminResponse>
+
+    @PUT("roles.php")
+    suspend fun actualizarRol(@Body request: RolRequest): Response<AdminResponse>
+
+    @DELETE("roles.php")
+    suspend fun eliminarRol(@Query("id") id: Int): Response<AdminResponse>
 }
-
-
-

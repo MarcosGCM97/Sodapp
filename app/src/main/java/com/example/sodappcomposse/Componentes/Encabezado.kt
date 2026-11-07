@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,14 +26,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
-/** Main top bar: app name, signed-in user, light/dark switch and logout. */
+/** Main top bar: app name, signed-in user, light/dark switch, administration (owner) and logout. */
 @Composable
 fun Encabezado(
     nombre: String,
     isDark: Boolean,
     onToggleTheme: () -> Unit,
     // Ends the session and goes back to login (handled by the Navigator)
-    navLogin: () -> Unit
+    navLogin: () -> Unit,
+    // Opens users and roles administration; null hides the entry (only the owner gets it)
+    onAdministrar: (() -> Unit)? = null
 ) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
@@ -71,6 +74,15 @@ fun Encabezado(
                 onToggle = onToggleTheme,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
+            onAdministrar?.let { abrir ->
+                IconButton(onClick = abrir) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.administracion_titulo),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
             IconButton(onClick = navLogin) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,

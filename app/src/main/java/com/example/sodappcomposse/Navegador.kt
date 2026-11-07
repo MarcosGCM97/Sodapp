@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.sodappcomposse.Administracion.AdministracionScreen
 import com.example.sodappcomposse.Cliente.ClienteEditarScreen
 import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
@@ -52,6 +53,10 @@ object Agenda
 
 @Serializable
 object PlantaConfig
+
+// Owner-only administration of users and roles
+@Serializable
+object AdminUsuarios
 
 @Composable
 fun Navigator(
@@ -140,6 +145,10 @@ fun Navigator(
 
             composable<PlantaConfig> {
                 PlantaScreen(navController = navController)
+            }
+
+            composable<AdminUsuarios> {
+                AdministracionScreen(navController = navController)
             }
         }
     }

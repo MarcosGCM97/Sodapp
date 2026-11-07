@@ -32,6 +32,8 @@ import com.example.sodappcomposse.Ventas.Ventas
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.seccionInicial
+import com.example.sodappcomposse.auth.puedeAdministrar
+import com.example.sodappcomposse.AdminUsuarios
 import com.example.sodappcomposse.auth.seccionesVisibles
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -127,7 +129,8 @@ fun BienvenidaScreen(
                 nombre = nombreUser,
                 isDark = isDark,
                 onToggleTheme = { themeViewModel.toggleTheme(isDark) },
-                navLogin = navLogin
+                navLogin = navLogin,
+                onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) }
             )
         },
         bottomBar = {
