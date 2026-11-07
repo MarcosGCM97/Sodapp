@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -31,9 +32,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +45,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.R
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneOffset
+import android.widget.Toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val CLIENTES_VISIBLES = 5
 
@@ -50,6 +58,7 @@ private const val CLIENTES_VISIBLES = 5
 fun CajaScreen(cajaModel: CajaViewModel = hiltViewModel()) {
     val periodo by cajaModel.periodo.collectAsState()
     val uiState by cajaModel.uiState.collectAsState()
+    val empresa by cajaModel.nombreEmpresa.collectAsState(initial = null)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -76,6 +85,7 @@ fun CajaScreen(cajaModel: CajaViewModel = hiltViewModel()) {
                 }
             }
             is ReporteUiState.Success -> {
+                item { BotonExportar(estado.reporte, empresa) }
                 contenidoReporte(estado.reporte)
             }
         }
@@ -227,3 +237,32 @@ private fun TopClientes(reporte: Reporte) {
     }
 }
 
+// Builds the PDF of exactly the report on screen and opens the share sheet
+@Composable
+private fun BotonExportar(reporte: Reporte, empresa: String?) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var exportando by remember { mutableStateOf(false) }
+    OutlinedButton(
+        onClick = {
+            exportando = true
+            scope.launch {
+                try {
+                    val archivo = withContext(Dispatchers.IO) {
+                        val bloques = contenidoPdf(reporte, empresa, LocalDateTime.now()) { id, args -> context.getString(id, *args) }
+                        escribirPdf(context, nombreArchivoPdf(reporte.periodo), bloques)
+                    }
+                    compartirPdf(context, archivo)
+                } catch (e: Exception) {
+                    Toast.makeText(context, context.getString(R.string.reporte_error_pdf, e.message ?: ""), Toast.LENGTH_LONG).show()
+                } finally {
+                    exportando = false
+                }
+            }
+        },
+        enabled = !exportando,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(stringResource(if (exportando) R.string.reporte_exportando else R.string.reporte_exportar_pdf))
+    }
+}
