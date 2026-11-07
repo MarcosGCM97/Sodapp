@@ -1,5 +1,8 @@
 package com.example.sodappcomposse.Envases
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +51,8 @@ fun EnvasesClienteSection(
 ) {
     val context = LocalContext.current
     val envases = envasesModel.envases.value
+    // Editing a container balance is a client write (clientes.editar)
+    val puedeEditar = LocalSessionPermissions.current.tiene(Permiso.CLIENTES_EDITAR)
     val uiState = envasesModel.uiState.value
 
     var envaseEnEdicion by remember { mutableStateOf<EnvaseCliente?>(null) }
@@ -94,7 +99,7 @@ fun EnvasesClienteSection(
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(1f)
                         )
-                        IconButton(onClick = { envaseEnEdicion = envase }) {
+                        if (puedeEditar) IconButton(onClick = { envaseEnEdicion = envase }) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
                         }
                     }

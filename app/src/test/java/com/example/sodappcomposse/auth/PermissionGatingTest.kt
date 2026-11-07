@@ -89,4 +89,14 @@ class PermissionGatingTest {
         assertEquals(PestanaClientes.CLIENTES, pestanaVisible(PestanaClientes.COBROS, pestanasClientes(vendedor)))
         assertEquals(PestanaVentas.REPARTO, pestanaVisible(PestanaVentas.REPARTO, pestanasVentas(vendedor)))
     }
+
+    @Test
+    fun `collecting a payment needs both cobros permissions`() {
+        assertTrue(puedeCobrar(dueno))
+        assertFalse(puedeCobrar(vendedor))
+        val soloCargar = SessionPermissions(esDueno = false, permisos = setOf(Permiso.COBROS_CARGAR))
+        assertFalse(puedeCobrar(soloCargar))
+        val ambos = SessionPermissions(esDueno = false, permisos = setOf(Permiso.COBROS_VER, Permiso.COBROS_CARGAR))
+        assertTrue(puedeCobrar(ambos))
+    }
 }

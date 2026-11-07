@@ -39,5 +39,9 @@ fun seccionInicial(permisos: SessionPermissions, actual: ContenidoBienvenida): C
 fun <T> pestanaVisible(seleccionada: T, visibles: List<T>): T =
     if (seleccionada in visibles) seleccionada else visibles.first()
 
+/** Collecting a payment lists debts and payment methods (cobros.ver) and registers it (cobros.cargar). */
+fun puedeCobrar(permisos: SessionPermissions): Boolean =
+    permisos.tiene(Permiso.COBROS_VER) && permisos.tiene(Permiso.COBROS_CARGAR)
+
 /** Only the owner administers users and roles. */
 fun puedeAdministrar(permisos: SessionPermissions): Boolean = permisos.esDueno

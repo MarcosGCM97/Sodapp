@@ -2,6 +2,7 @@ package com.example.sodappcomposse.Cliente
 
 import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.auth.puedeCobrar
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -84,7 +85,7 @@ fun DeudaScreen(
     val permisos = LocalSessionPermissions.current
     // Payments need cobros.ver to be listed and cobros.cargar to be registered
     val puedeVerCobros = permisos.tiene(Permiso.COBROS_VER)
-    val puedeCobrar = puedeVerCobros && permisos.tiene(Permiso.COBROS_CARGAR)
+    val puedeCobrar = puedeCobrar(permisos)
     val puedeEliminarVenta = permisos.tiene(Permiso.VENTAS_ELIMINAR)
 
     //val editarEstados = remember { mutableStateMapOf<Int, Boolean>() }

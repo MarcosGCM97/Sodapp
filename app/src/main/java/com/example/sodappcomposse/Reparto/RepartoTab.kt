@@ -2,6 +2,7 @@ package com.example.sodappcomposse.Reparto
 
 import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.auth.puedeCobrar
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -170,8 +171,14 @@ fun RepartoTab(
         )
     }
 
+    // The payment offered after a delivery needs the cobros permissions; without them it is skipped
+    val puedeCobrarEntrega = puedeCobrar(LocalSessionPermissions.current)
     viewModel.cobroPendiente.value?.let { cobro ->
-        CobroEntregaDialog(cobro = cobro, onCerrar = viewModel::cerrarCobro)
+        if (puedeCobrarEntrega) {
+            CobroEntregaDialog(cobro = cobro, onCerrar = viewModel::cerrarCobro)
+        } else {
+            LaunchedEffect(cobro) { viewModel.cerrarCobro() }
+        }
     }
 }
 
