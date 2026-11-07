@@ -1,15 +1,58 @@
 <resources>
     <string name="app_name">SodApp</string>
-    <string name="producto_desconocido">"Producto Desconocido"</string>
 
     <!-- Caja -->
-    <string name="seleccione_mes">Seleccione un mes</string>
-    <string name="mes_label">Mes</string>
-    <string name="ver_caja_mes">Ver caja del mes</string>
-    <string name="cargando_caja">Cargando datos de la caja...</string>
-    <string name="formato_producto_item">%1$s: </string>
-    <string name="formato_cantidad_pesos">Cantidad: %1$d        Pesos: $%2$s</string>
-    <string name="formato_total_ventas">Total de las Ventas: $%1$s</string>
+    <!-- Caja: reporte de ventas y cobros -->
+    <string name="reporte_dia">Día</string>
+    <string name="reporte_semana">Semana</string>
+    <string name="reporte_mes">Mes</string>
+    <string name="reporte_periodo_anterior">Período anterior</string>
+    <string name="reporte_periodo_siguiente">Período siguiente</string>
+    <string name="reporte_aceptar">Aceptar</string>
+    <string name="reporte_cancelar">Cancelar</string>
+    <string name="reporte_reintentar">Reintentar</string>
+    <string name="reporte_respuesta_invalida">El servidor devolvió un reporte incompleto o de otro período. Reintentá.</string>
+    <string name="reporte_sin_movimientos">No hubo ventas ni cobros en este período.</string>
+    <string name="reporte_aviso_estimadas">%1$d líneas de venta antiguas no tienen el monto guardado: se calcularon con el precio actual del producto (marcadas con *).</string>
+    <string name="reporte_aviso_cobros_desde">Los cobros se registran desde el %1$s. Antes de esa fecha el total cobrado no está completo.</string>
+    <string name="reporte_nota_estimado">* Monto estimado con el precio actual del producto.</string>
+    <string name="reporte_vendido">Vendido</string>
+    <string name="reporte_cobrado">Cobrado</string>
+    <string name="reporte_diferencia">Vendido − cobrado</string>
+    <string name="reporte_diferencia_ayuda">Lo que quedó en cuenta corriente. Los cobros pueden corresponder a ventas de otros períodos.</string>
+    <string name="reporte_ventas">Ventas</string>
+    <string name="reporte_clientes">Clientes</string>
+    <string name="reporte_ticket">Ticket prom.</string>
+    <string name="reporte_vs_anterior">%1$s vs. período anterior</string>
+    <string name="reporte_sin_comparacion">Sin datos del período anterior</string>
+    <string name="reporte_cobros_titulo">Cobros por forma de pago</string>
+    <string name="reporte_sin_cobros">No hubo cobros en este período.</string>
+    <string name="reporte_por_dia_titulo">Ventas por día</string>
+    <string name="reporte_grafico_seleccion">%1$s: %2$s</string>
+    <string name="reporte_productos_titulo">Productos</string>
+    <string name="reporte_unidades_format">%1$d unidades</string>
+    <string name="reporte_producto_desconocido">Producto desconocido</string>
+    <string name="reporte_clientes_titulo">Clientes que más compraron</string>
+    <string name="reporte_compras_format">%1$d compras</string>
+    <string name="reporte_cliente_desconocido">Cliente desconocido</string>
+    <string name="reporte_ver_todos">Ver los %1$d clientes</string>
+    <string name="reporte_ver_menos">Ver menos</string>
+    <string name="reporte_detalle_titulo">Detalle de ventas</string>
+    <string name="reporte_ver_productos">Ver productos</string>
+    <string name="reporte_ocultar">Ocultar</string>
+    <string name="reporte_linea_format">%1$d × %2$s</string>
+    <string name="reporte_exportar_pdf">Exportar PDF</string>
+    <string name="reporte_exportando">Generando PDF…</string>
+    <string name="reporte_error_pdf">No se pudo generar el PDF: %1$s</string>
+    <string name="pdf_titulo">Reporte de ventas y cobros</string>
+    <string name="pdf_periodo">Período: %1$s (%2$s al %3$s)</string>
+    <string name="pdf_generado">Generado el %1$s</string>
+    <string name="pdf_resumen">Resumen</string>
+    <string name="pdf_periodo_anterior">Período anterior (%1$s al %2$s)</string>
+    <string name="pdf_anterior_valores">Vendido %1$s · Cobrado %2$s · %3$d ventas</string>
+    <string name="pdf_clientes_titulo">Ventas por cliente</string>
+    <string name="pdf_pagina">Página %1$d</string>
+    <string name="pdf_compartir">Compartir reporte</string>
     <string name="esperando_datos">Esperando datos…</string>
 
     <!-- Cliente -->
@@ -66,9 +109,6 @@
     <string name="forma_pago_item_format">Forma de pago: %1$s</string>
     <string name="tab_ventas">Ventas</string>
     <string name="tab_cobros">Cobros</string>
-    <string name="no_cobros_mes">No hay cobros registrados para este mes.</string>
-    <string name="cobro_forma_format">%1$s: $%2$s</string>
-    <string name="total_cobrado_format">Total cobrado: $%1$s</string>
     <string name="monto_supera_deuda_msg">El monto (%1$s) supera la deuda actual (%2$s)</string>
     <string name="saldar_label">Saldar</string>
     <string name="llamar_desc">Llamar</string>
@@ -205,7 +245,6 @@
 
     <!-- Caja Viewmodel -->
     <string name="datos_cargados_success">Datos cargados</string>
-    <string name="no_ventas_mes_error">No hay ventas registradas para este mes.</string>
     <string name="error_api_format">Error API: %1$d</string>
 
     <!-- Login Viewmodel -->
