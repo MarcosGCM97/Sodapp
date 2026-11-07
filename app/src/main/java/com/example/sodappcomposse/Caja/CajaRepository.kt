@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Caja
 
+import com.example.sodappcomposse.API.httpErrorMessage
 import androidx.annotation.StringRes
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.R
@@ -44,7 +45,7 @@ class CajaRepositoryImpl @Inject constructor(
             val response = apiServices.getCobrosPorMes(mes)
             val body = response.body()
             when {
-                !response.isSuccessful -> CobrosResult.Error(R.string.error_api_format, listOf(response.code()))
+                !response.isSuccessful -> CobrosResult.Error(httpErrorMessage(response.code(), R.string.error_api_format), listOf(response.code()))
                 body == null -> CobrosResult.Error(R.string.cuerpo_nulo_error)
                 // A month without payments is a valid result, not an error
                 else -> CobrosResult.Success(body.totales ?: emptyList())
@@ -76,7 +77,7 @@ class CajaRepositoryImpl @Inject constructor(
                     CajaResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                CajaResult.Error(R.string.error_api_format, arrayOf(response.code()))
+                CajaResult.Error(httpErrorMessage(response.code(), R.string.error_api_format), arrayOf(response.code()))
             }
         } catch (e: CancellationException) {
             throw e

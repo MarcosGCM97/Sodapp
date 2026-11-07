@@ -6,6 +6,7 @@ import com.example.sodappcomposse.Cliente.ClienteRepository
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.UserPreferencesRepository
 import com.example.sodappcomposse.auth.AuthSession
+import com.example.sodappcomposse.auth.SessionPermissions
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -42,6 +43,7 @@ class LoginViewModelTest {
         authRepository = mockk()
         authSession = mockk(relaxUnitFun = true)
         every { authSession.sessionExpired } returns MutableStateFlow(false)
+        every { authSession.permissions } returns MutableStateFlow(null)
         clienteRepository = mockk(relaxUnitFun = true)
         productoRepository = mockk(relaxUnitFun = true)
         val preferences = mockk<UserPreferencesRepository>()
@@ -63,7 +65,7 @@ class LoginViewModelTest {
         viewModel.login("marcos", "secret")
         advanceUntilIdle()
 
-        coVerify { authSession.startSession("5", "marcos", "jwt-123") }
+        coVerify { authSession.startSession("5", "marcos", "jwt-123", SessionPermissions()) }
         verify { clienteRepository.clearCache() }
         verify { productoRepository.clearCache() }
         assertTrue(viewModel.loginUiState is LoginUiState.Success)
@@ -92,7 +94,7 @@ class LoginViewModelTest {
         viewModel.login("marcos", "secret")
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { authSession.startSession(any(), any(), any()) }
+        coVerify(exactly = 0) { authSession.startSession(any(), any(), any(), any()) }
         assertTrue(viewModel.loginUiState is LoginUiState.Error)
     }
 
@@ -104,5 +106,56 @@ class LoginViewModelTest {
         coVerify { authSession.endSession() }
         verify { clienteRepository.clearCache() }
         verify { productoRepository.clearCache() }
+    }
+
+    @Test
+    fun `successful login stores the permissions of the response`() = runTest {
+        val permisos = SessionPermissions(esDueno = false, permisos = setOf("ventas.ver", "repartos.ver"))
+        coEvery { authRepository.login(any()) } returns AuthResult.Success(
+            UsuarioResponse(
+                true, "ok", Usuario(idUs = 7, nombreUs = "juan"), "jwt-7",
+                esDueno = false, permisos = listOf("ventas.ver", "repartos.ver")
+            )
+        )
+
+        viewModel.login("juan", "secret")
+        advanceUntilIdle()
+
+        coVerify { authSession.startSession("7", "juan", "jwt-7", permisos) }
+    }
+
+    @Test
+    fun `restoring a session loads stored permissions and refreshes them from the server`() = runTest {
+        val actuales = SessionPermissions(esDueno = false, permisos = setOf("cobros.ver"))
+        coEvery { authRepository.getSesion() } returns SesionResult.Success(actuales)
+
+        viewModel.restoreSession()
+        advanceUntilIdle()
+
+        coVerify { authSession.loadStoredPermissions() }
+        coVerify { authSession.updatePermissions(actuales) }
+    }
+
+    @Test
+    fun `restoring a session rejected with 401 ends the session`() = runTest {
+        coEvery { authRepository.getSesion() } returns SesionResult.Unauthorized
+
+        viewModel.restoreSession()
+        advanceUntilIdle()
+
+        verify { authSession.markExpired() }
+        coVerify(exactly = 0) { authSession.updatePermissions(any()) }
+    }
+
+    @Test
+    fun `restoring a session that fails for another reason keeps the stored permissions`() = runTest {
+        coEvery { authRepository.getSesion() } returns SesionResult.Error(R.string.error_red_verificar)
+
+        viewModel.restoreSession()
+        advanceUntilIdle()
+
+        coVerify { authSession.loadStoredPermissions() }
+        coVerify(exactly = 0) { authSession.updatePermissions(any()) }
+        verify(exactly = 0) { authSession.markExpired() }
     }
 }

@@ -314,4 +314,6 @@
     <string name="ubicacion_no_encontrada">No se encontró esa dirección. Revise la calle, el número y la localidad.</string>
     <string name="ubicacion_no_disponible">No se pudo obtener la ubicación del teléfono. Active el GPS e intente de nuevo.</string>
     <string name="permiso_ubicacion_denegado">Sin permiso de ubicación no se puede guardar la ubicación actual.</string>
+    <!-- Roles and permissions -->
+    <string name="error_sin_permiso">No tiene permiso para realizar esta acción.</string>
 </resources>

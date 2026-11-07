@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Cliente
 
+import com.example.sodappcomposse.API.httpErrorMessage
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
@@ -56,7 +57,7 @@ class ClienteRepositoryImpl @Inject constructor(
                         ClienteResult.Error(R.string.cuerpo_nulo_error)
                     }
                 } else {
-                    ClienteResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                    ClienteResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
                 }
             } catch (e: CancellationException) {
                 // Rethrow so a cancelled load is never cached as an error
@@ -125,7 +126,7 @@ class ClienteRepositoryImpl @Inject constructor(
                     ClienteResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                ClienteResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                ClienteResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
             }
         } catch (e: CancellationException) {
             // Rethrow so a cancelled caller is not told the request failed (and does not act on stale data)

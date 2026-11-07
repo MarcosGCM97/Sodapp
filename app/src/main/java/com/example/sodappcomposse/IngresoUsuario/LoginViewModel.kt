@@ -67,6 +67,9 @@ class LoginViewModel @Inject constructor(
     // True when the server rejected the session token (401); observed by the navigation layer
     val sessionExpired = authSession.sessionExpired
 
+    // What the user may see; null while a saved session is still loading
+    val permissions = authSession.permissions
+
     var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
         private set
 
@@ -95,7 +98,9 @@ class LoginViewModel @Inject constructor(
                         else -> {
                             // A different user may log in: never reuse data cached for the previous one
                             clearCachedUserData()
-                            authSession.startSession(usuario.idUs.toString(), usuario.nombreUs, token)
+                            authSession.startSession(
+                                usuario.idUs.toString(), usuario.nombreUs, token, usuarioApi.sessionPermissions()
+                            )
                             LoginUiState.Success(R.string.login_success_format, arrayOf(usuario.nombreUs))
                         }
                     }
@@ -103,6 +108,22 @@ class LoginViewModel @Inject constructor(
                 is AuthResult.Error -> {
                     loginUiState = LoginUiState.Error(result.messageRes, result.args)
                 }
+            }
+        }
+    }
+
+    /**
+     * Called when the app starts with a saved session: shows the stored permissions at once,
+     * then refreshes them from the server. A 401 ends the session; any other failure keeps
+     * the stored permissions.
+     */
+    fun restoreSession() {
+        viewModelScope.launch {
+            authSession.loadStoredPermissions()
+            when (val result = authRepository.getSesion()) {
+                is SesionResult.Success -> authSession.updatePermissions(result.permissions)
+                SesionResult.Unauthorized -> authSession.markExpired()
+                is SesionResult.Error -> Unit
             }
         }
     }

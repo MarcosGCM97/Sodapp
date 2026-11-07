@@ -67,6 +67,10 @@ fun Navigator(
 
     // Fixed once the session state is known, so clearing the session later does not rebuild the graph
     val startDestination: Any = remember { if (isLoggedIn == true) Bienvenida("") else Login }
+    LaunchedEffect(Unit) {
+        // A saved session: show its stored permissions and refresh them (a role may have changed)
+        if (startDestination is Bienvenida) loginViewModel.restoreSession()
+    }
 
     val sessionExpired by loginViewModel.sessionExpired.collectAsState()
     LaunchedEffect(sessionExpired) {

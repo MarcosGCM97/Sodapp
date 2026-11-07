@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Ventas
 
+import com.example.sodappcomposse.API.httpErrorMessage
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
@@ -62,7 +63,7 @@ class VentaRepositoryImpl @Inject constructor(
                     VentaResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                VentaResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                VentaResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
             }
         } catch (e: IOException) {
             VentaResult.Error(R.string.error_red_verificar)

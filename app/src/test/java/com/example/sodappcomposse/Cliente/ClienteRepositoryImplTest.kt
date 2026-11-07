@@ -11,6 +11,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
+import okhttp3.ResponseBody.Companion.toResponseBody
+import kotlinx.coroutines.test.runTest
 import retrofit2.Response
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -100,5 +102,26 @@ class ClienteRepositoryImplTest {
         assertEquals("La Calera", cliente.localidadCl)
         assertEquals(-31.343512, cliente.latitudCl!!, 0.0)
         assertEquals(-64.335871, cliente.longitudCl!!, 0.0)
+    }
+
+    @Test
+    fun `403 is reported as a missing permission`() = runTest {
+        coEvery { apiServices.eliminarCliente(25) } returns Response.error(
+            403,
+            """{"success":false,"error":"Forbidden: missing permission","permiso":"clientes.editar"}""".toResponseBody()
+        )
+
+        val result = repository.eliminarCliente(25)
+
+        assertEquals(com.example.sodappcomposse.R.string.error_sin_permiso, (result as ClienteResult.Error).messageRes)
+    }
+
+    @Test
+    fun `other server errors keep the generic server message`() = runTest {
+        coEvery { apiServices.eliminarCliente(25) } returns Response.error(500, "".toResponseBody())
+
+        val result = repository.eliminarCliente(25)
+
+        assertEquals(com.example.sodappcomposse.R.string.error_servidor_format, (result as ClienteResult.Error).messageRes)
     }
 }

@@ -46,6 +46,10 @@ interface ApiServices {
         @Body usuarioRequest: UsuarioRequest
     ): Response<UsuarioResponse>
 
+    // Current user's permissions; used to refresh a saved session when the app starts
+    @GET("sesion.php")
+    suspend fun getSesion(): Response<SesionResponse>
+
     //@GET("getUsuario.php")
     //suspend fun getUsuario(): Response<Usuario>
 

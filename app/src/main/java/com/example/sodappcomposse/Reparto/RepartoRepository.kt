@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Reparto
 
+import com.example.sodappcomposse.API.HTTP_FORBIDDEN
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.Producto.ProductoResult
 import com.example.sodappcomposse.R
@@ -107,6 +108,8 @@ class RepartoRepositoryImpl @Inject constructor(
 
     /** Surfaces the backend's `{"success":false,"error":"<message>"}` (409, "no pendiente", ...). */
     private fun serverMessageError(response: retrofit2.Response<*>): ProductoResult.Error? {
+        // The backend's 403 text is technical English: show the app's own message instead
+        if (response.code() == HTTP_FORBIDDEN) return ProductoResult.Error(R.string.error_sin_permiso)
         val error = try {
             val json = JsonParser.parseString(response.errorBody()?.string().orEmpty())
             json.asJsonObject.get("error")?.asString
