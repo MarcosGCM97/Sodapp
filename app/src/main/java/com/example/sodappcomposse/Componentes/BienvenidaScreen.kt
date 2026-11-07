@@ -29,6 +29,13 @@ import com.example.sodappcomposse.Cliente.Clientes
 import com.example.sodappcomposse.ContenidoBienvenida
 import com.example.sodappcomposse.Producto.Productos
 import com.example.sodappcomposse.Ventas.Ventas
+import com.example.sodappcomposse.R
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.seccionInicial
+import com.example.sodappcomposse.auth.seccionesVisibles
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ContenidoVentas(modifier: Modifier = Modifier, navController: NavController) {
@@ -105,6 +112,10 @@ fun BienvenidaScreen(
     LaunchedEffect(clienteACobrar) {
         if (clienteACobrar != null) contenidoActual = ContenidoBienvenida.CLIENTES
     }
+    // Only the sections the user's permissions allow; null when none is allowed
+    val permisos = LocalSessionPermissions.current
+    val secciones = seccionesVisibles(permisos)
+    val seccion = seccionInicial(permisos, contenidoActual)
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
@@ -120,18 +131,13 @@ fun BienvenidaScreen(
             )
         },
         bottomBar = {
-            NavBottom(
-                currentRoute = contenidoActual,
-                onContenidoSeleccionado = { nuevoContenido ->
-                    when (nuevoContenido) {
-                        ContenidoBienvenida.VENTAS -> contenidoActual = ContenidoBienvenida.VENTAS
-                        ContenidoBienvenida.STOCK -> contenidoActual = ContenidoBienvenida.STOCK
-                        ContenidoBienvenida.CLIENTES -> contenidoActual =
-                            ContenidoBienvenida.CLIENTES
-                        ContenidoBienvenida.CAJA -> contenidoActual = ContenidoBienvenida.CAJA
-                    }
-                }
-            )
+            if (seccion != null) {
+                NavBottom(
+                    currentRoute = seccion,
+                    secciones = secciones,
+                    onContenidoSeleccionado = { nuevoContenido -> contenidoActual = nuevoContenido }
+                )
+            }
         },
         content = { paddingValues ->
             Box(
@@ -139,7 +145,14 @@ fun BienvenidaScreen(
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                when (contenidoActual){
+                when (seccion){
+                    null -> Text(
+                        text = stringResource(R.string.sin_secciones_disponibles),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp)
+                    )
                     ContenidoBienvenida.VENTAS -> ContenidoVentas(navController = navController)
                     ContenidoBienvenida.STOCK -> ContenidoStock(navController = navController)
                     ContenidoBienvenida.CLIENTES -> ContenidoClientes(

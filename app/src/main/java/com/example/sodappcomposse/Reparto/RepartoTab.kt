@@ -1,5 +1,7 @@
 package com.example.sodappcomposse.Reparto
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -82,6 +84,8 @@ fun RepartoTab(
     val uiState by viewModel.uiState
     var paradaEditando by remember { mutableStateOf<ParadaReparto?>(null) }
     var paradaEntregando by remember { mutableStateOf<ParadaReparto?>(null) }
+    // Creating, editing and delivering need repartos.gestionar; without it the tab is read-only
+    val gestionar = LocalSessionPermissions.current.tiene(Permiso.REPARTOS_GESTIONAR)
 
     LaunchedEffect(Unit) {
         viewModel.cargar()
@@ -115,6 +119,7 @@ fun RepartoTab(
             cargando -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            actual == null && !gestionar -> Text(stringResource(R.string.sin_reparto))
             actual == null -> CrearReparto(
                 enCurso = uiState is ProductoUiState.Loading,
                 onCrear = viewModel::crear
@@ -131,6 +136,7 @@ fun RepartoTab(
                 onReabrir = viewModel::reabrir,
                 onAgregar = viewModel::agregarParada,
                 onGuardarPlantilla = viewModel::guardarPlantilla,
+                gestionar = gestionar,
                 encabezado = {
                     if (actual.paradas.isNotEmpty()) {
                         RutaReparto(repartoId = actual.id, recarga = actual, onConfigurarPlanta = onConfigurarPlanta)
@@ -232,6 +238,7 @@ private fun ParadasReparto(
     onReabrir: (Int) -> Unit,
     onAgregar: (Int) -> Unit,
     onGuardarPlantilla: () -> Unit,
+    gestionar: Boolean = true,
     encabezado: @Composable () -> Unit = {}
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -251,9 +258,11 @@ private fun ParadasReparto(
                 onEditar = { onEditar(parada) },
                 onEntregar = { onEntregar(parada) },
                 onNoEntregar = { onNoEntregar(parada.id) },
-                onReabrir = { onReabrir(parada.id) }
+                onReabrir = { onReabrir(parada.id) },
+                gestionar = gestionar
             )
         }
+        if (!gestionar) return@LazyColumn
         item {
             val enReparto = reparto.paradas.map { it.clienteId }.toSet()
             SelectBuscable(
@@ -283,12 +292,13 @@ private fun ParadaCard(
     onEditar: () -> Unit,
     onEntregar: () -> Unit,
     onNoEntregar: () -> Unit,
-    onReabrir: () -> Unit
+    onReabrir: () -> Unit,
+    gestionar: Boolean = true
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column {
+                if (gestionar) Column {
                     IconButton(onClick = { onMover(-1) }, enabled = puedeSubir) {
                         Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.subir_desc))
                     }
@@ -343,7 +353,7 @@ private fun ParadaCard(
                     }
                 }
                 // Only pendiente stops can be edited or removed (the backend rejects the rest)
-                if (parada.esPendiente) {
+                if (parada.esPendiente && gestionar) {
                     Column {
                         IconButton(onClick = onEditar) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.productos_parada_desc))
@@ -354,7 +364,7 @@ private fun ParadaCard(
                     }
                 }
             }
-            Row(
+            if (gestionar) Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {

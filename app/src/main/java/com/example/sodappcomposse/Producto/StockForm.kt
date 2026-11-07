@@ -1,5 +1,7 @@
 package com.example.sodappcomposse.Producto
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +61,8 @@ fun TabInventario(
     val uiState = productoModel.productoUiState
 
     var filtroNombre by remember { mutableStateOf("") }
+    // Adjusting stock and filling containers need stock.editar; without it the tab is read-only
+    val puedeEditar = LocalSessionPermissions.current.tiene(Permiso.STOCK_EDITAR)
 
     LaunchedEffect(Unit) {
         productoModel.getProductos()
@@ -168,7 +172,8 @@ fun TabInventario(
                                 onVerHistorial = { productoModel.verHistorial(producto) },
                                 onAjustarVacios = { nuevaCantidad ->
                                     productoModel.ajustarVacios(producto, nuevaCantidad)
-                                }
+                                },
+                                editable = puedeEditar
                             )
                         }
                     }
@@ -258,7 +263,8 @@ fun CardProductoInventario(
     onAjustarStock: (Int) -> Unit,
     onLlenar: (Int) -> Unit = {},
     onVerHistorial: () -> Unit = {},
-    onAjustarVacios: (Int) -> Unit = {}
+    onAjustarVacios: (Int) -> Unit = {},
+    editable: Boolean = true
 ) {
     val stockActual = producto.stock
 
@@ -314,7 +320,7 @@ fun CardProductoInventario(
                 color = colorStock
             )
 
-            if (producto.esRetornable) {
+            if (producto.esRetornable && editable) {
                 LlenarEnvasesRow(producto = producto, onLlenar = onLlenar)
             }
 
@@ -322,84 +328,86 @@ fun CardProductoInventario(
                 Text(stringResource(R.string.historial_label))
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            if (editable) {
+                Spacer(modifier = Modifier.height(4.dp))
 
-            if (producto.esRetornable) {
+                if (producto.esRetornable) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        FilterChip(
+                            selected = !ajustandoVacios,
+                            onClick = { ajustandoVacios = false },
+                            label = { Text(stringResource(R.string.ajustar_llenos_label)) }
+                        )
+                        FilterChip(
+                            selected = ajustandoVacios,
+                            onClick = { ajustandoVacios = true },
+                            label = { Text(stringResource(R.string.ajustar_vacios_label)) }
+                        )
+                    }
+                }
+
+                // Controles de ajuste de stock
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    FilterChip(
-                        selected = !ajustandoVacios,
-                        onClick = { ajustandoVacios = false },
-                        label = { Text(stringResource(R.string.ajustar_llenos_label)) }
-                    )
-                    FilterChip(
-                        selected = ajustandoVacios,
-                        onClick = { ajustandoVacios = true },
-                        label = { Text(stringResource(R.string.ajustar_vacios_label)) }
-                    )
-                }
-            }
+                    IconButton(
+                        onClick = {
+                            if (cantidadLocal > 0) {
+                                cantidadLocal--
+                                hayCambiosPendientes = cantidadLocal != cantidadBase
+                            }
+                        },
+                        enabled = cantidadLocal > 0
+                    ) {
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.disminuir_stock_desc))
+                    }
 
-            // Controles de ajuste de stock
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                IconButton(
-                    onClick = {
-                        if (cantidadLocal > 0) {
-                            cantidadLocal--
+                    OutlinedTextField(
+                        value = cantidadLocal.toString(),
+                        onValueChange = { newValue ->
+                            val nuevaCantidad = newValue.toIntOrNull()
+                            if (newValue.isEmpty()) {
+                                cantidadLocal = 0
+                            } else if (nuevaCantidad != null && nuevaCantidad >= 0) {
+                                cantidadLocal = nuevaCantidad
+                            }
+                            hayCambiosPendientes = cantidadLocal != cantidadBase
+                        },
+                        modifier = Modifier.width(80.dp),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+
+                    IconButton(
+                        onClick = {
+                            cantidadLocal++
                             hayCambiosPendientes = cantidadLocal != cantidadBase
                         }
-                    },
-                    enabled = cantidadLocal > 0
-                ) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.disminuir_stock_desc))
-                }
-
-                OutlinedTextField(
-                    value = cantidadLocal.toString(),
-                    onValueChange = { newValue ->
-                        val nuevaCantidad = newValue.toIntOrNull()
-                        if (newValue.isEmpty()) {
-                            cantidadLocal = 0
-                        } else if (nuevaCantidad != null && nuevaCantidad >= 0) {
-                            cantidadLocal = nuevaCantidad
-                        }
-                        hayCambiosPendientes = cantidadLocal != cantidadBase
-                    },
-                    modifier = Modifier.width(80.dp),
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                IconButton(
-                    onClick = {
-                        cantidadLocal++
-                        hayCambiosPendientes = cantidadLocal != cantidadBase
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_stock_desc))
                     }
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.aumentar_stock_desc))
                 }
-            }
 
-            if (hayCambiosPendientes) {
-                Button(
-                    onClick = {
-                        if (ajustandoVacios) onAjustarVacios(cantidadLocal) else onAjustarStock(cantidadLocal)
-                        hayCambiosPendientes = false
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        stringResource(
-                            if (ajustandoVacios) R.string.actualizar_vacios_label else R.string.actualizar_stock_label
+                if (hayCambiosPendientes) {
+                    Button(
+                        onClick = {
+                            if (ajustandoVacios) onAjustarVacios(cantidadLocal) else onAjustarStock(cantidadLocal)
+                            hayCambiosPendientes = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            stringResource(
+                                if (ajustandoVacios) R.string.actualizar_vacios_label else R.string.actualizar_stock_label
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

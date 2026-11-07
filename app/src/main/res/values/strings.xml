@@ -316,4 +316,5 @@
     <string name="permiso_ubicacion_denegado">Sin permiso de ubicación no se puede guardar la ubicación actual.</string>
     <!-- Roles and permissions -->
     <string name="error_sin_permiso">No tiene permiso para realizar esta acción.</string>
+    <string name="sin_secciones_disponibles">No hay secciones disponibles para su usuario. Consulte con el dueño de la empresa.</string>
 </resources>

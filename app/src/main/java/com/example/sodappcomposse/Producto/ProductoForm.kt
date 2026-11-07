@@ -1,5 +1,7 @@
 package com.example.sodappcomposse.Producto
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -103,69 +105,72 @@ fun AddProductoForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(stringResource(R.string.cargar_producto_titulo), style = MaterialTheme.typography.headlineSmall)
-        OutlinedTextField(
-            value = nombreProducto,
-            onValueChange = { nombreProducto = it },
-            label = { Text(stringResource(R.string.nombre_producto_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+        // Creating a product needs stock.editar; without it the tab only searches
+        if (LocalSessionPermissions.current.tiene(Permiso.STOCK_EDITAR)) {
+            Text(stringResource(R.string.cargar_producto_titulo), style = MaterialTheme.typography.headlineSmall)
+            OutlinedTextField(
+                value = nombreProducto,
+                onValueChange = { nombreProducto = it },
+                label = { Text(stringResource(R.string.nombre_producto_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-        // Campo para el Precio del Producto
-        OutlinedTextField(
-            value = precioProducto,
-            onValueChange = { precioProducto = it },
-            label = { Text(stringResource(R.string.precio_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            // Campo para el Precio del Producto
+            OutlinedTextField(
+                value = precioProducto,
+                onValueChange = { precioProducto = it },
+                label = { Text(stringResource(R.string.precio_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-        //Campo para cargar la cantidad
-        OutlinedTextField(
-            value = cantidadInputString,
-            onValueChange = { newValue ->
-                if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
-                    cantidadInputString = newValue
+            //Campo para cargar la cantidad
+            OutlinedTextField(
+                value = cantidadInputString,
+                onValueChange = { newValue ->
+                    if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                        cantidadInputString = newValue
+                    }
+                },
+                label = { Text(stringResource(R.string.cantidad_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = cantidadInputString.toIntOrNull() == null && cantidadInputString.isNotEmpty() // Show error if not empty and not a valid number
+            )
+
+            RetornableFields(
+                retornable = retornable,
+                onRetornableChange = { retornable = it },
+                vacios = vaciosInputString,
+                onVaciosChange = { vaciosInputString = it }
+            )
+
+            //Botón para guardar el nuevo producto
+            Button(
+                onClick = {
+                    productosModel.agregarNuevoProducto(
+                        nombre = nombreProducto,
+                        precio = precioProducto,
+                        cantidad = cantidadProducto,
+                        retornable = retornable,
+                        vacios = vaciosInputString.toIntOrNull() ?: 0
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = nombreProducto.isNotBlank() && precioProducto.isNotBlank() && cantidadProducto > 0 && addState !is AddProductoUiState.Loading
+            ){
+                if (addState is AddProductoUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text(stringResource(R.string.guardar_producto))
                 }
-            },
-            label = { Text(stringResource(R.string.cantidad_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            isError = cantidadInputString.toIntOrNull() == null && cantidadInputString.isNotEmpty() // Show error if not empty and not a valid number
-        )
-
-        RetornableFields(
-            retornable = retornable,
-            onRetornableChange = { retornable = it },
-            vacios = vaciosInputString,
-            onVaciosChange = { vaciosInputString = it }
-        )
-
-        //Botón para guardar el nuevo producto
-        Button(
-            onClick = {
-                productosModel.agregarNuevoProducto(
-                    nombre = nombreProducto,
-                    precio = precioProducto,
-                    cantidad = cantidadProducto,
-                    retornable = retornable,
-                    vacios = vaciosInputString.toIntOrNull() ?: 0
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = nombreProducto.isNotBlank() && precioProducto.isNotBlank() && cantidadProducto > 0 && addState !is AddProductoUiState.Loading
-        ){
-            if (addState is AddProductoUiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.guardar_producto))
             }
-        }
 
-        //Separador visual si quieres (opcional)
-        Divider(modifier = Modifier.padding(vertical = 16.dp))
+            //Separador visual si quieres (opcional)
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+        }
 
         Text(stringResource(R.string.buscar_existente_label), style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
 
@@ -219,6 +224,7 @@ fun BuscarProducto(
     ) {
         ProductoDropDown()
     }
+    val puedeEditar = LocalSessionPermissions.current.tiene(Permiso.STOCK_EDITAR)
     productoSeleccionado?.let { producto -> // Se muestra solo si hay un producto seleccionado
         Spacer(modifier = Modifier.height(16.dp))
         TarjetaDetalle(
@@ -232,11 +238,12 @@ fun BuscarProducto(
             etiquetas = listOf(
                 EtiquetaDetalle(stringResource(R.string.stock_format, producto.stock), tonoStock(producto.stock))
             ),
-            onEditar = { navController.navigate(ProductoEditar(nombre = producto.nombrePr)) },
+            // Editing and deleting need stock.editar
+            onEditar = { navController.navigate(ProductoEditar(nombre = producto.nombrePr)) }.takeIf { puedeEditar },
             onEliminar = {
                 productoAEliminar = producto
                 mostrarDialogoConfirmacion = true
-            }
+            }.takeIf { puedeEditar }
         )
     }
     // Diálogo de confirmación

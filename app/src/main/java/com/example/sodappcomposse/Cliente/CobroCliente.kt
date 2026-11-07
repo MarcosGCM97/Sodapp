@@ -1,5 +1,7 @@
 package com.example.sodappcomposse.Cliente
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -101,6 +103,7 @@ fun CobrosTab(
     val deudores = deudaModel.deudores.value
     // A client brought to zero leaves the list, so the form closes by itself
     val seleccionado = deudores.find { it.id == seleccionadoId }
+    val puedeCobrar = LocalSessionPermissions.current.tiene(Permiso.COBROS_CARGAR)
 
     Column(
         modifier = Modifier
@@ -120,13 +123,16 @@ fun CobrosTab(
                 ) {
                     Text(seleccionado.nombre, style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.saldo_pendiente_format, formatearPrecio(seleccionado.saldo)))
-                    FormularioCobro(
-                        clienteId = seleccionado.id,
-                        saldo = seleccionado.saldo,
-                        formas = deudaModel.formasPago.value,
-                        enCurso = deudaModel.isPagoEnCurso,
-                        onCobrar = { monto, formaPago -> deudaModel.pagarDeudaCliente(seleccionado.id, monto, formaPago) }
-                    )
+                    // Registering a payment needs cobros.cargar; without it the tab only lists balances
+                    if (puedeCobrar) {
+                        FormularioCobro(
+                            clienteId = seleccionado.id,
+                            saldo = seleccionado.saldo,
+                            formas = deudaModel.formasPago.value,
+                            enCurso = deudaModel.isPagoEnCurso,
+                            onCobrar = { monto, formaPago -> deudaModel.pagarDeudaCliente(seleccionado.id, monto, formaPago) }
+                        )
+                    }
                     TextButton(onClick = { seleccionadoId = null }) {
                         Text(stringResource(R.string.cambiar_cliente))
                     }
