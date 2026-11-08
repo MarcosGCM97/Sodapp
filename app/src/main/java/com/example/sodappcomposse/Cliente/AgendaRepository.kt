@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Cliente
 
+import com.example.sodappcomposse.API.httpErrorMessage
 import android.util.Log
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
@@ -60,7 +61,7 @@ class AgendaRepositoryImpl @Inject constructor(
                     AgendaResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                AgendaResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                AgendaResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
             }
         } catch (e: IOException) {
             // Also catches unreadable response bodies (e.g. MalformedJsonException, EOFException)

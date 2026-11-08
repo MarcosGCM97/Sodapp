@@ -314,4 +314,36 @@
     <string name="ubicacion_no_encontrada">No se encontró esa dirección. Revise la calle, el número y la localidad.</string>
     <string name="ubicacion_no_disponible">No se pudo obtener la ubicación del teléfono. Active el GPS e intente de nuevo.</string>
     <string name="permiso_ubicacion_denegado">Sin permiso de ubicación no se puede guardar la ubicación actual.</string>
+    <!-- Roles and permissions -->
+    <string name="error_sin_permiso">No tiene permiso para realizar esta acción.</string>
+    <string name="administracion_titulo">Usuarios y roles</string>
+    <string name="tab_usuarios">Usuarios</string>
+    <string name="tab_roles">Roles</string>
+    <string name="nuevo_usuario">Nuevo usuario</string>
+    <string name="nuevo_rol">Nuevo rol</string>
+    <string name="editar_rol">Editar rol</string>
+    <string name="nombre_usuario_label">Nombre de usuario</string>
+    <string name="contrasena_label">Contraseña</string>
+    <string name="nueva_contrasena_label">Nueva contraseña</string>
+    <string name="nombre_rol_label">Nombre del rol</string>
+    <string name="rol_label">Rol</string>
+    <string name="permisos_label">Permisos</string>
+    <string name="dueno_label">Dueño</string>
+    <string name="sin_rol_label">Sin rol</string>
+    <string name="usuario_activo_label">Activo</string>
+    <string name="usuario_inactivo_label">Inactivo</string>
+    <string name="cambiar_rol_label">Cambiar rol</string>
+    <string name="cambiar_contrasena_label">Cambiar contraseña</string>
+    <string name="usuarios_rol_format">Usuarios asignados: %1$d</string>
+    <string name="permisos_rol_format">Permisos: %1$d</string>
+    <string name="sin_usuarios">No hay usuarios cargados.</string>
+    <string name="sin_roles">No hay roles cargados. Cree uno para poder asignarlo a un usuario.</string>
+    <string name="crear_rol_primero">Primero cree un rol en la pestaña Roles.</string>
+    <string name="confirmar_eliminar_rol_msg">¿Desea eliminar el rol %1$s?</string>
+    <string name="usuario_creado">Usuario creado.</string>
+    <string name="usuario_actualizado">Usuario actualizado.</string>
+    <string name="rol_guardado">Rol guardado.</string>
+    <string name="rol_eliminado">Rol eliminado.</string>
+    <string name="guardar">Guardar</string>
+    <string name="sin_secciones_disponibles">No hay secciones disponibles para su usuario. Consulte con el dueño de la empresa.</string>
 </resources>

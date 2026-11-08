@@ -38,6 +38,14 @@ class AuthSession @Inject constructor(
      */
     val sessionExpired: StateFlow<Boolean> = _sessionExpired.asStateFlow()
 
+    private val _permissions = MutableStateFlow<SessionPermissions?>(null)
+
+    /**
+     * Permissions of the current session; null until they are known (a saved session not
+     * loaded yet). Used only to hide UI: the backend enforces them.
+     */
+    val permissions: StateFlow<SessionPermissions?> = _permissions.asStateFlow()
+
     override fun currentToken(): String? {
         if (!loaded) {
             synchronized(lock) {
@@ -58,13 +66,35 @@ class AuthSession @Inject constructor(
         _sessionExpired.value = true
     }
 
-    suspend fun startSession(userId: String, userName: String, token: String) {
-        preferences.saveUserData(userId, userName, token)
+    /** Raises [sessionExpired] when the server said the saved session is no longer valid. */
+    fun markExpired() {
+        _sessionExpired.value = true
+    }
+
+    suspend fun startSession(userId: String, userName: String, token: String, permissions: SessionPermissions) {
+        preferences.saveUserData(userId, userName, token, permissions)
         synchronized(lock) {
             cachedToken = token
             loaded = true
         }
+        _permissions.value = permissions
         _sessionExpired.value = false
+    }
+
+    /** Loads the permissions saved with the session, unless they are already known. */
+    suspend fun loadStoredPermissions() {
+        val stored = preferences.permissions.first()
+        _permissions.compareAndSet(null, stored)
+    }
+
+    /**
+     * Replaces the permissions of the session that owns [forToken]. Ignored once that session
+     * ended or another user logged in meanwhile (a late answer for a previous session).
+     */
+    suspend fun updatePermissions(permissions: SessionPermissions, forToken: String?) {
+        if (forToken == null || currentToken() != forToken) return
+        preferences.savePermissions(permissions)
+        _permissions.value = permissions
     }
 
     suspend fun endSession() {
@@ -72,6 +102,7 @@ class AuthSession @Inject constructor(
             cachedToken = null
             loaded = true
         }
+        _permissions.value = SessionPermissions()
         preferences.clearUserData()
     }
 }

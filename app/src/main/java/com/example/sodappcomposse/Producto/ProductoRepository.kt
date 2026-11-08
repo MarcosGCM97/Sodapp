@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Producto
 
+import com.example.sodappcomposse.API.httpErrorMessage
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
@@ -103,7 +104,7 @@ class ProductoRepositoryImpl @Inject constructor(
                     ProductoResult.Error(R.string.cuerpo_nulo_error)
                 }
             } else {
-                ProductoResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
+                ProductoResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
             }
         } catch (e: IOException) {
             ProductoResult.Error(R.string.error_red_verificar)

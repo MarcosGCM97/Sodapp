@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.sodappcomposse.auth.SessionPermissions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -29,18 +30,40 @@ class UserPreferencesRepository @Inject constructor(
         val USER_NAME = stringPreferencesKey("user_name_v2")
         val AUTH_TOKEN = stringPreferencesKey("auth_token")
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+        val IS_OWNER = booleanPreferencesKey("es_dueno")
+        val PERMISSIONS = stringSetPreferencesKey("permisos")
         val THEME_MODE = stringPreferencesKey("theme_mode") // "system", "light", "dark"
     }
 
     // Función para guardar los datos al hacer Login
-    suspend fun saveUserData(id: String, name: String, token: String) {
+    suspend fun saveUserData(id: String, name: String, token: String, permissions: SessionPermissions) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_ID] = id
             preferences[PreferencesKeys.USER_NAME] = name
             preferences[PreferencesKeys.AUTH_TOKEN] = token
             preferences[PreferencesKeys.IS_LOGGED_IN] = true
+            preferences[PreferencesKeys.IS_OWNER] = permissions.esDueno
+            preferences[PreferencesKeys.PERMISSIONS] = permissions.permisos
         }
     }
+
+    // Replaces the stored permissions of the current session (refreshed from sesion.php)
+    suspend fun savePermissions(permissions: SessionPermissions) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_OWNER] = permissions.esDueno
+            preferences[PreferencesKeys.PERMISSIONS] = permissions.permisos
+        }
+    }
+
+    // A session saved before roles existed has no owner flag; back then every user was the
+    // owner of its company, so it reads as owner until sesion.php refreshes it
+    val permissions: Flow<SessionPermissions> = context.dataStore.data
+        .map { preferences ->
+            SessionPermissions(
+                esDueno = preferences[PreferencesKeys.IS_OWNER] ?: true,
+                permisos = preferences[PreferencesKeys.PERMISSIONS] ?: emptySet()
+            )
+        }
 
     // Flujo para saber si el usuario está logueado
     val isLoggedIn: Flow<Boolean> = context.dataStore.data

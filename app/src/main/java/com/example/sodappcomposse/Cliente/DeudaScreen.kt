@@ -1,5 +1,8 @@
 package com.example.sodappcomposse.Cliente
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.auth.puedeCobrar
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -79,6 +82,11 @@ fun DeudaScreen(
     val context = LocalContext.current
 
     val scrollState = rememberScrollState()
+    val permisos = LocalSessionPermissions.current
+    // Payments need cobros.ver to be listed and cobros.cargar to be registered
+    val puedeVerCobros = permisos.tiene(Permiso.COBROS_VER)
+    val puedeCobrar = puedeCobrar(permisos)
+    val puedeEliminarVenta = permisos.tiene(Permiso.VENTAS_ELIMINAR)
 
     //val editarEstados = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -87,7 +95,7 @@ fun DeudaScreen(
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
-            clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
+            if (puedeVerCobros) clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
             Log.e("DeudaScreen", "clienteId es nulo o inválido: $clienteId")
@@ -102,7 +110,7 @@ fun DeudaScreen(
             is DeudaUiState.Success -> {
                 // Keep the pay button locked until the refreshed debt is on screen
                 clienteModel.recargarClienteById(clienteId.toString())
-                clienteId?.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
+                if (puedeVerCobros) clienteId?.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
                 deudaModel.resetState()
             }
             is DeudaUiState.Error -> {
@@ -161,18 +169,20 @@ fun DeudaScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Button(
-                            onClick = { clienteId?.toIntOrNull()?.let { irACobrarCliente(navController, it) } },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = GreenPrimario,
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Text(stringResource(R.string.cobrar_label))
-                        }
+                        if (puedeCobrar) {
+                            Button(
+                                onClick = { clienteId?.toIntOrNull()?.let { irACobrarCliente(navController, it) } },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = GreenPrimario,
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Text(stringResource(R.string.cobrar_label))
+                            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
 
                         Row(
                             modifier = Modifier
@@ -250,7 +260,9 @@ fun DeudaScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             TabRow(selectedTabIndex = tabCliente) {
-                listOf(stringResource(R.string.tab_compras), stringResource(R.string.tab_pagos)).forEachIndexed { index, titulo ->
+                // The Pagos tab needs cobros.ver
+                val titulos = listOf(stringResource(R.string.tab_compras), stringResource(R.string.tab_pagos))
+                titulos.take(if (puedeVerCobros) 2 else 1).forEachIndexed { index, titulo ->
                     Tab(
                         selected = tabCliente == index,
                         onClick = { tabCliente = index },
@@ -259,7 +271,7 @@ fun DeudaScreen(
                 }
             }
 
-            if (tabCliente == 1) {
+            if (tabCliente == 1 && puedeVerCobros) {
                 PagosCliente(deudaModel.pagos.value)
             } else if (ventasDelCliente.value.isNotEmpty()) {
                 ventasDelCliente.value.forEach { venta ->
@@ -286,14 +298,17 @@ fun DeudaScreen(
                                 Text(stringResource(R.string.cantidad_format, venta.cantidad))
                                 Text(stringResource(R.string.precio_format, formatearPrecio(venta.precio)))
                             }
-                            IconButton(
-                                // Ask first, like deleting a product: the sale is gone for good
-                                onClick = { ventaAEliminar = venta },
-                                modifier = Modifier
-                                    .weight(0.5f)
-                                    .background(Color.Red)
-                            ) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.eliminar_desc))
+                            // Deleting a sale needs ventas.eliminar
+                            if (puedeEliminarVenta) {
+                                IconButton(
+                                    // Ask first, like deleting a product: the sale is gone for good
+                                    onClick = { ventaAEliminar = venta },
+                                    modifier = Modifier
+                                        .weight(0.5f)
+                                        .background(Color.Red)
+                                ) {
+                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.eliminar_desc))
+                                }
                             }
                         }
                     }

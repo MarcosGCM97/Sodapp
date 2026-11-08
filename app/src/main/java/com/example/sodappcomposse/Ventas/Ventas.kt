@@ -36,6 +36,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.PlantaConfig
+import com.example.sodappcomposse.PestanaVentas
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.auth.pestanaVisible
+import com.example.sodappcomposse.auth.pestanasVentas
 import com.example.sodappcomposse.Cliente.ClienteUiState
 import com.example.sodappcomposse.Cliente.ClientesViewModel
 import com.example.sodappcomposse.Cliente.ClientesDropDown
@@ -65,23 +70,35 @@ import java.util.Locale
 
 @Composable
 fun Ventas(navController: NavController) {
-    // 0 = Ventas, 1 = Reparto
-    var tabSeleccionado by rememberSaveable { mutableIntStateOf(0) }
+    val permisos = LocalSessionPermissions.current
+    // Only the tabs the user's permissions allow (the home screen shows this section only when one is)
+    val pestanas = pestanasVentas(permisos)
+    var pestanaElegida by rememberSaveable { mutableStateOf(PestanaVentas.VENTAS) }
+    val pestana = pestanaVisible(pestanaElegida, pestanas)
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = tabSeleccionado) {
-            listOf(stringResource(R.string.tab_ventas), stringResource(R.string.tab_reparto)).forEachIndexed { index, titulo ->
+        TabRow(selectedTabIndex = pestanas.indexOf(pestana)) {
+            pestanas.forEach { opcion ->
                 Tab(
-                    selected = tabSeleccionado == index,
-                    onClick = { tabSeleccionado = index },
-                    text = { Text(titulo) }
+                    selected = pestana == opcion,
+                    onClick = { pestanaElegida = opcion },
+                    text = {
+                        Text(
+                            stringResource(
+                                when (opcion) {
+                                    PestanaVentas.VENTAS -> R.string.tab_ventas
+                                    PestanaVentas.REPARTO -> R.string.tab_reparto
+                                }
+                            )
+                        )
+                    }
                 )
             }
         }
 
-        when (tabSeleccionado) {
-            0 -> TabVentas()
-            1 -> RepartoTab(
+        when (pestana) {
+            PestanaVentas.VENTAS -> TabVentas()
+            PestanaVentas.REPARTO -> RepartoTab(
                 onVerDias = { navController.navigate(Agenda) },
                 onConfigurarPlanta = { navController.navigate(PlantaConfig) }
             )
@@ -106,6 +123,7 @@ private fun TabVentas(
     val ventasUiState = ventaModel.ventasUiState
     val ventasAgrupadas by ventaModel.ventasAgrupadas.collectAsState()
     val nombreEmpresa by ventaModel.nombreEmpresa.collectAsState(initial = null)
+    val puedeCargar = LocalSessionPermissions.current.tiene(Permiso.VENTAS_CARGAR)
 
     LazyColumn(
         modifier = Modifier
@@ -114,15 +132,18 @@ private fun TabVentas(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                AddVentaForm(
-                    ventaModel = ventaModel,
-                    productoModel = productoModel,
-                    clienteModel = clienteModel
-                )
+        // Loading a sale needs ventas.cargar; without it the tab only lists the sales
+        if (puedeCargar) {
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    AddVentaForm(
+                        ventaModel = ventaModel,
+                        productoModel = productoModel,
+                        clienteModel = clienteModel
+                    )
+                }
             }
         }
 

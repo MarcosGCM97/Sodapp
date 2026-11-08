@@ -1,5 +1,7 @@
 package com.example.sodappcomposse.di
 
+import com.example.sodappcomposse.Administracion.AdministracionRepository
+import com.example.sodappcomposse.Administracion.AdministracionRepositoryImpl
 import com.example.sodappcomposse.Caja.CajaRepository
 import com.example.sodappcomposse.Caja.CajaRepositoryImpl
 import com.example.sodappcomposse.Cliente.AgendaRepository
@@ -63,4 +65,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindRutaRepository(impl: RutaRepositoryImpl): RutaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAdministracionRepository(impl: AdministracionRepositoryImpl): AdministracionRepository
 }

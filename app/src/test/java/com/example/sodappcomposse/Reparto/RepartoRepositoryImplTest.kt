@@ -115,4 +115,14 @@ class RepartoRepositoryImplTest {
         assertEquals(true, parada.esPendiente)
         assertEquals(LineaReparto(id = 5, productoId = 3, nombreProducto = "Bidón 20L", retornable = 1, cantidadPlanificada = 2, precio = 450.0), parada.lineas.single())
     }
+
+    @Test
+    fun `403 shows the missing permission message instead of the backend text`() = runTest {
+        coEvery { apiServices.accionReparto(any()) } returns Response.error(
+            403,
+            """{"success":false,"error":"Forbidden: missing permission","permiso":"repartos.gestionar"}""".toResponseBody()
+        )
+
+        assertEquals(ProductoResult.Error(R.string.error_sin_permiso), repository.quitarParada(3))
+    }
 }

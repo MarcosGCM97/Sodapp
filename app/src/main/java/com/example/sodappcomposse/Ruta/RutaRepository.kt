@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Ruta
 
+import com.example.sodappcomposse.API.HTTP_FORBIDDEN
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.Producto.ProductoResult
 import com.example.sodappcomposse.R
@@ -79,6 +80,8 @@ class RutaRepositoryImpl @Inject constructor(
 
     /** Surfaces the backend's `{"success":false,"error":"<message>"}` (409 "Quedan paradas pendientes", ...). */
     private fun serverMessageError(response: Response<*>): ProductoResult.Error? {
+        // The backend's 403 text is technical English: show the app's own message instead
+        if (response.code() == HTTP_FORBIDDEN) return ProductoResult.Error(R.string.error_sin_permiso)
         val error = try {
             JsonParser.parseString(response.errorBody()?.string().orEmpty()).asJsonObject.get("error")?.asString
         } catch (e: Exception) {

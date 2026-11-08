@@ -1,5 +1,8 @@
 package com.example.sodappcomposse.Ruta
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -57,6 +60,8 @@ fun RutaReparto(
 ) {
     val context = LocalContext.current
     val ruta by viewModel.ruta
+    // Starting and finishing the route are writes (repartos.gestionar); opening the map is not
+    val gestionar = LocalSessionPermissions.current.tiene(Permiso.REPARTOS_GESTIONAR)
     val tramos by viewModel.tramos
     val uiState by viewModel.uiState
 
@@ -82,7 +87,7 @@ fun RutaReparto(
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.ruta_titulo), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                TextButton(onClick = onConfigurarPlanta) { Text(stringResource(R.string.configurar_planta)) }
+                if (gestionar) TextButton(onClick = onConfigurarPlanta) { Text(stringResource(R.string.configurar_planta)) }
             }
 
             if (actual.fin == null) {
@@ -107,7 +112,7 @@ fun RutaReparto(
                     OutlinedButton(
                         onClick = {
                             abrirGoogleMaps(context, tramo.url)
-                            viewModel.iniciar(repartoId)
+                            if (gestionar) viewModel.iniciar(repartoId)
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -125,7 +130,7 @@ fun RutaReparto(
                 actual.inicio != null -> Text(stringResource(R.string.recorrido_inicio_format, actual.inicio.drop(11).take(5)))
             }
 
-            if (actual.inicio != null && actual.fin == null) {
+            if (gestionar && actual.inicio != null && actual.fin == null) {
                 Button(
                     onClick = { viewModel.finalizar(repartoId) },
                     enabled = puedeFinalizar(actual) && uiState !is ProductoUiState.Loading,
