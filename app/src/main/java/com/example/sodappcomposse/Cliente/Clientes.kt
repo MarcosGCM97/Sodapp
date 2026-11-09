@@ -1,5 +1,10 @@
 package com.example.sodappcomposse.Cliente
 
+import com.example.sodappcomposse.PestanaClientes
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.auth.pestanaVisible
+import com.example.sodappcomposse.auth.pestanasClientes
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -67,26 +72,38 @@ fun Clientes(
     clienteACobrar: Int? = null,
     onClienteACobrarUsado: () -> Unit = {}
 ){
-    // 0 = Clientes, 1 = Cobros
-    var tabSeleccionado by rememberSaveable { mutableIntStateOf(0) }
+    val permisos = LocalSessionPermissions.current
+    // Only the tabs the user's permissions allow (the home screen shows this section only when one is)
+    val pestanas = pestanasClientes(permisos)
+    var pestanaElegida by rememberSaveable { mutableStateOf(PestanaClientes.CLIENTES) }
     LaunchedEffect(clienteACobrar) {
-        if (clienteACobrar != null) tabSeleccionado = 1
+        if (clienteACobrar != null) pestanaElegida = PestanaClientes.COBROS
     }
+    val pestana = pestanaVisible(pestanaElegida, pestanas)
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = tabSeleccionado) {
-            listOf(stringResource(R.string.tab_clientes), stringResource(R.string.tab_cobros)).forEachIndexed { index, titulo ->
+        TabRow(selectedTabIndex = pestanas.indexOf(pestana)) {
+            pestanas.forEach { opcion ->
                 Tab(
-                    selected = tabSeleccionado == index,
-                    onClick = { tabSeleccionado = index },
-                    text = { Text(titulo) }
+                    selected = pestana == opcion,
+                    onClick = { pestanaElegida = opcion },
+                    text = {
+                        Text(
+                            stringResource(
+                                when (opcion) {
+                                    PestanaClientes.CLIENTES -> R.string.tab_clientes
+                                    PestanaClientes.COBROS -> R.string.tab_cobros
+                                }
+                            )
+                        )
+                    }
                 )
             }
         }
 
-        when (tabSeleccionado) {
-            0 -> TabClientes(navController = navController)
-            1 -> CobrosTab(clienteInicial = clienteACobrar, onClienteInicialUsado = onClienteACobrarUsado)
+        when (pestana) {
+            PestanaClientes.CLIENTES -> TabClientes(navController = navController)
+            PestanaClientes.COBROS -> CobrosTab(clienteInicial = clienteACobrar, onClienteInicialUsado = onClienteACobrarUsado)
         }
     }
 }
@@ -165,72 +182,75 @@ fun AddClienteForm(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(stringResource(R.string.cargar_cliente_titulo), style = MaterialTheme.typography.headlineSmall)
-        OutlinedTextField(
-            value = nombreCliente,
-            onValueChange = { nombreCliente = it },
-            label = { Text(stringResource(R.string.nombre_cliente_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+        // Creating a client needs clientes.editar; without it the tab only searches
+        if (LocalSessionPermissions.current.tiene(Permiso.CLIENTES_EDITAR)) {
+            Text(stringResource(R.string.cargar_cliente_titulo), style = MaterialTheme.typography.headlineSmall)
+            OutlinedTextField(
+                value = nombreCliente,
+                onValueChange = { nombreCliente = it },
+                label = { Text(stringResource(R.string.nombre_cliente_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-        // Campo para la Dirección del Cliente
-        OutlinedTextField(
-            value = direccionCliente,
-            onValueChange = { direccionCliente = it },
-            label = { Text(stringResource(R.string.direccion_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            // Campo para la Dirección del Cliente
+            OutlinedTextField(
+                value = direccionCliente,
+                onValueChange = { direccionCliente = it },
+                label = { Text(stringResource(R.string.direccion_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-        OutlinedTextField(
-            value = localidadCliente,
-            onValueChange = { localidadCliente = it },
-            label = { Text(stringResource(R.string.localidad_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+            OutlinedTextField(
+                value = localidadCliente,
+                onValueChange = { localidadCliente = it },
+                label = { Text(stringResource(R.string.localidad_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-        UbicacionEditor(
-            direccion = direccionCliente,
-            localidad = localidadCliente,
-            coordenadas = coordenadasCliente,
-            onCambiar = { coordenadasCliente = it }
-        )
+            UbicacionEditor(
+                direccion = direccionCliente,
+                localidad = localidadCliente,
+                coordenadas = coordenadasCliente,
+                onCambiar = { coordenadasCliente = it }
+            )
 
-        // Campo para el Teléfono del Cliente
-        OutlinedTextField(
-            value = telefonoCliente,
-            onValueChange = { telefonoCliente = it },
-            label = { Text(stringResource(R.string.telefono_label)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), // Sugiere teclado numérico
-            singleLine = true
-        )
+            // Campo para el Teléfono del Cliente
+            OutlinedTextField(
+                value = telefonoCliente,
+                onValueChange = { telefonoCliente = it },
+                label = { Text(stringResource(R.string.telefono_label)) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), // Sugiere teclado numérico
+                singleLine = true
+            )
 
-        // Botón para guardar el nuevo cliente
-        Button(
-            onClick = {
-                clienteModel.agregarNuevoCliente(
-                    nombre = nombreCliente,
-                    direccion = direccionCliente,
-                    telefono = telefonoCliente,
-                    localidad = localidadCliente,
-                    coordenadas = coordenadasCliente
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = nombreCliente.isNotBlank() && direccionCliente.isNotBlank() && localidadCliente.isNotBlank() && telefonoCliente.isNotBlank() && addState !is AddClienteUiState.Loading
-        ) {
-            if (addState is AddClienteUiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.guardar_cliente))
+            // Botón para guardar el nuevo cliente
+            Button(
+                onClick = {
+                    clienteModel.agregarNuevoCliente(
+                        nombre = nombreCliente,
+                        direccion = direccionCliente,
+                        telefono = telefonoCliente,
+                        localidad = localidadCliente,
+                        coordenadas = coordenadasCliente
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = nombreCliente.isNotBlank() && direccionCliente.isNotBlank() && localidadCliente.isNotBlank() && telefonoCliente.isNotBlank() && addState !is AddClienteUiState.Loading
+            ) {
+                if (addState is AddClienteUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text(stringResource(R.string.guardar_cliente))
+                }
             }
-        }
 
-        // Separador visual si quieres (opcional)
-        Divider(modifier = Modifier.padding(vertical = 16.dp))
+            // Separador visual si quieres (opcional)
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+        }
 
         Text(stringResource(R.string.buscar_existente_label), style = MaterialTheme.typography.titleMedium) // Añadido para dar contexto al buscador
 
@@ -254,6 +274,7 @@ fun BuscarCliente(
     val clientes = clienteModel.clientes
 
     val clienteSeleccionado by clienteModel.clienteParaDropDown
+    val puedeEditar = LocalSessionPermissions.current.tiene(Permiso.CLIENTES_EDITAR)
 
     var mostrarDialogoAgenda by remember { mutableStateOf(false) }
 
@@ -314,7 +335,8 @@ fun BuscarCliente(
                     tono = tonoSaldo(saldo)
                 )
             ),
-            acciones = listOf(
+            // Editing, deleting and the delivery days need clientes.editar
+            acciones = listOfNotNull(
                 AccionDetalle(stringResource(R.string.ver_cuenta_label), Icons.Filled.ShoppingCart, principal = true) {
                     navController.navigate(Deuda(id = cliente.idCl.toString()))
                     clienteModel.clienteParaDropDown.value = null
@@ -322,16 +344,16 @@ fun BuscarCliente(
                 AccionDetalle(stringResource(R.string.dias_reparto_label), Icons.Filled.DateRange) {
                     diasSeleccionadosAgenda = agendaModel.diasEntregaById.value
                     mostrarDialogoAgenda = true
-                }
+                }.takeIf { puedeEditar }
             ),
             onEditar = {
                 navController.navigate(ClienteEditar(id = cliente.idCl))
                 clienteModel.clienteParaDropDown.value = null
-            },
+            }.takeIf { puedeEditar },
             onEliminar = {
                 clienteAEliminar = cliente
                 mostrarDialogoConfirmacion = true
-            }
+            }.takeIf { puedeEditar }
         )
     }
     if (mostrarDialogoAgenda) {

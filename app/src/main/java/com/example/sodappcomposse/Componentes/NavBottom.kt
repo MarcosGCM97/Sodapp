@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sodappcomposse.ContenidoBienvenida
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.auth.SessionPermissions
+import com.example.sodappcomposse.auth.seccionesVisibles
 import com.example.sodappcomposse.ui.theme.SodAppComposseTheme
 
 // Colores personalizados según especificación
@@ -40,7 +42,9 @@ private val GrayInactive = Color(0xFFC8CFD8)
 @Composable
 fun NavBottom(
     currentRoute: ContenidoBienvenida,
-    onContenidoSeleccionado: (ContenidoBienvenida) -> Unit
+    onContenidoSeleccionado: (ContenidoBienvenida) -> Unit,
+    // Defaults to the owner's sections (every one), as in the previews
+    secciones: List<ContenidoBienvenida> = seccionesVisibles(SessionPermissions(esDueno = true))
 ) {
     Box(
         modifier = Modifier
@@ -54,37 +58,21 @@ fun NavBottom(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Ítem VENTAS
-            ExpandableNavItem(
-                label = "Ventas",
-                iconResId = R.drawable.outline_format_list_bulleted_24,
-                isSelected = currentRoute == ContenidoBienvenida.VENTAS,
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.VENTAS) }
-            )
-
-            // Ítem CLIENTES
-            ExpandableNavItem(
-                label = "Clientes",
-                iconResId = R.drawable.outline_person_add_24,
-                isSelected = currentRoute == ContenidoBienvenida.CLIENTES,
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CLIENTES) }
-            )
-
-            // Ítem STOCK (Inventario)
-            ExpandableNavItem(
-                label = "Inventario",
-                iconResId = R.drawable.outline_stacked_inbox_24,
-                isSelected = currentRoute == ContenidoBienvenida.STOCK,
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.STOCK) }
-            )
-
-            // Ítem CAJA
-            ExpandableNavItem(
-                label = "Caja",
-                iconResId = R.drawable.outline_money_bag_24,
-                isSelected = currentRoute == ContenidoBienvenida.CAJA,
-                onClick = { onContenidoSeleccionado(ContenidoBienvenida.CAJA) }
-            )
+            // Only the sections the user's permissions allow, always in this order
+            secciones.forEach { seccion ->
+                val (label, icono) = when (seccion) {
+                    ContenidoBienvenida.VENTAS -> "Ventas" to R.drawable.outline_format_list_bulleted_24
+                    ContenidoBienvenida.CLIENTES -> "Clientes" to R.drawable.outline_person_add_24
+                    ContenidoBienvenida.STOCK -> "Inventario" to R.drawable.outline_stacked_inbox_24
+                    ContenidoBienvenida.CAJA -> "Caja" to R.drawable.outline_money_bag_24
+                }
+                ExpandableNavItem(
+                    label = label,
+                    iconResId = icono,
+                    isSelected = currentRoute == seccion,
+                    onClick = { onContenidoSeleccionado(seccion) }
+                )
+            }
         }
     }
 }

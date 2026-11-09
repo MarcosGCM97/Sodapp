@@ -1,6 +1,12 @@
 package com.example.sodappcomposse.API
 
-import com.example.sodappcomposse.Caja.DataCajaResponse
+import com.example.sodappcomposse.Administracion.ActualizarUsuarioRequest
+import com.example.sodappcomposse.Administracion.AdminResponse
+import com.example.sodappcomposse.Administracion.CrearUsuarioRequest
+import com.example.sodappcomposse.Administracion.RolRequest
+import com.example.sodappcomposse.Administracion.RolesResponse
+import com.example.sodappcomposse.Administracion.UsuariosResponse
+import com.example.sodappcomposse.Caja.ReporteResponse
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
 import com.example.sodappcomposse.Cliente.ClienteResponse
@@ -9,7 +15,6 @@ import com.example.sodappcomposse.Cliente.DiasEntrega
 import com.example.sodappcomposse.Cliente.DeudoresResponse
 import com.example.sodappcomposse.Cliente.FormasPagoResponse
 import com.example.sodappcomposse.Cliente.PagosResponse
-import com.example.sodappcomposse.Caja.CobrosMesResponse
 import com.example.sodappcomposse.Cliente.DiasEntregaUpdateRequest
 import com.example.sodappcomposse.Cliente.DiasEntregaByid
 import com.example.sodappcomposse.Cliente.TodosLosDias
@@ -45,6 +50,10 @@ interface ApiServices {
     suspend fun login(
         @Body usuarioRequest: UsuarioRequest
     ): Response<UsuarioResponse>
+
+    // Current user's permissions; used to refresh a saved session when the app starts
+    @GET("sesion.php")
+    suspend fun getSesion(): Response<SesionResponse>
 
     //@GET("getUsuario.php")
     //suspend fun getUsuario(): Response<Usuario>
@@ -136,9 +145,6 @@ interface ApiServices {
     @GET("pagos.php")
     suspend fun getPagosCliente(@Query("clienteId") clienteId: Int): Response<PagosResponse>
 
-    @GET("pagos.php")
-    suspend fun getCobrosPorMes(@Query("mes") mes: Int): Response<CobrosMesResponse>
-
     @GET("envases.php")
     suspend fun getEnvasesCliente(@Query("clienteId") clienteId: Int): Response<EnvasesClienteResponse>
 
@@ -151,8 +157,14 @@ interface ApiServices {
     @GET("movimientos.php")
     suspend fun getMovimientos(@Query("productoId") productoId: Int): Response<MovimientosResponse>
 
-    @GET("cajaMes.php")
-    suspend fun getCajaPorMes(@Query("mes") mes: Int): Response<DataCajaResponse>
+    // Sales and payments report of an inclusive range (yyyy-MM-dd); comp* is the comparison period
+    @GET("reporte.php")
+    suspend fun getReporte(
+        @Query("desde") desde: String,
+        @Query("hasta") hasta: String,
+        @Query("compDesde") compDesde: String,
+        @Query("compHasta") compHasta: String
+    ): Response<ReporteResponse>
 
     @GET("dias.php")
     suspend fun getDiasEntrega(): Response<TodosLosDias>
@@ -179,7 +191,26 @@ interface ApiServices {
 
     @POST("ruta.php")
     suspend fun accionRuta(@Body request: RutaAccionRequest): Response<RutaResponse>
+
+    // User and role administration (owner only; anyone else gets 403)
+    @GET("usuarios.php")
+    suspend fun getUsuarios(): Response<UsuariosResponse>
+
+    @POST("usuarios.php")
+    suspend fun crearUsuario(@Body request: CrearUsuarioRequest): Response<AdminResponse>
+
+    @PUT("usuarios.php")
+    suspend fun actualizarUsuario(@Body request: ActualizarUsuarioRequest): Response<AdminResponse>
+
+    @GET("roles.php")
+    suspend fun getRoles(): Response<RolesResponse>
+
+    @POST("roles.php")
+    suspend fun crearRol(@Body request: RolRequest): Response<AdminResponse>
+
+    @PUT("roles.php")
+    suspend fun actualizarRol(@Body request: RolRequest): Response<AdminResponse>
+
+    @DELETE("roles.php")
+    suspend fun eliminarRol(@Query("id") id: Int): Response<AdminResponse>
 }
-
-
-

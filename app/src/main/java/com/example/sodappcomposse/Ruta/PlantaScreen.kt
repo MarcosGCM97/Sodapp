@@ -1,5 +1,8 @@
 package com.example.sodappcomposse.Ruta
 
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.Permiso
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +34,8 @@ import com.example.sodappcomposse.R
 fun PlantaScreen(navController: NavController, viewModel: RutaViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val planta by viewModel.planta
+    // Saving the plant address is a write (repartos.gestionar)
+    val gestionar = LocalSessionPermissions.current.tiene(Permiso.REPARTOS_GESTIONAR)
     val uiState by viewModel.uiState
     var direccion by remember { mutableStateOf("") }
     var localidad by remember { mutableStateOf("") }
@@ -88,7 +93,7 @@ fun PlantaScreen(navController: NavController, viewModel: RutaViewModel = hiltVi
                 onCambiar = { coordenadas = it }
             )
             val guardando = uiState is ProductoUiState.Loading
-            Button(
+            if (gestionar) Button(
                 onClick = { viewModel.guardarPlanta(direccion, localidad, coordenadas?.first, coordenadas?.second) },
                 enabled = direccion.isNotBlank() && localidad.isNotBlank() && !guardando,
                 modifier = Modifier.fillMaxWidth()

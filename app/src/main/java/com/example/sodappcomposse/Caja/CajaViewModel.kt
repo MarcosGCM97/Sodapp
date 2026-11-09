@@ -1,170 +1,92 @@
 package com.example.sodappcomposse.Caja
 
 import androidx.annotation.StringRes
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sodappcomposse.R
+import com.example.sodappcomposse.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
-sealed class CajaUiState {
-    object Idle : CajaUiState()
-    object Loading : CajaUiState()
-    object Empty : CajaUiState()
-    data class Error(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : CajaUiState() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Error) return false
-            if (messageRes != other.messageRes) return false
-            if (!args.contentEquals(other.args)) return false
-            return true
-        }
-        override fun hashCode(): Int {
-            var result = messageRes
-            result = 31 * result + args.contentHashCode()
-            return result
-        }
-    }
-    data class Success(@StringRes val messageRes: Int, val args: Array<Any> = emptyArray()) : CajaUiState() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Success) return false
-            if (messageRes != other.messageRes) return false
-            if (!args.contentEquals(other.args)) return false
-            return true
-        }
-        override fun hashCode(): Int {
-            var result = messageRes
-            result = 31 * result + args.contentHashCode()
-            return result
-        }
-    }
-}
-
-data class CajaTotales(
-    val cantidadPorProducto: Map<String, CantidadDeVentasPorProducto> = emptyMap(),
-    val cantidadTotal: Int = 0,
-    val montoTotal: Double = 0.0
-)
-
-sealed class CobrosUiState {
-    object Idle : CobrosUiState()
-    object Loading : CobrosUiState()
-    data class Success(val totales: List<CobroForma>) : CobrosUiState() {
-        val total: Double get() = totales.sumOf { it.total }
-    }
-    data class Error(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : CobrosUiState()
+sealed class ReporteUiState {
+    object Loading : ReporteUiState()
+    data class Success(val reporte: Reporte) : ReporteUiState()
+    data class Error(@StringRes val messageRes: Int, val args: List<Any> = emptyList()) : ReporteUiState()
 }
 
 @HiltViewModel
 class CajaViewModel @Inject constructor(
-    private val cajaRepository: CajaRepository
+    private val cajaRepository: CajaRepository,
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    private val _caja = MutableStateFlow(emptyCaja())
+    // Header of the exported PDF
+    val nombreEmpresa: Flow<String?> = userPreferencesRepository.userName
 
-    // Totals use the amount stored at sale time (vt_mon), so later price
-    // changes never alter past cash reports.
-    val cajaTotales: StateFlow<CajaTotales> = _caja.map { response ->
-        val items = response.caja ?: emptyList()
-        val grouped = items.groupBy { it.producto.ifBlank { PRODUCTO_DESCONOCIDO } }.mapValues { (producto, ventas) ->
-            CantidadDeVentasPorProducto(
-                producto = producto,
-                cantidad = ventas.sumOf { it.cantidad },
-                monto = ventas.sumOf { it.monto }
-            )
-        }
-        CajaTotales(
-            cantidadPorProducto = grouped,
-            cantidadTotal = items.sumOf { it.cantidad },
-            montoTotal = items.sumOf { it.monto }
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CajaTotales())
+    // Today's date; replaced in tests
+    internal var hoy: () -> LocalDate = { LocalDate.now() }
 
-    private val _mesSeleccionadoUi = MutableStateFlow<Meses?>(null)
-    val mesSeleccionadoUi: StateFlow<Meses?> = _mesSeleccionadoUi.asStateFlow()
+    private val _periodo = MutableStateFlow(Periodo.de(TipoPeriodo.MES, LocalDate.now()))
+    val periodo: StateFlow<Periodo> = _periodo.asStateFlow()
 
-    // Month the currently displayed data belongs to (null when nothing is loaded)
-    private val _mesCargado = MutableStateFlow<Meses?>(null)
-    val mesCargado: StateFlow<Meses?> = _mesCargado.asStateFlow()
-
-    var cajaUiState: CajaUiState by mutableStateOf(CajaUiState.Idle)
-        private set
-
-    // Money collected in the loaded month per payment method (Cobros tab)
-    var cobrosUiState: CobrosUiState by mutableStateOf(CobrosUiState.Idle)
-        private set
+    private val _uiState = MutableStateFlow<ReporteUiState>(ReporteUiState.Loading)
+    val uiState: StateFlow<ReporteUiState> = _uiState.asStateFlow()
 
     private var cargaJob: Job? = null
 
-    fun seleccionarMes(mes: Meses) {
-        if (_mesSeleccionadoUi.value == mes) {
-            return
-        }
-        _mesSeleccionadoUi.value = mes
-        // Drop any in-flight request and stale data from the previous month
-        cargaJob?.cancel()
-        cargaJob = null
-        _caja.value = emptyCaja()
-        _mesCargado.value = null
-        cajaUiState = CajaUiState.Idle
-        cobrosUiState = CobrosUiState.Idle
+    init {
+        cargar()
     }
 
-    fun getCajaPorMes() {
-        val mes = _mesSeleccionadoUi.value ?: return
+    // Switching the kind keeps the day the user was looking at (the start of the current period)
+    fun seleccionarTipo(tipo: TipoPeriodo) {
+        val actual = _periodo.value
+        if (actual.tipo == tipo) return
+        val referencia = if (actual.contiene(hoy())) hoy() else actual.desde
+        seleccionarPeriodo(Periodo.de(tipo, referencia))
+    }
 
+    fun seleccionarFecha(fecha: LocalDate) {
+        seleccionarPeriodo(Periodo.de(_periodo.value.tipo, minOf(fecha, hoy())))
+    }
+
+    fun anterior() = seleccionarPeriodo(_periodo.value.anterior())
+
+    fun siguiente() {
+        if (puedeAvanzar()) seleccionarPeriodo(_periodo.value.siguiente())
+    }
+
+    // Future periods have no data yet
+    fun puedeAvanzar(): Boolean = _periodo.value.hasta.isBefore(hoy())
+
+    fun reintentar() = cargar()
+
+    internal fun seleccionarPeriodo(periodo: Periodo) {
+        if (periodo == _periodo.value) return
+        _periodo.value = periodo
+        cargar()
+    }
+
+    private fun cargar() {
+        val periodo = _periodo.value
+        // Drop any in-flight request so a slow answer of another period never shows
         cargaJob?.cancel()
-        cajaUiState = CajaUiState.Loading
-        cobrosUiState = CobrosUiState.Loading
-        _caja.value = emptyCaja()
-        _mesCargado.value = null
-
+        _uiState.value = ReporteUiState.Loading
         cargaJob = viewModelScope.launch {
-            val result = cajaRepository.getCajaPorMes(mes.numero)
+            val result = cajaRepository.getReporte(periodo)
             ensureActive()
-            if (_mesSeleccionadoUi.value != mes) return@launch
-
-            when (result) {
-                is CajaResult.Success -> {
-                    _caja.value = result.data
-                    _mesCargado.value = mes
-                    cajaUiState = if (result.data.caja.isNullOrEmpty()) {
-                        CajaUiState.Empty
-                    } else {
-                        CajaUiState.Success(R.string.datos_cargados_success)
-                    }
-                }
-                is CajaResult.Error -> {
-                    cajaUiState = CajaUiState.Error(result.messageRes, result.args)
-                }
-            }
-
-            // Sales and payments are independent: a failure in one never hides the other
-            val cobros = cajaRepository.getCobrosPorMes(mes.numero)
-            ensureActive()
-            if (_mesSeleccionadoUi.value != mes) return@launch
-            cobrosUiState = when (cobros) {
-                is CobrosResult.Success -> CobrosUiState.Success(cobros.totales)
-                is CobrosResult.Error -> CobrosUiState.Error(cobros.messageRes, cobros.args)
+            if (_periodo.value != periodo) return@launch
+            _uiState.value = when (result) {
+                is ReporteResult.Success -> ReporteUiState.Success(result.reporte)
+                is ReporteResult.Error -> ReporteUiState.Error(result.messageRes, result.args)
             }
         }
-    }
-
-    private companion object {
-        const val PRODUCTO_DESCONOCIDO = "Producto Desconocido"
-        fun emptyCaja() = DataCajaResponse(success = false, caja = emptyList())
     }
 }
