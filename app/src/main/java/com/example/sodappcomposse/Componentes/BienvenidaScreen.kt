@@ -1,5 +1,6 @@
 package com.example.sodappcomposse.Componentes
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
@@ -118,6 +119,13 @@ fun BienvenidaScreen(
     val permisos = LocalSessionPermissions.current
     val secciones = seccionesVisibles(permisos)
     val seccion = seccionInicial(permisos, contenidoActual)
+    // This is the root screen, so the system back would close the app: it returns to Ventas
+    // from any other section and does nothing on Ventas.
+    // Without Ventas, seccionInicial falls back to the first visible section. Detail screens above it keep
+    // their own back, because this handler is only active while this screen is shown.
+    BackHandler {
+        contenidoActual = ContenidoBienvenida.VENTAS
+    }
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
