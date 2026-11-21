@@ -37,6 +37,7 @@ import com.example.sodappcomposse.auth.puedeAdministrar
 import com.example.sodappcomposse.AdminUsuarios
 import com.example.sodappcomposse.DatosEmpresa
 import com.example.sodappcomposse.Gastos.GastosScreen
+import com.example.sodappcomposse.MensajesWhatsApp
 import com.example.sodappcomposse.auth.seccionesVisibles
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -153,7 +154,8 @@ fun BienvenidaScreen(
                 onToggleTheme = { themeViewModel.toggleTheme(isDark) },
                 navLogin = navLogin,
                 onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) },
-                onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeAdministrar(permisos) }
+                onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeAdministrar(permisos) },
+                onMensajes = { navController.navigate(MensajesWhatsApp) }.takeIf { puedeAdministrar(permisos) }
             )
         },
         bottomBar = {

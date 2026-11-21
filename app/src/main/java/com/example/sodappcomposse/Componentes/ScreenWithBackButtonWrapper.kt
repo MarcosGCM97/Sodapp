@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.sodappcomposse.DatosEmpresa
+import com.example.sodappcomposse.MensajesWhatsApp
 import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.puedeAdministrar
 
@@ -36,13 +37,17 @@ fun ScreenWithBackButtonWrapper(
     themeViewModel: ThemeViewModel = hiltViewModel(),
     // False on the company data screen itself, so the menu does not open it again
     mostrarDatosEmpresa: Boolean = true,
+    // False on the WhatsApp messages screen itself, for the same reason
+    mostrarMensajes: Boolean = true,
     content: @Composable () -> Unit // El contenido principal de la pantalla
 ) {
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
     val isDark = themeMode ?: isSystemDark
-    val puedeEditarEmpresa = mostrarDatosEmpresa && puedeAdministrar(LocalSessionPermissions.current)
+    val esDueno = puedeAdministrar(LocalSessionPermissions.current)
+    val puedeEditarEmpresa = mostrarDatosEmpresa && esDueno
+    val puedeEditarMensajes = mostrarMensajes && esDueno
 
     Scaffold(
         topBar = {
@@ -60,7 +65,8 @@ fun ScreenWithBackButtonWrapper(
                     HeaderOverflowMenu(
                         isDark = isDark,
                         onToggleTheme = { themeViewModel.toggleTheme(isDark) },
-                        onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeEditarEmpresa }
+                        onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeEditarEmpresa },
+                        onMensajes = { navController.navigate(MensajesWhatsApp) }.takeIf { puedeEditarMensajes }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

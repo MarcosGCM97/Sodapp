@@ -449,4 +449,15 @@
     <string name="mensaje_plantilla_guardada">Mensaje guardado.</string>
     <string name="mensaje_plantilla_restaurada">Se restauró el mensaje por defecto.</string>
     <string name="mensaje_plantilla_vacia">Escriba el texto del mensaje.</string>
+    <string name="mensajes_titulo">Mensajes de WhatsApp</string>
+    <string name="mensajes_ayuda">Personalice los mensajes que se envían a los clientes. Las variables entre llaves se reemplazan por los datos de cada cliente al enviar.</string>
+    <string name="mensajes_personalizado">Mensaje personalizado</string>
+    <string name="mensajes_por_defecto">Mensaje por defecto</string>
+    <string name="mensajes_texto_label">Texto del mensaje</string>
+    <string name="mensajes_contador_format">%1$d / %2$d</string>
+    <string name="mensajes_variables_label">Toque una variable para agregarla donde está el cursor:</string>
+    <string name="mensajes_vista_previa">Vista previa</string>
+    <string name="mensajes_restaurar">Restaurar mensaje por defecto</string>
+    <string name="mensajes_ejemplo_cliente">Ana</string>
+    <string name="mensajes_ejemplo_producto">Bidón 20 L</string>
 </resources>

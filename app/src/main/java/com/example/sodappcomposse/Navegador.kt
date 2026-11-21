@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.sodappcomposse.Administracion.AdministracionScreen
 import com.example.sodappcomposse.Empresa.DatosEmpresaScreen
+import com.example.sodappcomposse.Mensajes.MensajesScreen
 import com.example.sodappcomposse.Cliente.ClienteEditarScreen
 import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
@@ -67,6 +68,10 @@ data class RegistrarGasto(val repartoId: Int)
 // Owner-only company data (name, phone, address)
 @Serializable
 object DatosEmpresa
+
+// Owner-only WhatsApp message templates (deuda, envases, venta)
+@Serializable
+object MensajesWhatsApp
 
 @Composable
 fun Navigator(
@@ -168,6 +173,10 @@ fun Navigator(
 
             composable<DatosEmpresa> {
                 DatosEmpresaScreen(navController = navController)
+            }
+
+            composable<MensajesWhatsApp> {
+                MensajesScreen(navController = navController)
             }
         }
     }

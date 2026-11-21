@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -25,38 +26,46 @@ import com.example.sodappcomposse.R
 /** Options of the ⋮ menu of the top bars. */
 enum class OpcionMenuEncabezado {
     TEMA,
-    DATOS_EMPRESA;
+    DATOS_EMPRESA,
+    MENSAJES;
 
     /** The theme option names the mode it switches to, like the old toggle button. */
     @StringRes
     fun textoRes(isDark: Boolean): Int = when (this) {
         TEMA -> if (isDark) R.string.tema_claro_desc else R.string.tema_oscuro_desc
         DATOS_EMPRESA -> R.string.empresa_titulo
+        MENSAJES -> R.string.mensajes_titulo
     }
 
     /** Drawable of the option; null when it uses a Material icon. */
     @DrawableRes
     fun iconoRes(isDark: Boolean): Int? = when (this) {
         TEMA -> if (isDark) R.drawable.outline_light_mode_24 else R.drawable.outline_dark_mode_24
-        DATOS_EMPRESA -> null
+        DATOS_EMPRESA, MENSAJES -> null
     }
 }
 
-/** Menu options in order; the company data only for whoever can edit it (the owner). */
-fun opcionesMenuEncabezado(puedeEditarEmpresa: Boolean): List<OpcionMenuEncabezado> = buildList {
+/** Menu options in order; the company data and the messages only for whoever can edit them (the owner). */
+fun opcionesMenuEncabezado(
+    puedeEditarEmpresa: Boolean,
+    puedeEditarMensajes: Boolean = false
+): List<OpcionMenuEncabezado> = buildList {
     add(OpcionMenuEncabezado.TEMA)
     if (puedeEditarEmpresa) add(OpcionMenuEncabezado.DATOS_EMPRESA)
+    if (puedeEditarMensajes) add(OpcionMenuEncabezado.MENSAJES)
 }
 
 /**
- * ⋮ button of the top bars with the light/dark switch and, when [onDatosEmpresa] is not null,
- * the company data entry. Presentational: the caller decides what each option does.
+ * ⋮ button of the top bars with the light/dark switch and, when [onDatosEmpresa] or
+ * [onMensajes] is not null, the company data and WhatsApp messages entries.
+ * Presentational: the caller decides what each option does.
  */
 @Composable
 fun HeaderOverflowMenu(
     isDark: Boolean,
     onToggleTheme: () -> Unit,
     onDatosEmpresa: (() -> Unit)? = null,
+    onMensajes: (() -> Unit)? = null,
     tint: Color = LocalContentColor.current
 ) {
     var abierto by remember { mutableStateOf(false) }
@@ -70,15 +79,18 @@ fun HeaderOverflowMenu(
             )
         }
         DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
-            opcionesMenuEncabezado(puedeEditarEmpresa = onDatosEmpresa != null).forEach { opcion ->
+            opcionesMenuEncabezado(
+                puedeEditarEmpresa = onDatosEmpresa != null,
+                puedeEditarMensajes = onMensajes != null
+            ).forEach { opcion ->
                 DropdownMenuItem(
                     text = { Text(stringResource(opcion.textoRes(isDark))) },
                     leadingIcon = {
                         val icono = opcion.iconoRes(isDark)
-                        if (icono != null) {
-                            Icon(painter = painterResource(icono), contentDescription = null)
-                        } else {
-                            Icon(imageVector = Icons.Filled.Home, contentDescription = null)
+                        when {
+                            icono != null -> Icon(painter = painterResource(icono), contentDescription = null)
+                            opcion == OpcionMenuEncabezado.MENSAJES -> Icon(imageVector = Icons.Filled.Email, contentDescription = null)
+                            else -> Icon(imageVector = Icons.Filled.Home, contentDescription = null)
                         }
                     },
                     onClick = {
@@ -86,6 +98,7 @@ fun HeaderOverflowMenu(
                         when (opcion) {
                             OpcionMenuEncabezado.TEMA -> onToggleTheme()
                             OpcionMenuEncabezado.DATOS_EMPRESA -> onDatosEmpresa?.invoke()
+                            OpcionMenuEncabezado.MENSAJES -> onMensajes?.invoke()
                         }
                     }
                 )

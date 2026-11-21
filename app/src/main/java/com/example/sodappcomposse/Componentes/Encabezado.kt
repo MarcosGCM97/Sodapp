@@ -40,7 +40,9 @@ fun Encabezado(
     // Opens users and roles administration; null hides the entry (only the owner gets it)
     onAdministrar: (() -> Unit)? = null,
     // Opens the company data; null hides the menu entry (only the owner gets it)
-    onDatosEmpresa: (() -> Unit)? = null
+    onDatosEmpresa: (() -> Unit)? = null,
+    // Opens the WhatsApp message templates; null hides the menu entry (only the owner gets it)
+    onMensajes: (() -> Unit)? = null
 ) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
@@ -78,6 +80,7 @@ fun Encabezado(
                 isDark = isDark,
                 onToggleTheme = onToggleTheme,
                 onDatosEmpresa = onDatosEmpresa,
+                onMensajes = onMensajes,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
             onAdministrar?.let { abrir ->
