@@ -28,4 +28,7 @@ object Permiso {
     const val STOCK_VER = "stock.ver"
     const val STOCK_EDITAR = "stock.editar"
     const val CAJA_VER = "caja.ver"
+    const val GASTOS_VER = "gastos.ver"
+    const val GASTOS_CARGAR = "gastos.cargar"
+    const val GASTOS_EDITAR = "gastos.editar"
 }
