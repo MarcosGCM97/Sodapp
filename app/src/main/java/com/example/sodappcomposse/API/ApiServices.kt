@@ -8,6 +8,8 @@ import com.example.sodappcomposse.Administracion.RolesResponse
 import com.example.sodappcomposse.Administracion.UsuariosResponse
 import com.example.sodappcomposse.Empresa.EmpresaRequest
 import com.example.sodappcomposse.Empresa.EmpresaResponse
+import com.example.sodappcomposse.Mensajes.PlantillaRequest
+import com.example.sodappcomposse.Mensajes.PlantillasResponse
 import com.example.sodappcomposse.Caja.ReporteResponse
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
@@ -242,4 +244,14 @@ interface ApiServices {
 
     @PUT("empresa.php")
     suspend fun guardarEmpresa(@Body request: EmpresaRequest): Response<EmpresaResponse>
+
+    // WhatsApp templates: every user reads them, only the owner saves or restores them (403 otherwise)
+    @GET("mensajes.php")
+    suspend fun getPlantillas(): Response<PlantillasResponse>
+
+    @PUT("mensajes.php")
+    suspend fun guardarPlantilla(@Body request: PlantillaRequest): Response<PlantillasResponse>
+
+    @DELETE("mensajes.php")
+    suspend fun restaurarPlantilla(@Query("tipo") tipo: String): Response<PlantillasResponse>
 }

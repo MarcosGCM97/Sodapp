@@ -200,6 +200,11 @@
     <string name="wpp_estado_cuenta">Te compartimos el estado de tu cuenta:</string>
     <string name="wpp_consultas">Cualquier consulta, estamos para ayudarte 🙌</string>
     <string name="wpp_firma_format">%1$s 💧</string>
+    <string name="wpp_envases_intro">Te recordamos los envases retornables que quedaron en tu domicilio:</string>
+    <string name="wpp_envase_format">• %1$d %2$s</string>
+    <string name="mensaje_tipo_deuda">Deuda</string>
+    <string name="mensaje_tipo_envases">Envases</string>
+    <string name="mensaje_tipo_venta">Venta</string>
 
     <!-- Mensajes de UiState (ViewModels) -->
     <string name="error_red_verificar">Error de Red: Verifica tu conexión.</string>
@@ -441,4 +446,7 @@
     <string name="empresa_ayuda">El nombre se usa para firmar los mensajes de WhatsApp a los clientes.</string>
     <string name="empresa_nombre_requerido">Ingrese el nombre de la empresa.</string>
     <string name="empresa_guardada">Datos de la empresa guardados.</string>
+    <string name="mensaje_plantilla_guardada">Mensaje guardado.</string>
+    <string name="mensaje_plantilla_restaurada">Se restauró el mensaje por defecto.</string>
+    <string name="mensaje_plantilla_vacia">Escriba el texto del mensaje.</string>
 </resources>
