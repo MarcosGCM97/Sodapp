@@ -35,6 +35,7 @@ import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.seccionInicial
 import com.example.sodappcomposse.auth.puedeAdministrar
 import com.example.sodappcomposse.AdminUsuarios
+import com.example.sodappcomposse.DatosEmpresa
 import com.example.sodappcomposse.Gastos.GastosScreen
 import com.example.sodappcomposse.auth.seccionesVisibles
 import androidx.compose.ui.res.stringResource
@@ -151,7 +152,8 @@ fun BienvenidaScreen(
                 isDark = isDark,
                 onToggleTheme = { themeViewModel.toggleTheme(isDark) },
                 navLogin = navLogin,
-                onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) }
+                onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) },
+                onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeAdministrar(permisos) }
             )
         },
         bottomBar = {

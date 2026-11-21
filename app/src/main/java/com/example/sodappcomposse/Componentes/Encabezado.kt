@@ -26,7 +26,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
-/** Main top bar: app name, signed-in user, light/dark switch, administration (owner) and logout. */
+/**
+ * Main top bar: app name, signed-in user, the ⋮ menu (light/dark switch and company data for
+ * the owner), administration (owner) and logout.
+ */
 @Composable
 fun Encabezado(
     nombre: String,
@@ -35,7 +38,9 @@ fun Encabezado(
     // Ends the session and goes back to login (handled by the Navigator)
     navLogin: () -> Unit,
     // Opens users and roles administration; null hides the entry (only the owner gets it)
-    onAdministrar: (() -> Unit)? = null
+    onAdministrar: (() -> Unit)? = null,
+    // Opens the company data; null hides the menu entry (only the owner gets it)
+    onDatosEmpresa: (() -> Unit)? = null
 ) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
@@ -69,9 +74,10 @@ fun Encabezado(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.widthIn(max = 140.dp)
             )
-            ThemeToggleButton(
+            HeaderOverflowMenu(
                 isDark = isDark,
-                onToggle = onToggleTheme,
+                onToggleTheme = onToggleTheme,
+                onDatosEmpresa = onDatosEmpresa,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
             onAdministrar?.let { abrir ->

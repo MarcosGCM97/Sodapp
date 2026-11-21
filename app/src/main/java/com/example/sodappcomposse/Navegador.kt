@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.sodappcomposse.Administracion.AdministracionScreen
+import com.example.sodappcomposse.Empresa.DatosEmpresaScreen
 import com.example.sodappcomposse.Cliente.ClienteEditarScreen
 import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
@@ -62,6 +63,10 @@ object AdminUsuarios
 // Quick expense of a reparto (gastos.cargar)
 @Serializable
 data class RegistrarGasto(val repartoId: Int)
+
+// Owner-only company data (name, phone, address)
+@Serializable
+object DatosEmpresa
 
 @Composable
 fun Navigator(
@@ -159,6 +164,10 @@ fun Navigator(
             composable<RegistrarGasto> { backStackEntry ->
                 val route: RegistrarGasto = backStackEntry.toRoute()
                 RegistrarGastoScreen(navController = navController, repartoId = route.repartoId)
+            }
+
+            composable<DatosEmpresa> {
+                DatosEmpresaScreen(navController = navController)
             }
         }
     }

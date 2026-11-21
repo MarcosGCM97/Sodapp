@@ -23,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.sodappcomposse.DatosEmpresa
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.puedeAdministrar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,12 +34,15 @@ fun ScreenWithBackButtonWrapper(
     navController: NavController,
     title: String, // Título para la TopAppBar
     themeViewModel: ThemeViewModel = hiltViewModel(),
+    // False on the company data screen itself, so the menu does not open it again
+    mostrarDatosEmpresa: Boolean = true,
     content: @Composable () -> Unit // El contenido principal de la pantalla
 ) {
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
     val isDark = themeMode ?: isSystemDark
+    val puedeEditarEmpresa = mostrarDatosEmpresa && puedeAdministrar(LocalSessionPermissions.current)
 
     Scaffold(
         topBar = {
@@ -51,9 +57,10 @@ fun ScreenWithBackButtonWrapper(
                     }
                 },
                 actions = {
-                    ThemeToggleButton(
+                    HeaderOverflowMenu(
                         isDark = isDark,
-                        onToggle = { themeViewModel.toggleTheme(isDark) }
+                        onToggleTheme = { themeViewModel.toggleTheme(isDark) },
+                        onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeEditarEmpresa }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
