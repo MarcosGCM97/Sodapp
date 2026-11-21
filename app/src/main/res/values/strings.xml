@@ -460,4 +460,8 @@
     <string name="mensajes_restaurar">Restaurar mensaje por defecto</string>
     <string name="mensajes_ejemplo_cliente">Ana</string>
     <string name="mensajes_ejemplo_producto">Bidón 20 L</string>
+    <string name="mensajes_selector_titulo">¿Qué mensaje quiere enviar?</string>
+    <string name="mensajes_selector_sin_datos">Sin datos para este mensaje.</string>
+    <string name="mensajes_selector_sin_envases">El cliente no tiene envases retornables.</string>
+    <string name="mensajes_selector_sin_ventas">El cliente todavía no tiene ventas.</string>
 </resources>

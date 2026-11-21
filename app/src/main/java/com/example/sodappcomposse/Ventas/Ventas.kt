@@ -62,6 +62,8 @@ import com.example.sodappcomposse.Reparto.RepartoTab
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Funciones.ProductoMensaje
 import com.example.sodappcomposse.Funciones.armarMensajeVenta
+import com.example.sodappcomposse.Mensajes.MensajesViewModel
+import com.example.sodappcomposse.Mensajes.TipoPlantilla
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -112,15 +114,19 @@ fun Ventas(navController: NavController) {
 private fun TabVentas(
     ventaModel: VentasViewModel = hiltViewModel(),
     productoModel: ProductoViewModel = hiltViewModel(),
-    clienteModel: ClientesViewModel = hiltViewModel()
-){
+    clienteModel: ClientesViewModel = hiltViewModel(),
+    mensajesModel: MensajesViewModel = hiltViewModel()
+) {
     val TAG = "Ventas screen"
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         ventaModel.getVentas()
         productoModel.getProductos()
+        mensajesModel.cargar()
     }
+    // Owner template of the sale message; null keeps the default text
+    val plantillaVenta = mensajesModel.plantillas.value[TipoPlantilla.VENTA]
 
     val ventasUiState = ventaModel.ventasUiState
     val ventasAgrupadas by ventaModel.ventasAgrupadas.collectAsState()
@@ -161,7 +167,7 @@ private fun TabVentas(
             }
             ventasUiState is VentasUiState.Success -> {
                 items(ventasAgrupadas) { ventaAgrupada ->
-                    BoxVentas(venta = ventaAgrupada, context, nombreEmpresa)
+                    BoxVentas(venta = ventaAgrupada, context, nombreEmpresa, plantillaVenta)
                 }
             }
             else -> {
@@ -370,6 +376,7 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
     venta: VentaAgrupada,
     context: Context,
     nombreEmpresa: String?,
+    plantillaVenta: String? = null,
     clienteModel: ClientesViewModel = hiltViewModel()
  ) {
      //Agrupa las venntas por cliente y fecha, para que ambos productos cargados el mismo dia se vean en un mismo box
@@ -449,7 +456,8 @@ fun Modifier.borderBottom(width: Dp, color: Color): Modifier = this.then(
                     venta.productos.map { ProductoMensaje(it.cantidad, it.nombre, it.precio) },
                     total,
                     venta.cliente?.deudaCl,
-                    nombreEmpresa
+                    nombreEmpresa,
+                    plantillaVenta
                 ),
                 modifier = Modifier.align(Alignment.End)
             )
