@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sodappcomposse.Agenda
 import com.example.sodappcomposse.PlantaConfig
+import com.example.sodappcomposse.RegistrarGasto
 import com.example.sodappcomposse.PestanaVentas
 import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.Permiso
@@ -100,7 +101,8 @@ fun Ventas(navController: NavController) {
             PestanaVentas.VENTAS -> TabVentas()
             PestanaVentas.REPARTO -> RepartoTab(
                 onVerDias = { navController.navigate(Agenda) },
-                onConfigurarPlanta = { navController.navigate(PlantaConfig) }
+                onConfigurarPlanta = { navController.navigate(PlantaConfig) },
+                onRegistrarGasto = { repartoId -> navController.navigate(RegistrarGasto(repartoId)) }
             )
         }
     }

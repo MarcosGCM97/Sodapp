@@ -77,6 +77,8 @@ fun RepartoTab(
     onVerDias: () -> Unit,
     // Opens the plant setting (start and end of the route)
     onConfigurarPlanta: () -> Unit = {},
+    // Opens the quick expense form for the reparto (shown with gastos.cargar)
+    onRegistrarGasto: (Int) -> Unit = {},
     viewModel: RepartoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -88,6 +90,8 @@ fun RepartoTab(
     var paradaEntregando by remember { mutableStateOf<ParadaReparto?>(null) }
     // Creating, editing and delivering need repartos.gestionar; without it the tab is read-only
     val gestionar = LocalSessionPermissions.current.tiene(Permiso.REPARTOS_GESTIONAR)
+    // An expense on the way (a breakdown, fuel) is loaded from the reparto itself
+    val cargarGasto = LocalSessionPermissions.current.tiene(Permiso.GASTOS_CARGAR)
 
     LaunchedEffect(Unit) {
         viewModel.cargar()
@@ -140,6 +144,11 @@ fun RepartoTab(
                 onGuardarPlantilla = viewModel::guardarPlantilla,
                 gestionar = gestionar,
                 encabezado = {
+                    if (cargarGasto) {
+                        OutlinedButton(onClick = { onRegistrarGasto(actual.id) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.gasto_registrar))
+                        }
+                    }
                     if (actual.paradas.isNotEmpty()) {
                         RutaReparto(repartoId = actual.id, recarga = actual, onConfigurarPlanta = onConfigurarPlanta)
                     }

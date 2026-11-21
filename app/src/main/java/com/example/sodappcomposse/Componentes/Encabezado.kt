@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
-/** Main top bar: app name, signed-in user, light/dark switch, administration (owner) and logout. */
+/** Main top bar: app name, signed-in user, light/dark switch, expenses, administration (owner) and logout. */
 @Composable
 fun Encabezado(
     nombre: String,
@@ -35,7 +36,9 @@ fun Encabezado(
     // Ends the session and goes back to login (handled by the Navigator)
     navLogin: () -> Unit,
     // Opens users and roles administration; null hides the entry (only the owner gets it)
-    onAdministrar: (() -> Unit)? = null
+    onAdministrar: (() -> Unit)? = null,
+    // Opens the business expenses; null hides the entry (needs gastos.ver)
+    onGastos: (() -> Unit)? = null
 ) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
@@ -74,6 +77,15 @@ fun Encabezado(
                 onToggle = onToggleTheme,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
+            onGastos?.let { abrir ->
+                IconButton(onClick = abrir) {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingCart,
+                        contentDescription = stringResource(R.string.gastos_titulo),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
             onAdministrar?.let { abrir ->
                 IconButton(onClick = abrir) {
                     Icon(
