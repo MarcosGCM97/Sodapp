@@ -126,6 +126,31 @@ class AuthSessionTest {
     }
 
     @Test
+    fun `starting a session persists the company name`() = runTest {
+        session.startSession(userId = "5", userName = "marcos", token = "t", permissions = dueno, companyName = "Soderia La Calera")
+
+        coVerify { preferences.saveUserData("5", "marcos", "t", dueno, "Soderia La Calera") }
+    }
+
+    @Test
+    fun `updating the company name of the current session persists it`() = runTest {
+        session.currentToken()
+
+        session.updateCompanyName("Soderia La Calera", "stored-token")
+
+        coVerify { preferences.saveCompanyName("Soderia La Calera") }
+    }
+
+    @Test
+    fun `a company name for a previous session is ignored`() = runTest {
+        session.currentToken()
+
+        session.updateCompanyName("Otra", "old-token")
+
+        coVerify(exactly = 0) { preferences.saveCompanyName(any()) }
+    }
+
+    @Test
     fun `marking the session expired raises the expired flag`() {
         session.markExpired()
 

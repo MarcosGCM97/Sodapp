@@ -99,7 +99,8 @@ class LoginViewModel @Inject constructor(
                             // A different user may log in: never reuse data cached for the previous one
                             clearCachedUserData()
                             authSession.startSession(
-                                usuario.idUs.toString(), usuario.nombreUs, token, usuarioApi.sessionPermissions()
+                                usuario.idUs.toString(), usuario.nombreUs, token, usuarioApi.sessionPermissions(),
+                                usuarioApi.empresaNombre
                             )
                             LoginUiState.Success(R.string.login_success_format, arrayOf(usuario.nombreUs))
                         }
@@ -122,7 +123,10 @@ class LoginViewModel @Inject constructor(
             authSession.loadStoredPermissions()
             val token = authSession.currentToken()
             when (val result = authRepository.getSesion()) {
-                is SesionResult.Success -> authSession.updatePermissions(result.permissions, token)
+                is SesionResult.Success -> {
+                    authSession.updatePermissions(result.permissions, token)
+                    authSession.updateCompanyName(result.companyName, token)
+                }
                 SesionResult.Unauthorized -> authSession.markExpired()
                 is SesionResult.Error -> Unit
             }

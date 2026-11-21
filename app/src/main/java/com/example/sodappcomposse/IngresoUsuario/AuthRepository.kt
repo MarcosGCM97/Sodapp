@@ -28,7 +28,7 @@ sealed class AuthResult {
 }
 
 sealed class SesionResult {
-    data class Success(val permissions: SessionPermissions) : SesionResult()
+    data class Success(val permissions: SessionPermissions, val companyName: String? = null) : SesionResult()
     /** The server rejected the token: the session is over. */
     object Unauthorized : SesionResult()
     data class Error(val messageRes: Int, val args: Array<Any> = emptyArray()) : SesionResult() {
@@ -81,7 +81,7 @@ class AuthRepositoryImpl @Inject constructor(
                 response.code() == HTTP_UNAUTHORIZED -> SesionResult.Unauthorized
                 !response.isSuccessful -> SesionResult.Error(R.string.error_servidor_format, arrayOf(response.code()))
                 body == null || !body.success -> SesionResult.Error(R.string.cuerpo_nulo_error)
-                else -> SesionResult.Success(body.sessionPermissions())
+                else -> SesionResult.Success(body.sessionPermissions(), body.empresaNombre)
             }
         } catch (e: CancellationException) {
             throw e

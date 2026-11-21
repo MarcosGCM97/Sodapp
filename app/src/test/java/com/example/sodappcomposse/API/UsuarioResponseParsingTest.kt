@@ -80,6 +80,27 @@ class UsuarioResponseParsingTest {
     }
 
     @Test
+    fun `login and sesion responses expose the company name`() {
+        val login = gson.fromJson(
+            """{"success":true,"message":"ok","usuario":{"us_ide":5,"us_nom":"marcos"},"token":"t","empresa_nombre":"Soderia La Calera"}""",
+            UsuarioResponse::class.java
+        )
+        val sesion = gson.fromJson("""{"success":true,"us_ide":5,"empresa_nombre":"Soderia La Calera"}""", SesionResponse::class.java)
+
+        assertEquals("Soderia La Calera", login.empresaNombre)
+        assertEquals("Soderia La Calera", sesion.empresaNombre)
+    }
+
+    @Test
+    fun `responses without company name (unset or older backend) have none`() {
+        val login = gson.fromJson("""{"success":true,"message":"ok","token":"t","empresa_nombre":null}""", UsuarioResponse::class.java)
+        val sesion = gson.fromJson("""{"success":true,"us_ide":5}""", SesionResponse::class.java)
+
+        assertNull(login.empresaNombre)
+        assertNull(sesion.empresaNombre)
+    }
+
+    @Test
     fun `sesion response without permissions defaults to none`() {
         val json = """{"success":true,"us_ide":7,"us_nom":"juan"}"""
 

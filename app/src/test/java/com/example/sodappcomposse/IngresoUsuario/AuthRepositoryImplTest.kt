@@ -38,6 +38,17 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `getSesion returns the company name`() = runTest {
+        coEvery { apiServices.getSesion() } returns Response.success(
+            SesionResponse(success = true, idUs = 5, esDueno = true, permisos = emptyList(), empresaNombre = "Soderia La Calera")
+        )
+
+        val result = repository.getSesion() as SesionResult.Success
+
+        assertEquals("Soderia La Calera", result.companyName)
+    }
+
+    @Test
     fun `getSesion maps 401 to Unauthorized`() = runTest {
         coEvery { apiServices.getSesion() } returns
             Response.error(401, """{"success":false,"error":"Invalid or expired token"}""".toResponseBody())

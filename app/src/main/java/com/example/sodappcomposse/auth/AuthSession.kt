@@ -71,8 +71,14 @@ class AuthSession @Inject constructor(
         _sessionExpired.value = true
     }
 
-    suspend fun startSession(userId: String, userName: String, token: String, permissions: SessionPermissions) {
-        preferences.saveUserData(userId, userName, token, permissions)
+    suspend fun startSession(
+        userId: String,
+        userName: String,
+        token: String,
+        permissions: SessionPermissions,
+        companyName: String? = null
+    ) {
+        preferences.saveUserData(userId, userName, token, permissions, companyName)
         synchronized(lock) {
             cachedToken = token
             loaded = true
@@ -95,6 +101,15 @@ class AuthSession @Inject constructor(
         if (forToken == null || currentToken() != forToken) return
         preferences.savePermissions(permissions)
         _permissions.value = permissions
+    }
+
+    /**
+     * Replaces the company name of the session that owns [forToken] (refreshed from sesion.php
+     * or saved by the owner). Ignored for a previous session, like [updatePermissions].
+     */
+    suspend fun updateCompanyName(companyName: String?, forToken: String?) {
+        if (forToken == null || currentToken() != forToken) return
+        preferences.saveCompanyName(companyName)
     }
 
     suspend fun endSession() {

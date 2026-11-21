@@ -6,6 +6,8 @@ import com.example.sodappcomposse.Administracion.CrearUsuarioRequest
 import com.example.sodappcomposse.Administracion.RolRequest
 import com.example.sodappcomposse.Administracion.RolesResponse
 import com.example.sodappcomposse.Administracion.UsuariosResponse
+import com.example.sodappcomposse.Empresa.EmpresaRequest
+import com.example.sodappcomposse.Empresa.EmpresaResponse
 import com.example.sodappcomposse.Caja.ReporteResponse
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
@@ -233,4 +235,11 @@ interface ApiServices {
 
     @DELETE("gastos.php")
     suspend fun eliminarGasto(@Query("id") id: Int): Response<GastoResponse>
+
+    // Company data: every user reads it, only the owner saves it (anyone else gets 403)
+    @GET("empresa.php")
+    suspend fun getEmpresa(): Response<EmpresaResponse>
+
+    @PUT("empresa.php")
+    suspend fun guardarEmpresa(@Body request: EmpresaRequest): Response<EmpresaResponse>
 }
