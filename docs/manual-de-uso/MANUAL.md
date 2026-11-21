@@ -12,7 +12,7 @@ SodApp es la aplicación para gestionar el reparto de agua y soda: ventas, clien
 6. [Deuda del cliente](#6-deuda-del-cliente)
 7. [Productos e inventario](#7-productos-e-inventario)
 8. [Caja: ventas y cobros](#8-caja-ventas-y-cobros)
-9. [Modo oscuro y datos de la empresa](#9-modo-oscuro-y-datos-de-la-empresa)
+9. [Modo oscuro, datos de la empresa y mensajes](#9-modo-oscuro-datos-de-la-empresa-y-mensajes)
 10. [Preguntas frecuentes](#10-preguntas-frecuentes)
 
 > **Importante:** todas las acciones de guardar, cargar, saldar, eliminar o actualizar stock modifican los datos reales del negocio en el servidor. Revise los datos antes de confirmar.
@@ -51,7 +51,7 @@ La pantalla principal tiene tres zonas:
 | Bandeja | **Inventario** | Alta y edición de productos, control de stock. |
 | Bolsa de dinero | **Caja** | Ventas y cobros por día, semana o mes. |
 
-El botón de los **tres puntitos** (⋮) del encabezado abre un menú para cambiar entre modo claro y modo oscuro y, si es el dueño de la empresa, para cargar los datos de la empresa (ver [sección 9](#9-modo-oscuro-y-datos-de-la-empresa)).
+El botón de los **tres puntitos** (⋮) del encabezado abre un menú para cambiar entre modo claro y modo oscuro y, si es el dueño de la empresa, para cargar los datos de la empresa y personalizar los mensajes de WhatsApp (ver [sección 9](#9-modo-oscuro-datos-de-la-empresa-y-mensajes)).
 
 <img src="img/02-ventas.png" width="260" alt="Pantalla principal en la sección Ventas">
 
@@ -84,7 +84,7 @@ Si la venta se registró, aparece el mensaje **"Venta cargada correctamente"**, 
 
 Debajo del formulario se listan las ventas cargadas. Cada tarjeta muestra el cliente, la fecha, los productos con cantidad y precio unitario, el total y la cantidad total de ítems.
 
-El botón verde de **WhatsApp** abre WhatsApp con un resumen de la venta, listo para enviar al cliente. El mensaje va firmado con el nombre de la empresa (ver [Datos de la empresa](#92-datos-de-la-empresa)); mientras no esté cargado, se firma con el nombre del usuario.
+El botón verde de **WhatsApp** abre WhatsApp con un resumen de la venta, listo para enviar al cliente. El mensaje va firmado con el nombre de la empresa (ver [Datos de la empresa](#92-datos-de-la-empresa)); mientras no esté cargado, se firma con el nombre del usuario. Si el dueño personalizó el mensaje de **Venta** (ver [Mensajes de WhatsApp](#93-mensajes-de-whatsapp)), se usa ese texto.
 
 <img src="img/07-ventas-listado.png" width="260" alt="Listado de ventas con botón de WhatsApp">
 
@@ -236,7 +236,13 @@ Se abre con el botón del **carrito** en la tarjeta del cliente. Muestra los dat
 
 Los pagos se registran en **Clientes → pestaña Cobros** (ver [5.6 Cobros](#56-cobros)). En esta pantalla, el botón **Cobrar** lo lleva directamente a esa pestaña con el cliente ya elegido.
 
-Debajo hay dos botones de contacto: uno abre el **marcador telefónico** con el número del cliente y otro inicia una conversación por **WhatsApp**.
+Debajo hay dos botones de contacto: uno abre el **marcador telefónico** con el número del cliente y otro, el de **WhatsApp**, abre un menú para elegir qué mensaje enviar, con una vista previa de cada uno:
+
+- **Deuda**: el saldo de la cuenta del cliente.
+- **Envases**: los envases retornables que el cliente tiene en su poder. Aparece deshabilitado si no tiene envases.
+- **Venta**: el detalle de la última venta del cliente. Aparece deshabilitado si todavía no tiene ventas.
+
+Al tocar un mensaje se abre WhatsApp con ese texto, listo para enviar.
 
 ### 6.2 Compras y pagos
 
@@ -264,6 +270,8 @@ Los $6.000 que pagó por una venta que ya no existe quedan a su favor y se descu
 La tarjeta **Envases** muestra, por cada producto retornable, cuántos envases tiene el cliente en su poder. El saldo se actualiza solo con cada venta: suma los envases entregados y resta los **Envases devueltos**. Puede quedar negativo si el saldo inicial no se cargó.
 
 Para cargar el saldo inicial o corregirlo, presione el **lápiz** del producto, escriba la cantidad actual de envases del cliente y presione **Guardar**.
+
+Si el cliente tiene envases en su poder, el botón **Enviar** de WhatsApp abre WhatsApp con el recordatorio de envases, listo para enviar.
 
 ---
 
@@ -347,7 +355,7 @@ Esta sección es solo de consulta: no modifica datos.
 
 ---
 
-## 9. Modo oscuro y datos de la empresa
+## 9. Modo oscuro, datos de la empresa y mensajes
 
 El botón de los **tres puntitos** (⋮), arriba a la derecha de cada pantalla, abre un menú de opciones.
 
@@ -366,6 +374,18 @@ Solo el dueño de la empresa ve la opción **Datos de la empresa** en el menú �
 - **Dirección** (opcional, hasta 150 caracteres).
 
 Presione **Guardar**. Desde ese momento los mensajes de WhatsApp a los clientes van firmados con el nombre de la empresa, también los que envían los empleados (después de volver a ingresar o de reabrir la aplicación). Por ahora el mensaje lleva solo el nombre; el teléfono y la dirección quedan guardados para usos futuros.
+
+### 9.3 Mensajes de WhatsApp
+
+Solo el dueño de la empresa ve la opción **Mensajes de WhatsApp** en el menú ⋮. Ahí se personaliza el texto de los tres mensajes que se envían a los clientes:
+
+- **Deuda**: el saldo de la cuenta. Variables: `{cliente}`, `{saldo}`, `{empresa}`.
+- **Envases**: los envases retornables del cliente. Variables: `{cliente}`, `{envases}`, `{empresa}`.
+- **Venta**: el detalle de una venta. Variables: `{cliente}`, `{productos}`, `{total}`, `{saldo}`, `{empresa}`.
+
+Elija el mensaje con los botones de arriba y escriba el texto (hasta 1000 caracteres). Las variables se reemplazan al enviar por los datos de cada cliente: `{cliente}` es el nombre, `{saldo}` la línea del saldo (pendiente, a favor o al día), `{envases}` un renglón por envase, `{productos}` un renglón por producto con cantidad y precio, `{total}` el total de la venta y `{empresa}` el nombre de la empresa. Toque una variable para agregarla donde está el cursor. La **vista previa** muestra cómo queda el mensaje con datos de ejemplo.
+
+Presione **Guardar**. Si el texto usa una variable que no corresponde a ese mensaje, la aplicación muestra un error y no lo guarda. **Restaurar mensaje por defecto** borra el texto personalizado y vuelve al mensaje original. Mientras un mensaje no esté personalizado, se usa el mensaje por defecto.
 
 ---
 
