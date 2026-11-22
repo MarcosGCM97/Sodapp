@@ -18,6 +18,15 @@ class ReporteTest {
     ) = Reporte(periodo, resumen, ResumenAnterior(), emptyList(), emptyList(), emptyList(), emptyList(), detalle, primerCobro)
 
     @Test
+    fun `a period with only gastos still has movements`() {
+        assertTrue(reporte().sinMovimientos)
+        assertTrue(reporte().copy(gastos = GastosReporte(total = 0.0)).sinMovimientos)
+        assertFalse(reporte().copy(gastos = GastosReporte(total = 1500.0, neto = -1500.0)).sinMovimientos)
+        assertFalse(reporte(resumen = ResumenReporte(cobrado = 10.0)).sinMovimientos)
+        assertFalse(reporte(resumen = ResumenReporte(ventas = 1)).sinMovimientos)
+    }
+
+    @Test
     fun `week runs Monday to Sunday, also across months and years`() {
         assertEquals(Periodo(TipoPeriodo.SEMANA, LocalDate.of(2025, 12, 29), LocalDate.of(2026, 1, 4)),
             Periodo.de(TipoPeriodo.SEMANA, LocalDate.of(2026, 1, 1)))

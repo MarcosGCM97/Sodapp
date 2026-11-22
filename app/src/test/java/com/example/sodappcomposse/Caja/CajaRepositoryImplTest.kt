@@ -77,6 +77,17 @@ class CajaRepositoryImplTest {
     }
 
     @Test
+    fun `getReporte maps the gastos only when the backend sends them`() = runTest {
+        val gastos = GastosReporte(360.0, 90.0, GastosAnterior(120.0, -50.0), listOf(GastoCategoriaReporte("combustible", 360.0)))
+        coEvery { apiServices.getReporte(any(), any(), any(), any()) } returns Response.success(respuesta().copy(gastos = gastos))
+        assertEquals(gastos, (repository.getReporte(semana) as ReporteResult.Success).reporte.gastos)
+
+        // null for a user without gastos.ver
+        coEvery { apiServices.getReporte(any(), any(), any(), any()) } returns Response.success(respuesta())
+        assertEquals(null, (repository.getReporte(semana) as ReporteResult.Success).reporte.gastos)
+    }
+
+    @Test
     fun `getReporte rejects a response of another range`() = runTest {
         coEvery { apiServices.getReporte(any(), any(), any(), any()) } returns
             Response.success(respuesta(desde = "2026-03-09", hasta = "2026-03-15"))

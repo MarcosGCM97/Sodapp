@@ -31,6 +31,9 @@ import com.example.sodappcomposse.Producto.ProductoRequest
 import com.example.sodappcomposse.IngresoUsuario.UsuarioRequest
 import com.example.sodappcomposse.Producto.ProductoResponse
 import com.example.sodappcomposse.Producto.ProductoResponseByName
+import com.example.sodappcomposse.Gastos.GastoRequest
+import com.example.sodappcomposse.Gastos.GastoResponse
+import com.example.sodappcomposse.Gastos.GastosResponse
 import com.example.sodappcomposse.Ventas.VentaApiResponse
 import com.example.sodappcomposse.Ventas.VentaApiResponseById
 import com.example.sodappcomposse.Ventas.VentaRequest
@@ -213,4 +216,21 @@ interface ApiServices {
 
     @DELETE("roles.php")
     suspend fun eliminarRol(@Query("id") id: Int): Response<AdminResponse>
+
+    // Business expenses; purchases and refills move the stock on the backend
+    @GET("gastos.php")
+    suspend fun getGastos(
+        @Query("desde") desde: String,
+        @Query("hasta") hasta: String,
+        @Query("categoria") categoria: String?
+    ): Response<GastosResponse>
+
+    @POST("gastos.php")
+    suspend fun crearGasto(@Body request: GastoRequest): Response<GastoResponse>
+
+    @PUT("gastos.php")
+    suspend fun actualizarGasto(@Body request: GastoRequest): Response<GastoResponse>
+
+    @DELETE("gastos.php")
+    suspend fun eliminarGasto(@Query("id") id: Int): Response<GastoResponse>
 }

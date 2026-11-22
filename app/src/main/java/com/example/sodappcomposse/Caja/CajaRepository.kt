@@ -49,7 +49,8 @@ class CajaRepositoryImpl @Inject constructor(
                         clientes = body.clientes.orEmpty(),
                         dias = body.dias.orEmpty(),
                         detalle = body.detalle.orEmpty(),
-                        primerCobro = parseFechaHoraApi(body.primerCobro)
+                        primerCobro = parseFechaHoraApi(body.primerCobro),
+                        gastos = body.gastos
                     )
                 )
             }

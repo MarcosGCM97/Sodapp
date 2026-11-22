@@ -96,6 +96,32 @@ class ReportePdfTest {
     }
 
     @Test
+    fun `gastos print their total, the net cash and the categories after the summary`() {
+        val gastos = GastosReporte(
+            total = 360.0, neto = 90.0, anterior = GastosAnterior(total = 120.0, neto = -50.0),
+            categorias = listOf(GastoCategoriaReporte("combustible", 270.0), GastoCategoriaReporte("desconocida", 90.0))
+        )
+        val bloques = pdf(reporte().copy(gastos = gastos))
+        val i = bloques.indexOf(BloquePdf.Subtitulo(t(R.string.reporte_gastos_titulo)))
+        assertTrue(i > bloques.indexOf(BloquePdf.Subtitulo(t(R.string.pdf_resumen))))
+        assertEquals(
+            listOf(
+                BloquePdf.Fila(t(R.string.reporte_gastos), "\$360,00  (${t(R.string.reporte_vs_anterior, "+200,0%")})", negrita = true),
+                BloquePdf.Fila(t(R.string.reporte_neto_caja), "${precio(90.0)}  (${t(R.string.reporte_neto_anterior, precio(-50.0))})", negrita = true),
+                BloquePdf.Fila(t(R.string.gasto_categoria_combustible), "\$270,00  (75,0%)"),
+                BloquePdf.Fila("desconocida", "\$90,00  (25,0%)"),
+                BloquePdf.Texto(t(R.string.reporte_neto_ayuda))
+            ),
+            bloques.subList(i + 1, i + 6)
+        )
+    }
+
+    @Test
+    fun `without gastos the pdf has no gastos section`() {
+        assertFalse(pdf().contains(BloquePdf.Subtitulo(t(R.string.reporte_gastos_titulo))))
+    }
+
+    @Test
     fun `file name carries the period`() {
         assertEquals("reporte_2026-03-02_2026-03-08.pdf", nombreArchivoPdf(semana))
     }
