@@ -53,9 +53,9 @@ import java.util.Locale
 private val FORMATO_MES: DateTimeFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es", "AR"))
 private val FORMATO_DIA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM")
 
-/** Expenses of a month with a category filter and their total; loading and editing follow the permissions. */
+/** Gastos section of the bottom bar: expenses of a month with a category filter and their total; loading and editing follow the permissions. */
 @Composable
-fun GastosScreen(navController: NavController, viewModel: GastosViewModel = hiltViewModel()) {
+fun GastosScreen(viewModel: GastosViewModel = hiltViewModel()) {
     val permisos = LocalSessionPermissions.current
     val puedeCargar = permisos.tiene(Permiso.GASTOS_CARGAR)
     val puedeEditar = permisos.tiene(Permiso.GASTOS_EDITAR)
@@ -77,45 +77,43 @@ fun GastosScreen(navController: NavController, viewModel: GastosViewModel = hilt
         }
     }
 
-    ScreenWithBackButtonWrapper(navController = navController, title = stringResource(R.string.gastos_titulo)) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            SelectorMes(mes = mes, onCambiar = viewModel::cambiarMes)
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(selected = categoria == null, onClick = { viewModel.filtrar(null) }, label = { Text(stringResource(R.string.gastos_todas)) })
-                CategoriaGasto.entries.forEach { opcion ->
-                    FilterChip(
-                        selected = categoria == opcion,
-                        onClick = { viewModel.filtrar(opcion) },
-                        label = { Text(stringResource(opcion.etiqueta)) }
-                    )
-                }
-            }
-            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.gastos_total_format, formatearPrecio(periodo?.total ?: 0.0)),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        SelectorMes(mes = mes, onCambiar = viewModel::cambiarMes)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(selected = categoria == null, onClick = { viewModel.filtrar(null) }, label = { Text(stringResource(R.string.gastos_todas)) })
+            CategoriaGasto.entries.forEach { opcion ->
+                FilterChip(
+                    selected = categoria == opcion,
+                    onClick = { viewModel.filtrar(opcion) },
+                    label = { Text(stringResource(opcion.etiqueta)) }
                 )
-                if (puedeCargar) {
-                    Button(onClick = { formulario = FormularioGasto.Nuevo }) {
-                        Icon(Icons.Filled.Add, contentDescription = null)
-                        Text(stringResource(R.string.gasto_registrar))
-                    }
+            }
+        }
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.gastos_total_format, formatearPrecio(periodo?.total ?: 0.0)),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            if (puedeCargar) {
+                Button(onClick = { formulario = FormularioGasto.Nuevo }) {
+                    Icon(Icons.Filled.Add, contentDescription = null)
+                    Text(stringResource(R.string.gasto_registrar))
                 }
             }
-            val gastos = periodo?.gastos.orEmpty()
-            when {
-                uiState is GastosUiState.Loading && periodo == null -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-                gastos.isEmpty() -> Text(stringResource(R.string.gastos_vacio), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(24.dp))
-                else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(gastos, key = { it.id }) { gasto ->
-                        // Editing a stock expense also moves stock back, so it needs stock.editar
-                        val editable = puedeEditar && (puedeMoverStock || CategoriaGasto.desdeCodigo(gasto.categoria)?.mueveStock != true)
-                        GastoCard(gasto = gasto, onClick = { formulario = FormularioGasto.Editar(gasto) }.takeIf { editable })
-                    }
+        }
+        val gastos = periodo?.gastos.orEmpty()
+        when {
+            uiState is GastosUiState.Loading && periodo == null -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            gastos.isEmpty() -> Text(stringResource(R.string.gastos_vacio), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(24.dp))
+            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(gastos, key = { it.id }) { gasto ->
+                    // Editing a stock expense also moves stock back, so it needs stock.editar
+                    val editable = puedeEditar && (puedeMoverStock || CategoriaGasto.desdeCodigo(gasto.categoria)?.mueveStock != true)
+                    GastoCard(gasto = gasto, onClick = { formulario = FormularioGasto.Editar(gasto) }.takeIf { editable })
                 }
             }
         }

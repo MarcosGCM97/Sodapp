@@ -387,7 +387,6 @@
     <string name="guardar">Guardar</string>
     <string name="sin_secciones_disponibles">No hay secciones disponibles para su usuario. Consulte con el dueño de la empresa.</string>
     <!-- Gastos -->
-    <string name="gastos_titulo">Gastos</string>
     <string name="gastos_desc">Gastos del negocio</string>
     <string name="gastos_total_format">Total: $%1$s</string>
     <string name="gastos_vacio">No hay gastos en este período.</string>

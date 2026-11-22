@@ -35,8 +35,7 @@ import com.example.sodappcomposse.auth.LocalSessionPermissions
 import com.example.sodappcomposse.auth.seccionInicial
 import com.example.sodappcomposse.auth.puedeAdministrar
 import com.example.sodappcomposse.AdminUsuarios
-import com.example.sodappcomposse.GastosLista
-import com.example.sodappcomposse.auth.Permiso
+import com.example.sodappcomposse.Gastos.GastosScreen
 import com.example.sodappcomposse.auth.seccionesVisibles
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -102,6 +101,18 @@ fun ContenidoCaja(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun ContenidoGastos(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        GastosScreen()
+    }
+}
+
+@Composable
 fun BienvenidaScreen(
     nombreUser: String,
     navLogin: () -> Unit,
@@ -140,8 +151,7 @@ fun BienvenidaScreen(
                 isDark = isDark,
                 onToggleTheme = { themeViewModel.toggleTheme(isDark) },
                 navLogin = navLogin,
-                onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) },
-                onGastos = { navController.navigate(GastosLista) }.takeIf { permisos.tiene(Permiso.GASTOS_VER) }
+                onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAdministrar(permisos) }
             )
         },
         bottomBar = {
@@ -175,6 +185,7 @@ fun BienvenidaScreen(
                         onClienteACobrarUsado = { handle?.set(CLAVE_COBRAR_CLIENTE, null) }
                     )
                     ContenidoBienvenida.CAJA -> ContenidoCaja()
+                    ContenidoBienvenida.GASTOS -> ContenidoGastos()
                 }
             }
         }

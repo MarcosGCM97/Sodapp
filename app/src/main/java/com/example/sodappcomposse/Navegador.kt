@@ -23,7 +23,6 @@ import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
-import com.example.sodappcomposse.Gastos.GastosScreen
 import com.example.sodappcomposse.Gastos.RegistrarGastoScreen
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.Producto.ProductoEditarScreen
@@ -59,10 +58,6 @@ object PlantaConfig
 // Owner-only administration of users and roles
 @Serializable
 object AdminUsuarios
-
-// Business expenses (gastos.ver)
-@Serializable
-object GastosLista
 
 // Quick expense of a reparto (gastos.cargar)
 @Serializable
@@ -159,10 +154,6 @@ fun Navigator(
 
             composable<AdminUsuarios> {
                 AdministracionScreen(navController = navController)
-            }
-
-            composable<GastosLista> {
-                GastosScreen(navController = navController)
             }
 
             composable<RegistrarGasto> { backStackEntry ->
