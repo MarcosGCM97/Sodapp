@@ -20,6 +20,11 @@
     <string name="reporte_cobrado">Cobrado</string>
     <string name="reporte_diferencia">Vendido − cobrado</string>
     <string name="reporte_diferencia_ayuda">Lo que quedó en cuenta corriente. Los cobros pueden corresponder a ventas de otros períodos.</string>
+    <string name="reporte_gastos_titulo">Gastos y neto de caja</string>
+    <string name="reporte_gastos">Gastos</string>
+    <string name="reporte_neto_caja">Neto de caja</string>
+    <string name="reporte_neto_anterior">anterior: %1$s</string>
+    <string name="reporte_neto_ayuda">Cobrado menos gastos: la plata que quedó en el período. Es flujo de caja, no ganancia: una compra se paga hoy y se vende después.</string>
     <string name="reporte_ventas">Ventas</string>
     <string name="reporte_clientes">Clientes</string>
     <string name="reporte_ticket">Ticket prom.</string>

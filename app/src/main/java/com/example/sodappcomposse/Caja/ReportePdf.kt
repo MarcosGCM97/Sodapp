@@ -10,6 +10,7 @@ import android.text.TextPaint
 import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Gastos.CategoriaGasto
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -55,6 +56,18 @@ fun contenidoPdf(reporte: Reporte, empresa: String?, generado: LocalDateTime, te
     bloques += BloquePdf.Fila(t(R.string.pdf_periodo_anterior, textoFecha(fechaDeApi(a.desde)), textoFecha(fechaDeApi(a.hasta))),
         t(R.string.pdf_anterior_valores, precio(a.vendido), precio(a.cobrado), a.ventas))
     bloques += BloquePdf.Texto(t(R.string.reporte_diferencia_ayuda))
+
+    reporte.gastos?.let { g ->
+        bloques += BloquePdf.Subtitulo(t(R.string.reporte_gastos_titulo))
+        bloques += BloquePdf.Fila(t(R.string.reporte_gastos), "${precio(g.total)}  (${comparacion(g.total, g.anterior?.total ?: 0.0)})", negrita = true)
+        // A percentage of a net that can be negative misleads: the previous amount is shown instead
+        bloques += BloquePdf.Fila(t(R.string.reporte_neto_caja), "${precio(g.neto)}  (${t(R.string.reporte_neto_anterior, precio(g.anterior?.neto ?: 0.0))})", negrita = true)
+        g.categorias.orEmpty().forEach {
+            val etiqueta = CategoriaGasto.desdeCodigo(it.categoria)?.let { c -> t(c.etiqueta) } ?: it.categoria
+            bloques += BloquePdf.Fila(etiqueta, conPorcentaje(it.total, g.total))
+        }
+        bloques += BloquePdf.Texto(t(R.string.reporte_neto_ayuda))
+    }
 
     bloques += BloquePdf.Subtitulo(t(R.string.reporte_cobros_titulo))
     if (reporte.cobros.isEmpty()) bloques += BloquePdf.Texto(t(R.string.reporte_sin_cobros))
