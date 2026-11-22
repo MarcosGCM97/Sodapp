@@ -5,9 +5,13 @@ import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoResponse
 import com.example.sodappcomposse.Producto.ProductoResult
 import com.example.sodappcomposse.R
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -45,6 +49,7 @@ class GastosViewModelTest {
         productos = mockk()
         coEvery { repository.listar(any(), any(), any()) } returns GastoResult.Success(periodo)
         coEvery { productos.getProductos(any()) } returns ProductoResult.Success(ProductoResponse(true, listOf(bidon)))
+        every { productos.clearCache() } just Runs
         viewModel = GastosViewModel(repository, productos)
     }
 
@@ -125,5 +130,33 @@ class GastosViewModelTest {
         coVerify { repository.eliminar(1) }
         assertEquals(GastosUiState.Success(R.string.gasto_eliminado), viewModel.uiState.value)
         assertEquals(periodo, viewModel.periodo.value)
+    }
+
+    @Test
+    fun `a saved or deleted gasto clears the cached products so Inventario shows the new stock`() = runTest {
+        val compra = NuevoGasto(categoria = CategoriaGasto.COMPRA_PRODUCTO, monto = 20000.0, fecha = desde, productoId = 3, cantidad = 10)
+        coEvery { repository.guardar(compra) } returns GastoResult.Success(gasto)
+        coEvery { repository.eliminar(1) } returns GastoResult.Success(Unit)
+
+        viewModel.guardar(compra)
+        advanceUntilIdle()
+        verify(exactly = 1) { productos.clearCache() }
+
+        viewModel.eliminar(1)
+        advanceUntilIdle()
+        verify(exactly = 2) { productos.clearCache() }
+    }
+
+    @Test
+    fun `a rejected guardar or eliminar keeps the cached products`() = runTest {
+        val nuevo = NuevoGasto(categoria = CategoriaGasto.RECARGA_ENVASES, monto = 10.0, fecha = desde, productoId = 3, cantidad = 9)
+        coEvery { repository.guardar(nuevo) } returns GastoResult.Error(R.string.error_format, arrayOf("No hay suficientes envases vacíos"))
+        coEvery { repository.eliminar(1) } returns GastoResult.Error(R.string.error_red_verificar)
+
+        viewModel.guardar(nuevo)
+        viewModel.eliminar(1)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { productos.clearCache() }
     }
 }

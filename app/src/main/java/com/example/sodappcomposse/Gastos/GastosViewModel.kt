@@ -83,6 +83,7 @@ class GastosViewModel @Inject constructor(
                 is GastoResult.Success -> {
                     _guardado.value = true
                     _uiState.value = GastosUiState.Success(R.string.gasto_guardado)
+                    stockCambiado()
                     listar()
                 }
                 is GastoResult.Error -> _uiState.value = GastosUiState.Error(result.messageRes, result.args)
@@ -96,6 +97,7 @@ class GastosViewModel @Inject constructor(
             when (val result = repository.eliminar(id)) {
                 is GastoResult.Success -> {
                     _uiState.value = GastosUiState.Success(R.string.gasto_eliminado)
+                    stockCambiado()
                     listar()
                 }
                 is GastoResult.Error -> _uiState.value = GastosUiState.Error(result.messageRes, result.args)
@@ -109,6 +111,12 @@ class GastosViewModel @Inject constructor(
 
     fun guardadoUsado() {
         _guardado.value = false
+    }
+
+    // A purchase or refill may have moved stock: the cached product list (Inventario, Ventas,
+    // this form) must be fetched again, as after a sale
+    private fun stockCambiado() {
+        productoRepository.clearCache()
     }
 
     private fun recargar() {
