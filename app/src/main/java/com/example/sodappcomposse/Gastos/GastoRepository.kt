@@ -56,7 +56,7 @@ class GastoRepositoryImpl @Inject constructor(
         llamar({ apiServices.eliminarGasto(id) }) { }
 
     private fun NuevoGasto.toRequest(): GastoRequest {
-        val conProducto = categoria.mueveStock
+        val conProducto = categoria.llevaProducto
         return GastoRequest(
             id = id,
             categoria = categoria.codigo,

@@ -112,7 +112,7 @@ fun GastosScreen(viewModel: GastosViewModel = hiltViewModel()) {
             else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(gastos, key = { it.id }) { gasto ->
                     // Editing a stock expense also moves stock back, so it needs stock.editar
-                    val editable = puedeEditar && (puedeMoverStock || CategoriaGasto.desdeCodigo(gasto.categoria)?.mueveStock != true)
+                    val editable = puedeEditar && (puedeMoverStock || !gasto.mueveStock)
                     GastoCard(gasto = gasto, onClick = { formulario = FormularioGasto.Editar(gasto) }.takeIf { editable })
                 }
             }

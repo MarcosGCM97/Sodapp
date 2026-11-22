@@ -407,6 +407,8 @@
     <string name="gasto_descripcion_label">Descripción (opcional)</string>
     <string name="gasto_producto_label">Producto</string>
     <string name="gasto_producto_elegido_format">Producto: %1$s</string>
+    <string name="gasto_sin_producto_ayuda">Sin producto: se guarda solo el monto, no mueve el stock.</string>
+    <string name="gasto_quitar_producto">Quitar producto</string>
     <string name="gasto_cantidad_label">Cantidad</string>
     <string name="gasto_estado_label">Los envases comprados vienen</string>
     <string name="gasto_estado_lleno">Llenos</string>

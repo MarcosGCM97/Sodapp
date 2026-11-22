@@ -152,10 +152,10 @@ class GastoRepositoryImplTest {
     }
 
     @Test
-    fun `only purchases and refills move stock`() {
+    fun `only purchases and refills carry a product`() {
         assertEquals(
             listOf(CategoriaGasto.COMPRA_PRODUCTO, CategoriaGasto.RECARGA_ENVASES),
-            CategoriaGasto.entries.filter { it.mueveStock }
+            CategoriaGasto.entries.filter { it.llevaProducto }
         )
         assertEquals(CategoriaGasto.VEHICULO, CategoriaGasto.desdeCodigo("vehiculo"))
         assertFalse(CategoriaGasto.desdeCodigo("desconocida") != null)

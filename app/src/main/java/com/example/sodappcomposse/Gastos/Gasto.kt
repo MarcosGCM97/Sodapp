@@ -4,13 +4,21 @@ import androidx.annotation.StringRes
 import com.example.sodappcomposse.R
 import com.google.gson.annotations.SerializedName
 
-/** Expense categories of gastos.php; purchases and refills move the product stock. */
-enum class CategoriaGasto(val codigo: String, @StringRes val etiqueta: Int, val mueveStock: Boolean) {
-    COMPRA_PRODUCTO("compra_producto", R.string.gasto_categoria_compra_producto, true),
-    RECARGA_ENVASES("recarga_envases", R.string.gasto_categoria_recarga_envases, true),
-    VEHICULO("vehiculo", R.string.gasto_categoria_vehiculo, false),
-    COMBUSTIBLE("combustible", R.string.gasto_categoria_combustible, false),
-    OTRO("otro", R.string.gasto_categoria_otro, false);
+/**
+ * Expense categories of gastos.php. Purchases and refills may carry a product, which moves its
+ * stock; a refill always needs one, a purchase without product is a plain expense.
+ */
+enum class CategoriaGasto(
+    val codigo: String,
+    @StringRes val etiqueta: Int,
+    val llevaProducto: Boolean,
+    val productoRequerido: Boolean = false
+) {
+    COMPRA_PRODUCTO("compra_producto", R.string.gasto_categoria_compra_producto, llevaProducto = true),
+    RECARGA_ENVASES("recarga_envases", R.string.gasto_categoria_recarga_envases, llevaProducto = true, productoRequerido = true),
+    VEHICULO("vehiculo", R.string.gasto_categoria_vehiculo, llevaProducto = false),
+    COMBUSTIBLE("combustible", R.string.gasto_categoria_combustible, llevaProducto = false),
+    OTRO("otro", R.string.gasto_categoria_otro, llevaProducto = false);
 
     companion object {
         fun desdeCodigo(codigo: String?): CategoriaGasto? = entries.firstOrNull { it.codigo == codigo }
@@ -44,6 +52,10 @@ data class Gasto(
     @SerializedName("gs_us") val usuarioId: Int = 0,
     @SerializedName("us_nom") val usuarioNombre: String? = null
 )
+
+/** The expense moves stock (so editing it needs stock.editar): a purchase or refill with a product. */
+val Gasto.mueveStock: Boolean
+    get() = CategoriaGasto.desdeCodigo(categoria)?.llevaProducto == true && productoId != null
 
 /** Expenses of an inclusive period with their total. */
 data class GastosPeriodo(

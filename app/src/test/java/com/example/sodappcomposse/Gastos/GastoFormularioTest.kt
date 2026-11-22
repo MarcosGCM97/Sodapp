@@ -2,7 +2,9 @@ package com.example.sodappcomposse.Gastos
 
 import com.example.sodappcomposse.Producto.Producto
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 
@@ -31,8 +33,30 @@ class GastoFormularioTest {
     }
 
     @Test
-    fun `a purchase needs product and quantity, and full or empty for a returnable one`() {
-        assertNull(armar(CategoriaGasto.COMPRA_PRODUCTO, cantidad = "4"))
+    fun `a purchase without product is a plain expense that moves no stock`() {
+        val sinProducto = armar(CategoriaGasto.COMPRA_PRODUCTO, cantidad = "4", estado = EstadoEnvase.LLENO)
+        assertEquals(
+            NuevoGasto(categoria = CategoriaGasto.COMPRA_PRODUCTO, monto = 1500.5, fecha = "2026-11-20", descripcion = "Pinchadura", repartoId = 8),
+            sinProducto
+        )
+        assertNull(armar(CategoriaGasto.COMPRA_PRODUCTO, monto = "0"))
+    }
+
+    @Test
+    fun `a refill always needs a product`() {
+        assertNull(armar(CategoriaGasto.RECARGA_ENVASES, cantidad = "2"))
+    }
+
+    @Test
+    fun `only a stock category with a product moves stock`() {
+        assertTrue(Gasto(categoria = "compra_producto", productoId = 3).mueveStock)
+        assertTrue(Gasto(categoria = "recarga_envases", productoId = 3).mueveStock)
+        assertFalse(Gasto(categoria = "compra_producto", productoId = null).mueveStock)
+        assertFalse(Gasto(categoria = "vehiculo").mueveStock)
+    }
+
+    @Test
+    fun `a purchase with product needs quantity, and full or empty for a returnable one`() {
         assertNull(armar(CategoriaGasto.COMPRA_PRODUCTO, producto = vaso, cantidad = "0"))
         assertNull(armar(CategoriaGasto.COMPRA_PRODUCTO, producto = vaso, cantidad = "100001"))
         assertNull(armar(CategoriaGasto.COMPRA_PRODUCTO, producto = bidon, cantidad = "4"))
@@ -54,9 +78,9 @@ class GastoFormularioTest {
     }
 
     @Test
-    fun `without stock editar the stock categories are not offered`() {
+    fun `without stock editar only the refill is not offered`() {
         assertEquals(
-            listOf(CategoriaGasto.VEHICULO, CategoriaGasto.COMBUSTIBLE, CategoriaGasto.OTRO),
+            listOf(CategoriaGasto.COMPRA_PRODUCTO, CategoriaGasto.VEHICULO, CategoriaGasto.COMBUSTIBLE, CategoriaGasto.OTRO),
             categoriasDisponibles(puedeMoverStock = false)
         )
         assertEquals(CategoriaGasto.entries.toList(), categoriasDisponibles(puedeMoverStock = true))

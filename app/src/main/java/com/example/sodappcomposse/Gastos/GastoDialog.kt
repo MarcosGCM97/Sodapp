@@ -47,16 +47,17 @@ const val GASTO_CANTIDAD_MAX = 100_000
 
 /** Categories the user may choose: purchases and refills move stock, so they need stock.editar. */
 fun categoriasDisponibles(puedeMoverStock: Boolean): List<CategoriaGasto> =
-    CategoriaGasto.entries.filter { puedeMoverStock || !it.mueveStock }
+    CategoriaGasto.entries.filter { puedeMoverStock || !it.productoRequerido }
 
 /** Products a category can use: a refill only fills returnable containers. */
 fun productosDeCategoria(categoria: CategoriaGasto, productos: List<Producto>): List<Producto> =
     if (categoria == CategoriaGasto.RECARGA_ENVASES) productos.filter { it.esRetornable } else productos
 
 /**
- * The expense the form describes, or null while it is incomplete: amount > 0, and for
- * purchases and refills a product and a quantity of 1..[GASTO_CANTIDAD_MAX]; a purchase of a
- * returnable product also needs whether the containers come full or empty.
+ * The expense the form describes, or null while it is incomplete: amount > 0; a refill needs a
+ * product, a purchase may have one (without it, it is stored with no stock effect). With a
+ * product it needs a quantity of 1..[GASTO_CANTIDAD_MAX], and a purchase of a returnable
+ * product also needs whether the containers come full or empty.
  */
 fun armarGasto(
     id: Int?,
@@ -71,8 +72,9 @@ fun armarGasto(
 ): NuevoGasto? {
     val monto = parsearPrecio(montoTexto)?.takeIf { it > 0 } ?: return null
     val base = NuevoGasto(id = id, categoria = categoria, monto = monto, fecha = fecha.toString(), descripcion = descripcion, repartoId = repartoId)
-    if (!categoria.mueveStock) return base
-    val elegido = producto ?: return null
+    if (!categoria.llevaProducto) return base
+    // A purchase without product is a plain expense; a refill always needs the product it fills
+    val elegido = producto ?: return base.takeUnless { categoria.productoRequerido }
     val cantidad = cantidadTexto.trim().toIntOrNull()?.takeIf { it in 1..GASTO_CANTIDAD_MAX } ?: return null
     if (categoria == CategoriaGasto.RECARGA_ENVASES) {
         if (!elegido.esRetornable) return null
@@ -141,7 +143,7 @@ fun GastoDialog(
                 TextButton(onClick = { elegirFecha = true }) {
                     Text(stringResource(R.string.gasto_fecha_format, fecha.format(FORMATO_FECHA)))
                 }
-                if (categoria.mueveStock) {
+                if (categoria.llevaProducto && puedeMoverStock) {
                     if (opciones.isEmpty()) {
                         Text(stringResource(R.string.gasto_sin_productos_retornables))
                     } else {
@@ -154,6 +156,16 @@ fun GastoDialog(
                         )
                     }
                     producto?.let { Text(stringResource(R.string.gasto_producto_elegido_format, it.nombrePr)) }
+                    if (!categoria.productoRequerido) {
+                        if (producto == null) {
+                            Text(stringResource(R.string.gasto_sin_producto_ayuda), style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            TextButton(onClick = { productoId = null }) { Text(stringResource(R.string.gasto_quitar_producto)) }
+                        }
+                    }
+                }
+                // Quantity and state only matter once a product is chosen (a refill always has one)
+                if (categoria.llevaProducto && puedeMoverStock && (producto != null || categoria.productoRequerido)) {
                     OutlinedTextField(
                         value = cantidadTexto,
                         onValueChange = { cantidadTexto = it.filter(Char::isDigit) },
