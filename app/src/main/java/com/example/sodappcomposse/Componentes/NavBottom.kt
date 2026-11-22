@@ -65,6 +65,7 @@ fun NavBottom(
                     ContenidoBienvenida.CLIENTES -> "Clientes" to R.drawable.outline_person_add_24
                     ContenidoBienvenida.STOCK -> "Inventario" to R.drawable.outline_stacked_inbox_24
                     ContenidoBienvenida.CAJA -> "Caja" to R.drawable.outline_money_bag_24
+                    ContenidoBienvenida.GASTOS -> "Gastos" to R.drawable.outline_receipt_24
                 }
                 ExpandableNavItem(
                     label = label,

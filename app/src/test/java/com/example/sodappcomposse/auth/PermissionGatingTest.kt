@@ -26,7 +26,10 @@ class PermissionGatingTest {
     @Test
     fun `the owner sees every section in the bottom bar order`() {
         assertEquals(
-            listOf(ContenidoBienvenida.VENTAS, ContenidoBienvenida.CLIENTES, ContenidoBienvenida.STOCK, ContenidoBienvenida.CAJA),
+            listOf(
+                ContenidoBienvenida.VENTAS, ContenidoBienvenida.CLIENTES, ContenidoBienvenida.STOCK,
+                ContenidoBienvenida.CAJA, ContenidoBienvenida.GASTOS
+            ),
             seccionesVisibles(dueno)
         )
         assertEquals(listOf(PestanaVentas.VENTAS, PestanaVentas.REPARTO), pestanasVentas(dueno))
@@ -61,6 +64,15 @@ class PermissionGatingTest {
         assertEquals(listOf(PestanaVentas.REPARTO), pestanasVentas(soloReparto))
         assertEquals(listOf(ContenidoBienvenida.CLIENTES), seccionesVisibles(soloCobros))
         assertEquals(listOf(PestanaClientes.COBROS), pestanasClientes(soloCobros))
+    }
+
+    @Test
+    fun `gastos ver alone shows the Gastos section`() {
+        val soloGastos = SessionPermissions(permisos = setOf(Permiso.GASTOS_VER))
+        val soloCargar = SessionPermissions(permisos = setOf(Permiso.GASTOS_CARGAR))
+
+        assertEquals(listOf(ContenidoBienvenida.GASTOS), seccionesVisibles(soloGastos))
+        assertTrue(seccionesVisibles(soloCargar).isEmpty())
     }
 
     @Test

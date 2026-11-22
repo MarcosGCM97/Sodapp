@@ -22,7 +22,28 @@ data class ReporteResponse(
     @SerializedName("clientes") val clientes: List<ClienteReporte>? = null,
     @SerializedName("dias") val dias: List<DiaReporte>? = null,
     @SerializedName("detalle") val detalle: List<LineaReporte>? = null,
-    @SerializedName("primerCobro") val primerCobro: String? = null
+    @SerializedName("primerCobro") val primerCobro: String? = null,
+    // null when the user has no gastos.ver
+    @SerializedName("gastos") val gastos: GastosReporte? = null
+)
+
+// Business expenses of the period; neto = cobrado - total (cash flow, not profit)
+data class GastosReporte(
+    @SerializedName("total") val total: Double = 0.0,
+    @SerializedName("neto") val neto: Double = 0.0,
+    @SerializedName("anterior") val anterior: GastosAnterior? = null,
+    @SerializedName("categorias") val categorias: List<GastoCategoriaReporte>? = null
+)
+
+data class GastosAnterior(
+    @SerializedName("total") val total: Double = 0.0,
+    @SerializedName("neto") val neto: Double = 0.0
+)
+
+// Total of one category code of gastos.php (compra_producto, combustible, ...)
+data class GastoCategoriaReporte(
+    @SerializedName("categoria") val categoria: String = "",
+    @SerializedName("total") val total: Double = 0.0
 )
 
 data class ResumenReporte(
@@ -88,7 +109,9 @@ data class Reporte(
     val clientes: List<ClienteReporte>,
     val dias: List<DiaReporte>,
     val detalle: List<LineaReporte>,
-    val primerCobro: LocalDateTime?
+    val primerCobro: LocalDateTime?,
+    // null when the user has no gastos.ver: the screen and the PDF show no gastos
+    val gastos: GastosReporte? = null
 ) {
     // Average amount per sale rounded half-up to cents (450.125 -> 450.13); null without sales
     val ticketPromedio: Double?
@@ -109,6 +132,10 @@ data class Reporte(
 
     val ventasDetalle: List<VentaDetalle>
         get() = agruparVentas(detalle)
+
+    // No sales, payments or gastos: the screen only says so
+    val sinMovimientos: Boolean
+        get() = resumen.ventas == 0 && esCero(resumen.cobrado) && (gastos == null || esCero(gastos.total))
 }
 
 // One registration: every line of a sale shares cliente and timestamp

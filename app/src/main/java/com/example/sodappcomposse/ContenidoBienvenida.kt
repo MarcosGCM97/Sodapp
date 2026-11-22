@@ -4,5 +4,6 @@ enum class ContenidoBienvenida {
     VENTAS,
     STOCK,
     CLIENTES,
-    CAJA
+    CAJA,
+    GASTOS
 }

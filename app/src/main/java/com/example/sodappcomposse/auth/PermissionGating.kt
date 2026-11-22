@@ -27,6 +27,7 @@ fun seccionesVisibles(permisos: SessionPermissions): List<ContenidoBienvenida> =
     if (pestanasClientes(permisos).isNotEmpty()) add(ContenidoBienvenida.CLIENTES)
     if (permisos.tiene(Permiso.STOCK_VER)) add(ContenidoBienvenida.STOCK)
     if (permisos.tiene(Permiso.CAJA_VER)) add(ContenidoBienvenida.CAJA)
+    if (permisos.tiene(Permiso.GASTOS_VER)) add(ContenidoBienvenida.GASTOS)
 }
 
 /** [actual] when the user can see it, else the first visible section; null when there is none. */

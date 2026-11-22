@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.sodappcomposse.R
+import com.example.sodappcomposse.Gastos.CategoriaGasto
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -151,7 +152,7 @@ private fun SelectorPeriodo(
 
 private fun androidx.compose.foundation.lazy.LazyListScope.contenidoReporte(reporte: Reporte) {
     val r = reporte.resumen
-    if (r.ventas == 0 && esCero(r.cobrado)) {
+    if (reporte.sinMovimientos) {
         item {
             Text(
                 stringResource(R.string.reporte_sin_movimientos),
@@ -165,6 +166,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.contenidoReporte(repo
         item { AvisoReporte(stringResource(R.string.reporte_aviso_cobros_desde, textoFecha(reporte.primerCobro!!.toLocalDate()))) }
     }
     item { Resumen(reporte) }
+    reporte.gastos?.let { g -> item { GastosYNeto(g) } }
     item {
         SeccionReporte(stringResource(R.string.reporte_cobros_titulo)) {
             if (reporte.cobros.isEmpty()) Text(stringResource(R.string.reporte_sin_cobros))
@@ -219,6 +221,25 @@ private fun Resumen(reporte: Reporte) {
             TarjetaKpi(stringResource(R.string.reporte_clientes), r.clientes.toString(), Modifier.weight(1f))
             TarjetaKpi(stringResource(R.string.reporte_ticket), reporte.ticketPromedio?.let { precio(it) } ?: "-", Modifier.weight(1f))
         }
+    }
+}
+
+// Gastos of the period, the net cash (cobrado - gastos) and the gastos by category
+@Composable
+private fun GastosYNeto(gastos: GastosReporte) {
+    SeccionReporte(stringResource(R.string.reporte_gastos_titulo)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TarjetaKpi(stringResource(R.string.reporte_gastos), precio(gastos.total), Modifier.weight(1f),
+                textoComparacion(gastos.total, gastos.anterior?.total ?: 0.0))
+            // A percentage of a net that can be negative misleads: the previous amount is shown instead
+            TarjetaKpi(stringResource(R.string.reporte_neto_caja), precio(gastos.neto), Modifier.weight(1f),
+                stringResource(R.string.reporte_neto_anterior, precio(gastos.anterior?.neto ?: 0.0)))
+        }
+        gastos.categorias.orEmpty().forEach {
+            val etiqueta = CategoriaGasto.desdeCodigo(it.categoria)?.let { c -> stringResource(c.etiqueta) } ?: it.categoria
+            FilaParticipacion(etiqueta, it.total, gastos.total)
+        }
+        Text(stringResource(R.string.reporte_neto_ayuda), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
