@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -52,11 +51,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.Componentes.CampoContrasena
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.auth.LocalSessionPermissions
@@ -340,19 +338,6 @@ private fun UsuarioNuevoDialog(
         dismissButton = {
             OutlinedButton(onClick = onDismiss) { Text(stringResource(R.string.cancelar)) }
         }
-    )
-}
-
-@Composable
-private fun CampoContrasena(valor: String, onCambiar: (String) -> Unit, etiqueta: String) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onCambiar,
-        label = { Text(etiqueta) },
-        singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        modifier = Modifier.fillMaxWidth()
     )
 }
 
