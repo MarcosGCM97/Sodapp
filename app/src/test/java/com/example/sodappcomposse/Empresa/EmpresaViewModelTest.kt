@@ -84,6 +84,55 @@ class EmpresaViewModelTest {
     }
 
     @Test
+    fun `cambiarContrasena sends the passwords and reports success`() = runTest {
+        coEvery { repository.cambiarContrasena("vieja12", "nueva12") } returns EmpresaResult.Success(Unit)
+
+        viewModel.cambiarContrasena("vieja12", "nueva12", "nueva12")
+        advanceUntilIdle()
+
+        assertEquals(EmpresaUiState.Success(R.string.contrasena_cambiada), viewModel.contrasenaState.value)
+        assertEquals(EmpresaUiState.Idle, viewModel.uiState.value)
+    }
+
+    @Test
+    fun `cambiarContrasena without the current password is rejected without calling the server`() = runTest {
+        viewModel.cambiarContrasena("", "nueva12", "nueva12")
+        advanceUntilIdle()
+
+        assertEquals(EmpresaUiState.Error(R.string.contrasena_actual_requerida), viewModel.contrasenaState.value)
+        coVerify(exactly = 0) { repository.cambiarContrasena(any(), any()) }
+    }
+
+    @Test
+    fun `cambiarContrasena with a new password under 6 characters is rejected without calling the server`() = runTest {
+        viewModel.cambiarContrasena("vieja12", "12345", "12345")
+        advanceUntilIdle()
+
+        assertEquals(EmpresaUiState.Error(R.string.contrasena_nueva_corta_format, arrayOf(6)), viewModel.contrasenaState.value)
+        coVerify(exactly = 0) { repository.cambiarContrasena(any(), any()) }
+    }
+
+    @Test
+    fun `cambiarContrasena when the repetition differs is rejected without calling the server`() = runTest {
+        viewModel.cambiarContrasena("vieja12", "nueva12", "nueva13")
+        advanceUntilIdle()
+
+        assertEquals(EmpresaUiState.Error(R.string.contrasena_no_coinciden), viewModel.contrasenaState.value)
+        coVerify(exactly = 0) { repository.cambiarContrasena(any(), any()) }
+    }
+
+    @Test
+    fun `cambiarContrasena shows the server error`() = runTest {
+        val error = EmpresaResult.Error(R.string.error_format, arrayOf("La contraseña actual es incorrecta"))
+        coEvery { repository.cambiarContrasena(any(), any()) } returns error
+
+        viewModel.cambiarContrasena("mala123", "nueva12", "nueva12")
+        advanceUntilIdle()
+
+        assertEquals(EmpresaUiState.Error(error.messageRes, error.args), viewModel.contrasenaState.value)
+    }
+
+    @Test
     fun `guardar failure keeps the session company name`() = runTest {
         coEvery { repository.guardarEmpresa(any()) } returns EmpresaResult.Error(R.string.error_sin_permiso)
 

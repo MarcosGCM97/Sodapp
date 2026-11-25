@@ -26,6 +26,20 @@ data class EmpresaResponse(
     val empresa: EmpresaDto?
 )
 
+/** PUT contrasena.php body: the owner's current password and the new one, sent as typed. */
+data class CambiarContrasenaRequest(
+    @SerializedName("actual")
+    val actual: String,
+    @SerializedName("nueva")
+    val nueva: String
+)
+
+/** PUT contrasena.php answer. */
+data class CambiarContrasenaResponse(
+    @SerializedName("success")
+    val success: Boolean
+)
+
 /** PUT empresa.php body; a null telefono or direccion is stored empty. */
 data class EmpresaRequest(
     @SerializedName("nombre")

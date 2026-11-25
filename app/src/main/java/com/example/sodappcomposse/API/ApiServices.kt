@@ -6,6 +6,8 @@ import com.example.sodappcomposse.Administracion.CrearUsuarioRequest
 import com.example.sodappcomposse.Administracion.RolRequest
 import com.example.sodappcomposse.Administracion.RolesResponse
 import com.example.sodappcomposse.Administracion.UsuariosResponse
+import com.example.sodappcomposse.Empresa.CambiarContrasenaRequest
+import com.example.sodappcomposse.Empresa.CambiarContrasenaResponse
 import com.example.sodappcomposse.Empresa.EmpresaRequest
 import com.example.sodappcomposse.Empresa.EmpresaResponse
 import com.example.sodappcomposse.Mensajes.PlantillaRequest
@@ -244,6 +246,10 @@ interface ApiServices {
 
     @PUT("empresa.php")
     suspend fun guardarEmpresa(@Body request: EmpresaRequest): Response<EmpresaResponse>
+
+    // Own password change of the owner; a wrong current password is a 400 with its message
+    @PUT("contrasena.php")
+    suspend fun cambiarContrasena(@Body request: CambiarContrasenaRequest): Response<CambiarContrasenaResponse>
 
     // WhatsApp templates: every user reads them, only the owner saves or restores them (403 otherwise)
     @GET("mensajes.php")

@@ -375,6 +375,8 @@ Solo el dueño de la empresa ve la opción **Datos de la empresa** en el menú �
 
 Presione **Guardar**. Desde ese momento los mensajes de WhatsApp a los clientes van firmados con el nombre de la empresa, también los que envían los empleados (después de volver a ingresar o de reabrir la aplicación). Por ahora el mensaje lleva solo el nombre; el teléfono y la dirección quedan guardados para usos futuros.
 
+Más abajo, **Cambiar mi contraseña** permite al dueño cambiar su propia contraseña: escriba la contraseña actual, la nueva (al menos 6 caracteres) y repita la nueva. Presione **Guardar**. Si la contraseña actual no es correcta o las dos nuevas no coinciden, el mensaje aparece en el mismo cuadro y no se cambia nada. La próxima vez que ingrese, use la contraseña nueva.
+
 ### 9.3 Mensajes de WhatsApp
 
 Solo el dueño de la empresa ve la opción **Mensajes de WhatsApp** en el menú ⋮. Ahí se personaliza el texto de los tres mensajes que se envían a los clientes:

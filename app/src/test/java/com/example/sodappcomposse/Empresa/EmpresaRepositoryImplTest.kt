@@ -101,6 +101,38 @@ class EmpresaRepositoryImplTest {
     }
 
     @Test
+    fun `cambiarContrasena puts the current and the new password untrimmed`() = runTest {
+        responde(200, """{"success":true}""")
+
+        val result = repository.cambiarContrasena(actual = " vieja1", nueva = "nueva12 ")
+
+        val request = server.takeRequest()
+        assertEquals("PUT", request.method)
+        assertEquals("/contrasena.php", request.path)
+        val body = JsonParser.parseString(request.body.readUtf8()).asJsonObject
+        assertEquals(" vieja1", body.get("actual").asString)
+        assertEquals("nueva12 ", body.get("nueva").asString)
+        assertEquals(EmpresaResult.Success(Unit), result)
+    }
+
+    @Test
+    fun `cambiarContrasena surfaces the wrong current password message`() = runTest {
+        responde(400, """{"success":false,"error":"La contraseña actual es incorrecta"}""")
+
+        assertEquals(
+            EmpresaResult.Error(R.string.error_format, arrayOf("La contraseña actual es incorrecta")),
+            repository.cambiarContrasena("x", "nueva12")
+        )
+    }
+
+    @Test
+    fun `cambiarContrasena 403 is the missing permission message`() = runTest {
+        responde(403, """{"success":false,"error":"Forbidden: missing permission","permiso":"admin"}""")
+
+        assertEquals(EmpresaResult.Error(R.string.error_sin_permiso), repository.cambiarContrasena("x", "nueva12"))
+    }
+
+    @Test
     fun `a network failure is the network message`() = runTest {
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
 

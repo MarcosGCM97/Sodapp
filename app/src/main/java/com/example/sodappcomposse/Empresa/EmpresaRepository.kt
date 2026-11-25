@@ -28,6 +28,8 @@ interface EmpresaRepository {
     suspend fun getEmpresa(): EmpresaResult<Empresa?>
     /** Saves trimmed fields (blank phone/address are sent as null); returns what the server stored. */
     suspend fun guardarEmpresa(empresa: Empresa): EmpresaResult<Empresa?>
+    /** Changes the owner's own password; both are sent as typed (a password is never trimmed). */
+    suspend fun cambiarContrasena(actual: String, nueva: String): EmpresaResult<Unit>
 }
 
 class EmpresaRepositoryImpl @Inject constructor(
@@ -48,7 +50,14 @@ class EmpresaRepositoryImpl @Inject constructor(
             )
         }
 
-    private suspend fun llamar(call: suspend () -> Response<EmpresaResponse>): EmpresaResult<Empresa?> {
+    override suspend fun cambiarContrasena(actual: String, nueva: String): EmpresaResult<Unit> =
+        llamarApi({ apiServices.cambiarContrasena(CambiarContrasenaRequest(actual, nueva)) }) { }
+
+    private suspend fun llamar(call: suspend () -> Response<EmpresaResponse>): EmpresaResult<Empresa?> =
+        llamarApi(call) { it.empresa?.toEmpresa() }
+
+    /** Shared error mapping: network, 403, the backend's 400 message, or the status code. */
+    private suspend fun <B, T> llamarApi(call: suspend () -> Response<B>, map: (B) -> T): EmpresaResult<T> {
         val response = try {
             call()
         } catch (e: CancellationException) {
@@ -60,7 +69,7 @@ class EmpresaRepositoryImpl @Inject constructor(
         }
         if (response.isSuccessful) {
             val body = response.body() ?: return EmpresaResult.Error(R.string.cuerpo_nulo_error)
-            return EmpresaResult.Success(body.empresa?.toEmpresa())
+            return EmpresaResult.Success(map(body))
         }
         if (response.code() == HTTP_FORBIDDEN) return EmpresaResult.Error(R.string.error_sin_permiso)
         return serverMessageError(response)

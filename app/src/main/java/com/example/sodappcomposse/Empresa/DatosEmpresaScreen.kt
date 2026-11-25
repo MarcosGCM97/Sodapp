@@ -8,14 +8,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sodappcomposse.Componentes.CampoContrasena
 import com.example.sodappcomposse.Componentes.ScreenWithBackButtonWrapper
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.auth.LocalSessionPermissions
@@ -55,6 +60,20 @@ fun DatosEmpresaScreen(
             nombre = it.nombre
             telefono = it.telefono.orEmpty()
             direccion = it.direccion.orEmpty()
+        }
+    }
+
+    val contrasenaState by viewModel.contrasenaState
+    // Not saveable on purpose: the passwords typed in the dialog are never kept in the saved state
+    var cambiandoContrasena by remember { mutableStateOf(false) }
+
+    // A changed password closes the dialog and confirms with a toast
+    LaunchedEffect(contrasenaState) {
+        val state = contrasenaState
+        if (state is EmpresaUiState.Success) {
+            Toast.makeText(context, context.getString(state.messageRes), Toast.LENGTH_SHORT).show()
+            cambiandoContrasena = false
+            viewModel.resetContrasenaState()
         }
     }
 
@@ -122,8 +141,72 @@ fun DatosEmpresaScreen(
             ) {
                 Text(stringResource(R.string.guardar))
             }
+            HorizontalDivider()
+            OutlinedButton(
+                onClick = {
+                    // A result left over (e.g. an error before a rotation) never shows in a new dialog
+                    viewModel.resetContrasenaState()
+                    cambiandoContrasena = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.cambiar_mi_contrasena))
+            }
         }
     }
+
+    if (cambiandoContrasena) {
+        CambiarContrasenaDialog(
+            state = contrasenaState,
+            onConfirmar = viewModel::cambiarContrasena,
+            onCerrar = {
+                cambiandoContrasena = false
+                viewModel.resetContrasenaState()
+            }
+        )
+    }
+}
+
+/** Own password change: current, new and repeated new password; errors stay inside the dialog. */
+@Composable
+private fun CambiarContrasenaDialog(
+    state: EmpresaUiState,
+    onConfirmar: (actual: String, nueva: String, repetida: String) -> Unit,
+    onCerrar: () -> Unit
+) {
+    var actual by remember { mutableStateOf("") }
+    var nueva by remember { mutableStateOf("") }
+    var repetida by remember { mutableStateOf("") }
+    val cargando = state is EmpresaUiState.Loading
+
+    AlertDialog(
+        onDismissRequest = { if (!cargando) onCerrar() },
+        title = { Text(stringResource(R.string.cambiar_mi_contrasena)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CampoContrasena(actual, { actual = it }, stringResource(R.string.contrasena_actual_label))
+                CampoContrasena(nueva, { nueva = it }, stringResource(R.string.nueva_contrasena_label))
+                CampoContrasena(repetida, { repetida = it }, stringResource(R.string.repetir_contrasena_label))
+                if (state is EmpresaUiState.Error) {
+                    Text(
+                        text = stringResource(state.messageRes, *state.args),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirmar(actual, nueva, repetida) }, enabled = !cargando) {
+                Text(stringResource(R.string.guardar))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onCerrar, enabled = !cargando) {
+                Text(stringResource(R.string.cancelar))
+            }
+        }
+    )
 }
 
 // Same limits as empresa.php

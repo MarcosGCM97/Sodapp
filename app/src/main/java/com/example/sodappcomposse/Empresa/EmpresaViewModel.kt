@@ -73,4 +73,39 @@ class EmpresaViewModel @Inject constructor(
     fun resetState() {
         _uiState.value = EmpresaUiState.Idle
     }
+
+    // Own password change dialog: separate from the company form so each shows its own result
+    private val _contrasenaState: MutableState<EmpresaUiState> = mutableStateOf(EmpresaUiState.Idle)
+    val contrasenaState: State<EmpresaUiState> = _contrasenaState
+
+    /** Checks the dialog fields locally (same minimum as the backend), then changes the password. */
+    fun cambiarContrasena(actual: String, nueva: String, repetida: String) {
+        val error = when {
+            actual.isEmpty() -> EmpresaUiState.Error(R.string.contrasena_actual_requerida)
+            // Characters like the backend's mb_strlen, not UTF-16 units
+            nueva.codePointCount(0, nueva.length) < CONTRASENA_MIN -> EmpresaUiState.Error(R.string.contrasena_nueva_corta_format, arrayOf(CONTRASENA_MIN))
+            nueva != repetida -> EmpresaUiState.Error(R.string.contrasena_no_coinciden)
+            else -> null
+        }
+        if (error != null) {
+            _contrasenaState.value = error
+            return
+        }
+        viewModelScope.launch {
+            _contrasenaState.value = EmpresaUiState.Loading
+            _contrasenaState.value = when (val result = repository.cambiarContrasena(actual, nueva)) {
+                is EmpresaResult.Success -> EmpresaUiState.Success(R.string.contrasena_cambiada)
+                is EmpresaResult.Error -> EmpresaUiState.Error(result.messageRes, result.args)
+            }
+        }
+    }
+
+    fun resetContrasenaState() {
+        _contrasenaState.value = EmpresaUiState.Idle
+    }
+
+    private companion object {
+        // Same as USUARIO_CONTRASENA_MIN in the backend (lib.php)
+        const val CONTRASENA_MIN = 6
+    }
 }
