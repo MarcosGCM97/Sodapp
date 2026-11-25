@@ -91,7 +91,11 @@ fun AdministracionScreen(
         }
     }
 
-    ScreenWithBackButtonWrapper(navController = navController, title = stringResource(R.string.administracion_titulo)) {
+    ScreenWithBackButtonWrapper(
+        navController = navController,
+        title = stringResource(R.string.administracion_titulo),
+        mostrarAdministracion = false
+    ) {
         if (!esDueno) {
             Text(stringResource(R.string.error_sin_permiso))
             return@ScreenWithBackButtonWrapper

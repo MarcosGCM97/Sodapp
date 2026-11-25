@@ -55,6 +55,41 @@ class HeaderOverflowMenuTest {
     }
 
     @Test
+    fun `the owner gets users and roles and logout last, after the other options`() {
+        assertEquals(
+            listOf(
+                OpcionMenuEncabezado.TEMA,
+                OpcionMenuEncabezado.DATOS_EMPRESA,
+                OpcionMenuEncabezado.MENSAJES,
+                OpcionMenuEncabezado.ADMINISTRACION,
+                OpcionMenuEncabezado.SALIR
+            ),
+            opcionesMenuEncabezado(
+                puedeEditarEmpresa = true,
+                puedeEditarMensajes = true,
+                puedeAdministrar = true,
+                puedeSalir = true
+            )
+        )
+    }
+
+    @Test
+    fun `other users get logout but not users and roles`() {
+        assertEquals(
+            listOf(OpcionMenuEncabezado.TEMA, OpcionMenuEncabezado.SALIR),
+            opcionesMenuEncabezado(puedeEditarEmpresa = false, puedeAdministrar = false, puedeSalir = true)
+        )
+    }
+
+    @Test
+    fun `users and roles and logout keep their labels and use Material icons`() {
+        assertEquals(R.string.administracion_titulo, OpcionMenuEncabezado.ADMINISTRACION.textoRes(isDark = false))
+        assertEquals(R.string.salir_label, OpcionMenuEncabezado.SALIR.textoRes(isDark = true))
+        assertEquals(null, OpcionMenuEncabezado.ADMINISTRACION.iconoRes(isDark = false))
+        assertEquals(null, OpcionMenuEncabezado.SALIR.iconoRes(isDark = false))
+    }
+
+    @Test
     fun `the company data option keeps its label in both modes`() {
         assertEquals(R.string.empresa_titulo, OpcionMenuEncabezado.DATOS_EMPRESA.textoRes(isDark = true))
         assertEquals(R.string.empresa_titulo, OpcionMenuEncabezado.DATOS_EMPRESA.textoRes(isDark = false))

@@ -32,7 +32,7 @@ Al abrir SodApp por primera vez se muestra la pantalla de ingreso.
   <img src="img/01b-login-filled.png" width="260" alt="Pantalla de ingreso completada">
 </p>
 
-La sesión queda guardada en el teléfono: la próxima vez que abra la aplicación entrará directamente a la pantalla principal. Para cerrar la sesión presione **Salir**, en la esquina superior derecha.
+La sesión queda guardada en el teléfono: la próxima vez que abra la aplicación entrará directamente a la pantalla principal. Para cerrar la sesión abra el menú de los **tres puntitos** (⋮), en la esquina superior derecha de la pantalla principal, y elija **Salir**.
 
 ---
 
@@ -40,7 +40,7 @@ La sesión queda guardada en el teléfono: la próxima vez que abra la aplicaci�
 
 La pantalla principal tiene tres zonas:
 
-- **Encabezado:** logo de SodApp, el nombre del usuario conectado y el botón **Salir**.
+- **Encabezado:** logo de SodApp, el nombre del usuario conectado y el botón de los **tres puntitos** (⋮).
 - **Contenido:** la sección seleccionada.
 - **Barra inferior:** cuatro secciones. La sección activa se resalta en violeta junto con su nombre.
 
@@ -51,7 +51,7 @@ La pantalla principal tiene tres zonas:
 | Bandeja | **Inventario** | Alta y edición de productos, control de stock. |
 | Bolsa de dinero | **Caja** | Ventas y cobros por día, semana o mes. |
 
-El botón de los **tres puntitos** (⋮) del encabezado abre un menú para cambiar entre modo claro y modo oscuro y, si es el dueño de la empresa, para cargar los datos de la empresa y personalizar los mensajes de WhatsApp (ver [sección 9](#9-modo-oscuro-datos-de-la-empresa-y-mensajes)).
+El botón de los **tres puntitos** (⋮) del encabezado abre un menú para cambiar entre modo claro y modo oscuro, cerrar la sesión con **Salir** y, si es el dueño de la empresa, para cargar los datos de la empresa, personalizar los mensajes de WhatsApp y administrar los **Usuarios y roles** (ver [sección 9](#9-modo-oscuro-datos-de-la-empresa-y-mensajes)).
 
 <img src="img/02-ventas.png" width="260" alt="Pantalla principal en la sección Ventas">
 
@@ -357,7 +357,7 @@ Esta sección es solo de consulta: no modifica datos.
 
 ## 9. Modo oscuro, datos de la empresa y mensajes
 
-El botón de los **tres puntitos** (⋮), arriba a la derecha de cada pantalla, abre un menú de opciones.
+El botón de los **tres puntitos** (⋮), arriba a la derecha de cada pantalla, abre un menú de opciones. El dueño de la empresa también encuentra ahí **Usuarios y roles**, y en la pantalla principal el menú termina con **Salir**, que cierra la sesión.
 
 ### 9.1 Modo oscuro
 
@@ -392,7 +392,7 @@ Presione **Guardar**. Si el texto usa una variable que no corresponde a ese mens
 ## 10. Preguntas frecuentes
 
 **No veo mi nombre en el encabezado.**
-Cuando la aplicación inicia con la sesión ya guardada, el nombre puede no mostrarse. Cierre la sesión con **Salir** y vuelva a ingresar.
+Cuando la aplicación inicia con la sesión ya guardada, el nombre puede no mostrarse. Cierre la sesión con **Salir** (en el menú ⋮) y vuelva a ingresar.
 
 **El botón "Cargar venta" está gris.**
 Falta elegir un cliente o al menos un producto.

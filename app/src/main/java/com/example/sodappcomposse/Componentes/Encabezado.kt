@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,15 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
 /**
- * Main top bar: app name, signed-in user, the ⋮ menu (light/dark switch and company data for
- * the owner), administration (owner) and logout.
+ * Main top bar:app name, signed-in user and the ⋮ menu (light/dark switch; company data,
+ * messages and users and roles for the owner; logout).
  */
 @Composable
 fun Encabezado(
@@ -81,24 +76,10 @@ fun Encabezado(
                 onToggleTheme = onToggleTheme,
                 onDatosEmpresa = onDatosEmpresa,
                 onMensajes = onMensajes,
+                onAdministrar = onAdministrar,
+                onSalir = navLogin,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            onAdministrar?.let { abrir ->
-                IconButton(onClick = abrir) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(R.string.administracion_titulo),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            IconButton(onClick = navLogin) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = stringResource(R.string.salir_label),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
         }
     }
 }

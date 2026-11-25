@@ -4,9 +4,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -19,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
@@ -27,7 +30,9 @@ import com.example.sodappcomposse.R
 enum class OpcionMenuEncabezado {
     TEMA,
     DATOS_EMPRESA,
-    MENSAJES;
+    MENSAJES,
+    ADMINISTRACION,
+    SALIR;
 
     /** The theme option names the mode it switches to, like the old toggle button. */
     @StringRes
@@ -35,29 +40,46 @@ enum class OpcionMenuEncabezado {
         TEMA -> if (isDark) R.string.tema_claro_desc else R.string.tema_oscuro_desc
         DATOS_EMPRESA -> R.string.empresa_titulo
         MENSAJES -> R.string.mensajes_titulo
+        ADMINISTRACION -> R.string.administracion_titulo
+        SALIR -> R.string.salir_label
     }
 
     /** Drawable of the option; null when it uses a Material icon. */
     @DrawableRes
     fun iconoRes(isDark: Boolean): Int? = when (this) {
         TEMA -> if (isDark) R.drawable.outline_light_mode_24 else R.drawable.outline_dark_mode_24
-        DATOS_EMPRESA, MENSAJES -> null
+        DATOS_EMPRESA, MENSAJES, ADMINISTRACION, SALIR -> null
     }
 }
 
-/** Menu options in order; the company data and the messages only for whoever can edit them (the owner). */
+/** Material icon of the options that have no drawable. */
+private fun OpcionMenuEncabezado.iconoMaterial(): ImageVector = when (this) {
+    OpcionMenuEncabezado.MENSAJES -> Icons.Filled.Email
+    OpcionMenuEncabezado.ADMINISTRACION -> Icons.Filled.Settings
+    OpcionMenuEncabezado.SALIR -> Icons.AutoMirrored.Filled.ExitToApp
+    OpcionMenuEncabezado.TEMA, OpcionMenuEncabezado.DATOS_EMPRESA -> Icons.Filled.Home
+}
+
+/**
+ * Menu options in order: the company data, the messages and users and roles only for whoever
+ * can manage them (the owner); logout last, where the caller offers it.
+ */
 fun opcionesMenuEncabezado(
     puedeEditarEmpresa: Boolean,
-    puedeEditarMensajes: Boolean = false
+    puedeEditarMensajes: Boolean = false,
+    puedeAdministrar: Boolean = false,
+    puedeSalir: Boolean = false
 ): List<OpcionMenuEncabezado> = buildList {
     add(OpcionMenuEncabezado.TEMA)
     if (puedeEditarEmpresa) add(OpcionMenuEncabezado.DATOS_EMPRESA)
     if (puedeEditarMensajes) add(OpcionMenuEncabezado.MENSAJES)
+    if (puedeAdministrar) add(OpcionMenuEncabezado.ADMINISTRACION)
+    if (puedeSalir) add(OpcionMenuEncabezado.SALIR)
 }
 
 /**
- * ⋮ button of the top bars with the light/dark switch and, when [onDatosEmpresa] or
- * [onMensajes] is not null, the company data and WhatsApp messages entries.
+ * ⋮ button of the top bars with the light/dark switch and, for each callback that is not null,
+ * the company data, WhatsApp messages, users and roles and logout entries.
  * Presentational: the caller decides what each option does.
  */
 @Composable
@@ -66,6 +88,8 @@ fun HeaderOverflowMenu(
     onToggleTheme: () -> Unit,
     onDatosEmpresa: (() -> Unit)? = null,
     onMensajes: (() -> Unit)? = null,
+    onAdministrar: (() -> Unit)? = null,
+    onSalir: (() -> Unit)? = null,
     tint: Color = LocalContentColor.current
 ) {
     var abierto by remember { mutableStateOf(false) }
@@ -81,16 +105,18 @@ fun HeaderOverflowMenu(
         DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
             opcionesMenuEncabezado(
                 puedeEditarEmpresa = onDatosEmpresa != null,
-                puedeEditarMensajes = onMensajes != null
+                puedeEditarMensajes = onMensajes != null,
+                puedeAdministrar = onAdministrar != null,
+                puedeSalir = onSalir != null
             ).forEach { opcion ->
                 DropdownMenuItem(
                     text = { Text(stringResource(opcion.textoRes(isDark))) },
                     leadingIcon = {
                         val icono = opcion.iconoRes(isDark)
-                        when {
-                            icono != null -> Icon(painter = painterResource(icono), contentDescription = null)
-                            opcion == OpcionMenuEncabezado.MENSAJES -> Icon(imageVector = Icons.Filled.Email, contentDescription = null)
-                            else -> Icon(imageVector = Icons.Filled.Home, contentDescription = null)
+                        if (icono != null) {
+                            Icon(painter = painterResource(icono), contentDescription = null)
+                        } else {
+                            Icon(imageVector = opcion.iconoMaterial(), contentDescription = null)
                         }
                     },
                     onClick = {
@@ -99,6 +125,8 @@ fun HeaderOverflowMenu(
                             OpcionMenuEncabezado.TEMA -> onToggleTheme()
                             OpcionMenuEncabezado.DATOS_EMPRESA -> onDatosEmpresa?.invoke()
                             OpcionMenuEncabezado.MENSAJES -> onMensajes?.invoke()
+                            OpcionMenuEncabezado.ADMINISTRACION -> onAdministrar?.invoke()
+                            OpcionMenuEncabezado.SALIR -> onSalir?.invoke()
                         }
                     }
                 )
