@@ -25,6 +25,7 @@ import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
+import com.example.sodappcomposse.Componentes.nombreParaEncabezado
 import com.example.sodappcomposse.Gastos.RegistrarGastoScreen
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.Producto.ProductoEditarScreen
@@ -105,6 +106,7 @@ fun Navigator(
     }
 
     val permissions by loginViewModel.permissions.collectAsState()
+    val nombreGuardado by loginViewModel.userName.collectAsState(initial = null)
 
     CompositionLocalProvider(LocalSessionPermissions provides (permissions ?: SessionPermissions())) {
         NavHost(
@@ -129,7 +131,7 @@ fun Navigator(
                     return@composable
                 }
                 BienvenidaScreen(
-                    nombreUser = route.nombre,
+                    nombreUser = nombreParaEncabezado(route.nombre, nombreGuardado),
                     navLogin = {
                         // Logout runs in the activity-scoped ViewModel so popping this screen cannot cancel it
                         loginViewModel.logout()

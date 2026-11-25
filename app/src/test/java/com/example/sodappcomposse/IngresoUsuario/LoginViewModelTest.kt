@@ -49,6 +49,7 @@ class LoginViewModelTest {
         productoRepository = mockk(relaxUnitFun = true)
         val preferences = mockk<UserPreferencesRepository>()
         every { preferences.isLoggedIn } returns flowOf(false)
+        every { preferences.userName } returns flowOf(null)
         viewModel = LoginViewModel(authRepository, preferences, authSession, clienteRepository, productoRepository)
     }
 

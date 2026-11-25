@@ -391,9 +391,6 @@ Presione **Guardar**. Si el texto usa una variable que no corresponde a ese mens
 
 ## 10. Preguntas frecuentes
 
-**No veo mi nombre en el encabezado.**
-Cuando la aplicación inicia con la sesión ya guardada, el nombre puede no mostrarse. Cierre la sesión con **Salir** (en el menú ⋮) y vuelva a ingresar.
-
 **El botón "Cargar venta" está gris.**
 Falta elegir un cliente o al menos un producto.
 

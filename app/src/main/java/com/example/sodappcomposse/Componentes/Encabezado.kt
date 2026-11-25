@@ -21,6 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
+/** A restored session reaches the main screen without a name: fall back to the stored one. */
+fun nombreParaEncabezado(nombreRuta: String, nombreGuardado: String?): String =
+    nombreRuta.ifBlank { nombreGuardado.orEmpty() }
+
 /**
  * Main top bar:app name, signed-in user and the ⋮ menu (light/dark switch; company data,
  * messages and users and roles for the owner; logout).

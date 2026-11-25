@@ -64,6 +64,9 @@ class LoginViewModel @Inject constructor(
 
     val isLoggedIn = userPreferencesRepository.isLoggedIn
 
+    // Name saved at login; the header uses it when the app opens with a saved session
+    val userName = userPreferencesRepository.userName
+
     // True when the server rejected the session token (401); observed by the navigation layer
     val sessionExpired = authSession.sessionExpired
 
