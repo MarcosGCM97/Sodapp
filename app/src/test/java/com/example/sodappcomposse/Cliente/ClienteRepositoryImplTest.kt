@@ -117,6 +117,57 @@ class ClienteRepositoryImplTest {
     }
 
     @Test
+    fun `creating a client with a name already used shows the backend message`() = runTest {
+        coEvery { apiServices.postCliente(any()) } returns Response.error(
+            409,
+            """{"success":false,"error":"Ya existe un cliente con ese nombre"}""".toResponseBody()
+        )
+
+        val result = repository.postCliente(ClienteRequest(nombreCl = "Ana", numTelCl = "123", direccionCl = "Calle 1"))
+
+        assertEquals(
+            ClienteResult.Error(com.example.sodappcomposse.R.string.error_format, arrayOf("Ya existe un cliente con ese nombre")),
+            result
+        )
+    }
+
+    @Test
+    fun `renaming a client to a name already used shows the backend message`() = runTest {
+        coEvery { apiServices.updateCliente(any()) } returns Response.error(
+            409,
+            """{"success":false,"error":"Ya existe un cliente con ese nombre"}""".toResponseBody()
+        )
+
+        val result = repository.updateCliente(Cliente(idCl = 7, nombreCl = "Ana", numTelCl = "123", direccionCl = "Calle 1"))
+
+        assertEquals(
+            ClienteResult.Error(com.example.sodappcomposse.R.string.error_format, arrayOf("Ya existe un cliente con ese nombre")),
+            result
+        )
+    }
+
+    @Test
+    fun `a 409 without a message keeps the generic server message`() = runTest {
+        coEvery { apiServices.postCliente(any()) } returns Response.error(409, "".toResponseBody())
+
+        val result = repository.postCliente(ClienteRequest(nombreCl = "Ana", numTelCl = "123", direccionCl = "Calle 1"))
+
+        assertEquals(ClienteResult.Error(com.example.sodappcomposse.R.string.error_servidor_format, arrayOf(409)), result)
+    }
+
+    @Test
+    fun `a 409 of another client call keeps the generic server message`() = runTest {
+        coEvery { apiServices.eliminarCliente(25) } returns Response.error(
+            409,
+            """{"success":false,"error":"Otro conflicto"}""".toResponseBody()
+        )
+
+        val result = repository.eliminarCliente(25)
+
+        assertEquals(ClienteResult.Error(com.example.sodappcomposse.R.string.error_servidor_format, arrayOf(409)), result)
+    }
+
+    @Test
     fun `other server errors keep the generic server message`() = runTest {
         coEvery { apiServices.eliminarCliente(25) } returns Response.error(500, "".toResponseBody())
 
