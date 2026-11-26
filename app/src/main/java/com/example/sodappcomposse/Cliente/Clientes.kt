@@ -160,11 +160,13 @@ fun AddClienteForm(
                 telefonoCliente = ""
                 localidadCliente = ""
                 coordenadasCliente = null
-                //clienteModel.resetAddClienteState() // Resetear el estado para futuros guardados
+                // Shown once: the ViewModel outlives this tab, so a kept result would show again on return
+                clienteModel.resetAddClienteState()
             }
             is AddClienteUiState.Error -> {
                 Toast.makeText(context, context.getString(currentState.messageRes, *currentState.args), Toast.LENGTH_LONG).show()
-                //clienteModel.resetAddClienteState()
+                // Same as above; the form keeps what was typed so the name can be corrected
+                clienteModel.resetAddClienteState()
             }
             is AddClienteUiState.Loading -> {
                 // Podrías mostrar un indicador de carga aquí si el guardado tarda mucho
