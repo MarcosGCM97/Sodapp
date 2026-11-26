@@ -53,7 +53,13 @@ import androidx.compose.ui.res.stringResource
 import com.example.sodappcomposse.R
 import com.example.sodappcomposse.Funciones.formatearPrecio
 import com.example.sodappcomposse.Funciones.textoSaldoCliente
-import com.example.sodappcomposse.Funciones.armarMensajeSaldo
+import com.example.sodappcomposse.Envases.EnvasesClienteViewModel
+import com.example.sodappcomposse.Funciones.EnvaseMensaje
+import com.example.sodappcomposse.Funciones.openWhatsApp
+import com.example.sodappcomposse.Mensajes.MensajesViewModel
+import com.example.sodappcomposse.Mensajes.SelectorMensajesSheet
+import com.example.sodappcomposse.Mensajes.TipoPlantilla
+import com.example.sodappcomposse.Mensajes.opcionesMensajeCliente
 import com.example.sodappcomposse.Deuda
 import com.example.sodappcomposse.Bienvenida
 import com.example.sodappcomposse.CLAVE_COBRAR_CLIENTE
@@ -77,7 +83,10 @@ fun DeudaScreen(
     clienteModel: ClientesViewModel = hiltViewModel(),
     ventaModel: VentasViewModel = hiltViewModel(),
     productosModel: ProductoViewModel = hiltViewModel(),
-    deudaModel: DeudaViewModel = hiltViewModel()
+    deudaModel: DeudaViewModel = hiltViewModel(),
+    mensajesModel: MensajesViewModel = hiltViewModel(),
+    // Same instance as the Envases section of this screen (same back stack entry)
+    envasesModel: EnvasesClienteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
@@ -95,6 +104,7 @@ fun DeudaScreen(
             ventaModel.getVentasByClienteId(clienteId)
             clienteModel.getClienteById(clienteId)
             productosModel.getProductos()
+            mensajesModel.cargar()
             if (puedeVerCobros) clienteId.toIntOrNull()?.let { deudaModel.cargarPagos(it) }
             Log.d("DeudaScreen", "clienteId recibido: $clienteId")
         } else {
@@ -126,6 +136,9 @@ fun DeudaScreen(
     val ventasDelCliente = ventaModel.ventasPorClienteId
     // Sale waiting for the user to confirm its deletion
     var ventaAEliminar by remember { mutableStateOf<Venta?>(null) }
+    // WhatsApp message selector (balance, containers, last sale)
+    var mostrarSelectorMensajes by remember { mutableStateOf(false) }
+    val plantillas = mensajesModel.plantillas.value
 
 
     // 0 = Compras, 1 = Pagos
@@ -191,7 +204,7 @@ fun DeudaScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // Botón de WhatsApp
-                            CardWpp(context, cliente.value, armarMensajeSaldo(context.resources, cliente.value?.nombreCl, cliente.value?.deudaCl, nombreEmpresa))
+                            CardWpp(context, cliente.value, onClick = { mostrarSelectorMensajes = true })
 
                             // Botón de Llamada
                             Card(
@@ -252,7 +265,11 @@ fun DeudaScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 EnvasesClienteSection(
                     clienteId = idClienteEnvases,
-                    recargarKey = ventaModel.ventasUiState.takeIf { it is VentasUiState.Success }
+                    recargarKey = ventaModel.ventasUiState.takeIf { it is VentasUiState.Success },
+                    cliente = cliente.value,
+                    nombreEmpresa = nombreEmpresa,
+                    plantillaEnvases = plantillas[TipoPlantilla.ENVASES],
+                    envasesModel = envasesModel
                 )
             }
 
@@ -347,6 +364,26 @@ fun DeudaScreen(
             dismissButton = {
                 Button(onClick = { ventaAEliminar = null }) { Text(stringResource(R.string.cancelar)) }
             }
+        )
+    }
+
+    if (mostrarSelectorMensajes) {
+        val clienteActual = cliente.value
+        SelectorMensajesSheet(
+            opciones = opcionesMensajeCliente(
+                resources = context.resources,
+                nombreCliente = clienteActual?.nombreCl,
+                saldo = clienteActual?.deudaCl,
+                envases = envasesModel.envases.value.map { EnvaseMensaje(it.cantidad, it.nombreProducto) },
+                ventas = ventasDelCliente.value,
+                nombreEmpresa = nombreEmpresa,
+                plantillas = plantillas
+            ),
+            onEnviar = { mensaje ->
+                mostrarSelectorMensajes = false
+                openWhatsApp(context, clienteActual?.numTelCl.toString(), mensaje)
+            },
+            onDismiss = { mostrarSelectorMensajes = false }
         )
     }
 }

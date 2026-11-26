@@ -2,6 +2,8 @@ package com.example.sodappcomposse.di
 
 import com.example.sodappcomposse.Administracion.AdministracionRepository
 import com.example.sodappcomposse.Administracion.AdministracionRepositoryImpl
+import com.example.sodappcomposse.Empresa.EmpresaRepository
+import com.example.sodappcomposse.Empresa.EmpresaRepositoryImpl
 import com.example.sodappcomposse.Caja.CajaRepository
 import com.example.sodappcomposse.Caja.CajaRepositoryImpl
 import com.example.sodappcomposse.Cliente.AgendaRepository
@@ -14,6 +16,8 @@ import com.example.sodappcomposse.Gastos.GastoRepository
 import com.example.sodappcomposse.Gastos.GastoRepositoryImpl
 import com.example.sodappcomposse.IngresoUsuario.AuthRepository
 import com.example.sodappcomposse.IngresoUsuario.AuthRepositoryImpl
+import com.example.sodappcomposse.Mensajes.PlantillasRepository
+import com.example.sodappcomposse.Mensajes.PlantillasRepositoryImpl
 import com.example.sodappcomposse.Producto.ProductoRepository
 import com.example.sodappcomposse.Producto.ProductoRepositoryImpl
 import com.example.sodappcomposse.Reparto.RepartoRepository
@@ -75,4 +79,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGastoRepository(impl: GastoRepositoryImpl): GastoRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEmpresaRepository(impl: EmpresaRepositoryImpl): EmpresaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPlantillasRepository(impl: PlantillasRepositoryImpl): PlantillasRepository
 }

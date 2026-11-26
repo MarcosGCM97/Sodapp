@@ -17,6 +17,7 @@ import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -48,6 +49,7 @@ class VentasViewModelTest {
         val userPreferences: UserPreferencesRepository = mockk()
         every { userPreferences.userId } returns flowOf("7")
         every { userPreferences.userName } returns flowOf("Soderia Ariza")
+        every { userPreferences.companyName } returns flowOf(null)
         viewModel = VentasViewModel(
             ventaRepository,
             clienteRepository,
@@ -59,6 +61,25 @@ class VentasViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    private fun viewModelWith(companyName: String?, userName: String?): VentasViewModel {
+        val prefs: UserPreferencesRepository = mockk()
+        every { prefs.userId } returns flowOf("7")
+        every { prefs.userName } returns flowOf(userName)
+        every { prefs.companyName } returns flowOf(companyName)
+        return VentasViewModel(ventaRepository, clienteRepository, productoRepository, prefs)
+    }
+
+    @Test
+    fun `WhatsApp messages are signed with the company name when it is set`() = runTest {
+        assertEquals("Soderia La Calera", viewModelWith("Soderia La Calera", "vendedor1").nombreEmpresa.first())
+    }
+
+    @Test
+    fun `WhatsApp messages fall back to the user name without company name`() = runTest {
+        assertEquals("vendedor1", viewModelWith(null, "vendedor1").nombreEmpresa.first())
+        assertEquals("vendedor1", viewModelWith("  ", "vendedor1").nombreEmpresa.first())
     }
 
     @Test

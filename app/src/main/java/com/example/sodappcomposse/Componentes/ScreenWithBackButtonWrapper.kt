@@ -23,6 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.sodappcomposse.AdminUsuarios
+import com.example.sodappcomposse.DatosEmpresa
+import com.example.sodappcomposse.MensajesWhatsApp
+import com.example.sodappcomposse.auth.LocalSessionPermissions
+import com.example.sodappcomposse.auth.puedeAdministrar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,12 +36,22 @@ fun ScreenWithBackButtonWrapper(
     navController: NavController,
     title: String, // Título para la TopAppBar
     themeViewModel: ThemeViewModel = hiltViewModel(),
+    // False on the company data screen itself, so the menu does not open it again
+    mostrarDatosEmpresa: Boolean = true,
+    // False on the WhatsApp messages screen itself, for the same reason
+    mostrarMensajes: Boolean = true,
+    // False on the users and roles screen itself, for the same reason
+    mostrarAdministracion: Boolean = true,
     content: @Composable () -> Unit // El contenido principal de la pantalla
 ) {
     val themeModeState = themeViewModel.themeMode.collectAsState()
     val themeMode = themeModeState.value
     val isSystemDark = isSystemInDarkTheme()
     val isDark = themeMode ?: isSystemDark
+    val esDueno = puedeAdministrar(LocalSessionPermissions.current)
+    val puedeEditarEmpresa = mostrarDatosEmpresa && esDueno
+    val puedeEditarMensajes = mostrarMensajes && esDueno
+    val puedeAbrirAdministracion = mostrarAdministracion && esDueno
 
     Scaffold(
         topBar = {
@@ -51,9 +66,12 @@ fun ScreenWithBackButtonWrapper(
                     }
                 },
                 actions = {
-                    ThemeToggleButton(
+                    HeaderOverflowMenu(
                         isDark = isDark,
-                        onToggle = { themeViewModel.toggleTheme(isDark) }
+                        onToggleTheme = { themeViewModel.toggleTheme(isDark) },
+                        onDatosEmpresa = { navController.navigate(DatosEmpresa) }.takeIf { puedeEditarEmpresa },
+                        onMensajes = { navController.navigate(MensajesWhatsApp) }.takeIf { puedeEditarMensajes },
+                        onAdministrar = { navController.navigate(AdminUsuarios) }.takeIf { puedeAbrirAdministracion }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

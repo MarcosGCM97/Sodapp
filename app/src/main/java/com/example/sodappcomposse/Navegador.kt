@@ -18,11 +18,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.sodappcomposse.Administracion.AdministracionScreen
+import com.example.sodappcomposse.Empresa.DatosEmpresaScreen
+import com.example.sodappcomposse.Mensajes.MensajesScreen
 import com.example.sodappcomposse.Cliente.ClienteEditarScreen
 import com.example.sodappcomposse.Cliente.DeudaScreen
 import com.example.sodappcomposse.Componentes.AgendaScreen
 import com.example.sodappcomposse.Componentes.BienvenidaScreen
 import com.example.sodappcomposse.Componentes.LoginScreen
+import com.example.sodappcomposse.Componentes.nombreParaEncabezado
 import com.example.sodappcomposse.Gastos.RegistrarGastoScreen
 import com.example.sodappcomposse.IngresoUsuario.LoginViewModel
 import com.example.sodappcomposse.Producto.ProductoEditarScreen
@@ -63,6 +66,14 @@ object AdminUsuarios
 @Serializable
 data class RegistrarGasto(val repartoId: Int)
 
+// Owner-only company data (name, phone, address)
+@Serializable
+object DatosEmpresa
+
+// Owner-only WhatsApp message templates (deuda, envases, venta)
+@Serializable
+object MensajesWhatsApp
+
 @Composable
 fun Navigator(
     loginViewModel: LoginViewModel = hiltViewModel()
@@ -95,6 +106,7 @@ fun Navigator(
     }
 
     val permissions by loginViewModel.permissions.collectAsState()
+    val nombreGuardado by loginViewModel.userName.collectAsState(initial = null)
 
     CompositionLocalProvider(LocalSessionPermissions provides (permissions ?: SessionPermissions())) {
         NavHost(
@@ -119,7 +131,7 @@ fun Navigator(
                     return@composable
                 }
                 BienvenidaScreen(
-                    nombreUser = route.nombre,
+                    nombreUser = nombreParaEncabezado(route.nombre, nombreGuardado),
                     navLogin = {
                         // Logout runs in the activity-scoped ViewModel so popping this screen cannot cancel it
                         loginViewModel.logout()
@@ -159,6 +171,14 @@ fun Navigator(
             composable<RegistrarGasto> { backStackEntry ->
                 val route: RegistrarGasto = backStackEntry.toRoute()
                 RegistrarGastoScreen(navController = navController, repartoId = route.repartoId)
+            }
+
+            composable<DatosEmpresa> {
+                DatosEmpresaScreen(navController = navController)
+            }
+
+            composable<MensajesWhatsApp> {
+                MensajesScreen(navController = navController)
             }
         }
     }

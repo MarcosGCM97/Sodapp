@@ -34,6 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.sodappcomposse.Cliente.Cliente
+import com.example.sodappcomposse.Componentes.BotonWpp
+import com.example.sodappcomposse.Funciones.EnvaseMensaje
+import com.example.sodappcomposse.Funciones.armarMensajeEnvases
+import com.example.sodappcomposse.Funciones.tieneEnvases
 import com.example.sodappcomposse.Producto.ProductoUiState
 import com.example.sodappcomposse.R
 
@@ -47,6 +52,10 @@ fun EnvasesClienteSection(
     clienteId: Int,
     recargarKey: Any?,
     modifier: Modifier = Modifier,
+    // WhatsApp button with the containers message; hidden without a client or containers
+    cliente: Cliente? = null,
+    nombreEmpresa: String? = null,
+    plantillaEnvases: String? = null,
     envasesModel: EnvasesClienteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -89,6 +98,7 @@ fun EnvasesClienteSection(
             if (envases.isEmpty()) {
                 Text(stringResource(R.string.envases_sin_retornables), style = MaterialTheme.typography.bodyMedium)
             } else {
+                val envasesMensaje = envases.map { EnvaseMensaje(it.cantidad, it.nombreProducto) }
                 envases.forEach { envase ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -103,6 +113,16 @@ fun EnvasesClienteSection(
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar_desc))
                         }
                     }
+                }
+                if (cliente != null && tieneEnvases(envasesMensaje)) {
+                    BotonWpp(
+                        context = context,
+                        cliente = cliente,
+                        mensaje = armarMensajeEnvases(
+                            context.resources, cliente.nombreCl, envasesMensaje, nombreEmpresa, plantillaEnvases
+                        ),
+                        modifier = Modifier.align(Alignment.End)
+                    )
                 }
             }
         }

@@ -6,6 +6,12 @@ import com.example.sodappcomposse.Administracion.CrearUsuarioRequest
 import com.example.sodappcomposse.Administracion.RolRequest
 import com.example.sodappcomposse.Administracion.RolesResponse
 import com.example.sodappcomposse.Administracion.UsuariosResponse
+import com.example.sodappcomposse.Empresa.CambiarContrasenaRequest
+import com.example.sodappcomposse.Empresa.CambiarContrasenaResponse
+import com.example.sodappcomposse.Empresa.EmpresaRequest
+import com.example.sodappcomposse.Empresa.EmpresaResponse
+import com.example.sodappcomposse.Mensajes.PlantillaRequest
+import com.example.sodappcomposse.Mensajes.PlantillasResponse
 import com.example.sodappcomposse.Caja.ReporteResponse
 import com.example.sodappcomposse.Cliente.Cliente
 import com.example.sodappcomposse.Cliente.ClienteRequest
@@ -233,4 +239,25 @@ interface ApiServices {
 
     @DELETE("gastos.php")
     suspend fun eliminarGasto(@Query("id") id: Int): Response<GastoResponse>
+
+    // Company data: every user reads it, only the owner saves it (anyone else gets 403)
+    @GET("empresa.php")
+    suspend fun getEmpresa(): Response<EmpresaResponse>
+
+    @PUT("empresa.php")
+    suspend fun guardarEmpresa(@Body request: EmpresaRequest): Response<EmpresaResponse>
+
+    // Own password change of the owner; a wrong current password is a 400 with its message
+    @PUT("contrasena.php")
+    suspend fun cambiarContrasena(@Body request: CambiarContrasenaRequest): Response<CambiarContrasenaResponse>
+
+    // WhatsApp templates: every user reads them, only the owner saves or restores them (403 otherwise)
+    @GET("mensajes.php")
+    suspend fun getPlantillas(): Response<PlantillasResponse>
+
+    @PUT("mensajes.php")
+    suspend fun guardarPlantilla(@Body request: PlantillaRequest): Response<PlantillasResponse>
+
+    @DELETE("mensajes.php")
+    suspend fun restaurarPlantilla(@Query("tipo") tipo: String): Response<PlantillasResponse>
 }

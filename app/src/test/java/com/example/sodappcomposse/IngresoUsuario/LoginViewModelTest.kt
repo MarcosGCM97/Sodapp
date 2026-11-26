@@ -49,6 +49,7 @@ class LoginViewModelTest {
         productoRepository = mockk(relaxUnitFun = true)
         val preferences = mockk<UserPreferencesRepository>()
         every { preferences.isLoggedIn } returns flowOf(false)
+        every { preferences.userName } returns flowOf(null)
         viewModel = LoginViewModel(authRepository, preferences, authSession, clienteRepository, productoRepository)
     }
 
@@ -123,6 +124,28 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         coVerify { authSession.startSession("7", "juan", "jwt-7", permisos) }
+    }
+
+    @Test
+    fun `successful login stores the company name of the response`() = runTest {
+        coEvery { authRepository.login(any()) } returns AuthResult.Success(
+            UsuarioResponse(true, "ok", Usuario(idUs = 5, nombreUs = "marcos"), "jwt-5", empresaNombre = "Soderia La Calera")
+        )
+
+        viewModel.login("marcos", "secret")
+        advanceUntilIdle()
+
+        coVerify { authSession.startSession("5", "marcos", "jwt-5", SessionPermissions(), "Soderia La Calera") }
+    }
+
+    @Test
+    fun `restoring a session refreshes the company name from the server`() = runTest {
+        coEvery { authRepository.getSesion() } returns SesionResult.Success(SessionPermissions(), "Soderia La Calera")
+
+        viewModel.restoreSession()
+        advanceUntilIdle()
+
+        coVerify { authSession.updateCompanyName("Soderia La Calera", "saved-token") }
     }
 
     @Test

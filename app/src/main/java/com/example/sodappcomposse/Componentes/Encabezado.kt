@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,13 +16,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.sodappcomposse.R
 
-/** Main top bar: app name, signed-in user, light/dark switch, administration (owner) and logout. */
+/** A restored session reaches the main screen without a name: fall back to the stored one. */
+fun nombreParaEncabezado(nombreRuta: String, nombreGuardado: String?): String =
+    nombreRuta.ifBlank { nombreGuardado.orEmpty() }
+
+/**
+ * Main top bar:app name, signed-in user and the ⋮ menu (light/dark switch; company data,
+ * messages and users and roles for the owner; logout).
+ */
 @Composable
 fun Encabezado(
     nombre: String,
@@ -35,7 +37,11 @@ fun Encabezado(
     // Ends the session and goes back to login (handled by the Navigator)
     navLogin: () -> Unit,
     // Opens users and roles administration; null hides the entry (only the owner gets it)
-    onAdministrar: (() -> Unit)? = null
+    onAdministrar: (() -> Unit)? = null,
+    // Opens the company data; null hides the menu entry (only the owner gets it)
+    onDatosEmpresa: (() -> Unit)? = null,
+    // Opens the WhatsApp message templates; null hides the menu entry (only the owner gets it)
+    onMensajes: (() -> Unit)? = null
 ) {
     Surface(color = MaterialTheme.colorScheme.primaryContainer) {
         Row(
@@ -69,27 +75,15 @@ fun Encabezado(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.widthIn(max = 140.dp)
             )
-            ThemeToggleButton(
+            HeaderOverflowMenu(
                 isDark = isDark,
-                onToggle = onToggleTheme,
+                onToggleTheme = onToggleTheme,
+                onDatosEmpresa = onDatosEmpresa,
+                onMensajes = onMensajes,
+                onAdministrar = onAdministrar,
+                onSalir = navLogin,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            onAdministrar?.let { abrir ->
-                IconButton(onClick = abrir) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(R.string.administracion_titulo),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            IconButton(onClick = navLogin) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = stringResource(R.string.salir_label),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
         }
     }
 }

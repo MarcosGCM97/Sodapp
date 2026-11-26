@@ -25,7 +25,10 @@ data class UsuarioResponse(
     @SerializedName("es_dueno")
     val esDueno: Boolean = false,
     @SerializedName("permisos")
-    val permisos: List<String>? = null
+    val permisos: List<String>? = null,
+    // Company name the WhatsApp messages are signed with; null when unset or in older backends
+    @SerializedName("empresa_nombre")
+    val empresaNombre: String? = null
 ) {
     fun sessionPermissions() = SessionPermissions(esDueno, permisos.orEmpty().toSet())
 }
@@ -41,7 +44,9 @@ data class SesionResponse(
     @SerializedName("es_dueno")
     val esDueno: Boolean = false,
     @SerializedName("permisos")
-    val permisos: List<String>? = null
+    val permisos: List<String>? = null,
+    @SerializedName("empresa_nombre")
+    val empresaNombre: String? = null
 ) {
     fun sessionPermissions() = SessionPermissions(esDueno, permisos.orEmpty().toSet())
 }

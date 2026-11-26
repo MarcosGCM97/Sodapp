@@ -71,8 +71,12 @@ class VentasViewModel @Inject constructor(
 ) : ViewModel() {
     private val TAG = "VentasViewModel"
 
-    // The logged-in user's name signs the WhatsApp messages as the business name
-    val nombreEmpresa: Flow<String?> = userPreferencesRepository.userName
+    // WhatsApp messages are signed with the company name (datos-empresa); until the owner
+    // saves it, with the logged-in user's name as before
+    val nombreEmpresa: Flow<String?> = combine(
+        userPreferencesRepository.companyName,
+        userPreferencesRepository.userName
+    ) { companyName, userName -> companyName?.takeIf { it.isNotBlank() } ?: userName }
 
     private val _ventas = MutableStateFlow<List<Venta>>(emptyList())
     val ventas: StateFlow<List<Venta>> = _ventas.asStateFlow()

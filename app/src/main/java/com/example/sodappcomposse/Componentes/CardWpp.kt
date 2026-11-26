@@ -55,11 +55,13 @@ fun BotonWpp(
     }
 }
 
+/** Big WhatsApp card; [onClick] replaces sending [mensaje] directly (the client screen opens a selector). */
 @Composable
 fun CardWpp(
     context: Context,
     cliente: Cliente?,
-    mensaje: String
+    mensaje: String = "",
+    onClick: (() -> Unit)? = null
 ){
     //Log.d("CardWpp", "Cliente: ${cliente?.idCl}")
     Card(
@@ -67,9 +69,11 @@ fun CardWpp(
             .width(100.dp)
             .padding(end = 8.dp)
             .clickable {
-                val numTel = cliente?.numTelCl.toString()
-                val mensaje = mensaje
-                openWhatsApp(context, numTel, mensaje)
+                if (onClick != null) {
+                    onClick()
+                } else {
+                    openWhatsApp(context, cliente?.numTelCl.toString(), mensaje)
+                }
             },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(

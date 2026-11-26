@@ -3,6 +3,7 @@ package com.example.sodappcomposse
 import android.content.Context
 import androidx.core.content.edit
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -32,11 +33,18 @@ class UserPreferencesRepository @Inject constructor(
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         val IS_OWNER = booleanPreferencesKey("es_dueno")
         val PERMISSIONS = stringSetPreferencesKey("permisos")
+        val COMPANY_NAME = stringPreferencesKey("company_name")
         val THEME_MODE = stringPreferencesKey("theme_mode") // "system", "light", "dark"
     }
 
     // Función para guardar los datos al hacer Login
-    suspend fun saveUserData(id: String, name: String, token: String, permissions: SessionPermissions) {
+    suspend fun saveUserData(
+        id: String,
+        name: String,
+        token: String,
+        permissions: SessionPermissions,
+        companyName: String? = null
+    ) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_ID] = id
             preferences[PreferencesKeys.USER_NAME] = name
@@ -44,8 +52,28 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.IS_LOGGED_IN] = true
             preferences[PreferencesKeys.IS_OWNER] = permissions.esDueno
             preferences[PreferencesKeys.PERMISSIONS] = permissions.permisos
+            putCompanyName(preferences, companyName)
         }
     }
+
+    // Company name of the session (datos-empresa); null removes it
+    suspend fun saveCompanyName(companyName: String?) {
+        context.dataStore.edit { preferences -> putCompanyName(preferences, companyName) }
+    }
+
+    private fun putCompanyName(preferences: MutablePreferences, companyName: String?) {
+        if (companyName.isNullOrBlank()) {
+            preferences.remove(PreferencesKeys.COMPANY_NAME)
+        } else {
+            preferences[PreferencesKeys.COMPANY_NAME] = companyName
+        }
+    }
+
+    // Company name the WhatsApp messages are signed with; null until the owner saves it
+    val companyName: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.COMPANY_NAME]
+        }
 
     // Replaces the stored permissions of the current session (refreshed from sesion.php)
     suspend fun savePermissions(permissions: SessionPermissions) {
