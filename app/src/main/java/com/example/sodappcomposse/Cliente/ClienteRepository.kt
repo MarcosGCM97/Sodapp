@@ -1,6 +1,8 @@
 package com.example.sodappcomposse.Cliente
 
 import com.example.sodappcomposse.API.httpErrorMessage
+import com.example.sodappcomposse.API.HTTP_CONFLICT
+import com.example.sodappcomposse.API.backendErrorMessage
 import com.example.sodappcomposse.API.ApiServices
 import com.example.sodappcomposse.API.PostResponse
 import com.example.sodappcomposse.R
@@ -76,13 +78,13 @@ class ClienteRepositoryImpl @Inject constructor(
     }
 
     override suspend fun postCliente(clienteRequest: ClienteRequest): ClienteResult<PostResponse> {
-        val result = handleApiCall { apiServices.postCliente(clienteRequest) }
+        val result = handleApiCall(mensajeEnConflicto = true) { apiServices.postCliente(clienteRequest) }
         if (result is ClienteResult.Success) clearCache()
         return result
     }
 
     override suspend fun updateCliente(cliente: Cliente): ClienteResult<PostResponse> {
-        val result = handleApiCall { apiServices.updateCliente(cliente.toUpdateBody()) }
+        val result = handleApiCall(mensajeEnConflicto = true) { apiServices.updateCliente(cliente.toUpdateBody()) }
         if (result is ClienteResult.Success) clearCache()
         return result
     }
@@ -115,9 +117,14 @@ class ClienteRepositoryImpl @Inject constructor(
         cachedClientes = null
     }
 
-    private suspend fun <T> handleApiCall(call: suspend () -> retrofit2.Response<T>): ClienteResult<T> {
+    // mensajeEnConflicto: a 409 shows the backend text (create and edit: "Ya existe un cliente con ese nombre")
+    private suspend fun <T> handleApiCall(
+        mensajeEnConflicto: Boolean = false,
+        call: suspend () -> retrofit2.Response<T>
+    ): ClienteResult<T> {
         return try {
             val response = call()
+            val conflicto = if (mensajeEnConflicto && response.code() == HTTP_CONFLICT) backendErrorMessage(response) else null
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
@@ -125,6 +132,8 @@ class ClienteRepositoryImpl @Inject constructor(
                 } else {
                     ClienteResult.Error(R.string.cuerpo_nulo_error)
                 }
+            } else if (conflicto != null) {
+                ClienteResult.Error(R.string.error_format, arrayOf(conflicto))
             } else {
                 ClienteResult.Error(httpErrorMessage(response.code(), R.string.error_servidor_format), arrayOf(response.code()))
             }
